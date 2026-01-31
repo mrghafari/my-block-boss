@@ -10,9 +10,16 @@ export interface Unit {
   area: number | null;
   floor: number | null;
   is_occupied: boolean;
+  resident_count: number | null;
+  resident_name: string | null;
+  resident_phone: string | null;
+  landline_phone: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export type CreateUnitData = Omit<Unit, "id" | "created_at" | "updated_at">;
+export type UpdateUnitData = Partial<CreateUnitData> & { id: string };
 
 export function useUnits() {
   return useQuery({
@@ -33,7 +40,7 @@ export function useCreateUnit() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (unit: Omit<Unit, "id" | "created_at" | "updated_at">) => {
+    mutationFn: async (unit: CreateUnitData) => {
       const { data, error } = await supabase
         .from("units")
         .insert(unit)
@@ -57,7 +64,7 @@ export function useUpdateUnit() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...unit }: Partial<Unit> & { id: string }) => {
+    mutationFn: async ({ id, ...unit }: UpdateUnitData) => {
       const { data, error } = await supabase
         .from("units")
         .update(unit)
