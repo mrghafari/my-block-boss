@@ -109,8 +109,12 @@ export type Database = {
           floor: number | null
           id: string
           is_occupied: boolean | null
+          landline_phone: string | null
           owner_name: string
           phone: string | null
+          resident_count: number | null
+          resident_name: string | null
+          resident_phone: string | null
           unit_number: string
           updated_at: string
         }
@@ -120,8 +124,12 @@ export type Database = {
           floor?: number | null
           id?: string
           is_occupied?: boolean | null
+          landline_phone?: string | null
           owner_name: string
           phone?: string | null
+          resident_count?: number | null
+          resident_name?: string | null
+          resident_phone?: string | null
           unit_number: string
           updated_at?: string
         }
@@ -131,8 +139,12 @@ export type Database = {
           floor?: number | null
           id?: string
           is_occupied?: boolean | null
+          landline_phone?: string | null
           owner_name?: string
           phone?: string | null
+          resident_count?: number | null
+          resident_name?: string | null
+          resident_phone?: string | null
           unit_number?: string
           updated_at?: string
         }

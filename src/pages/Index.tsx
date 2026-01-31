@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { ExpensesPage } from "@/components/expenses/ExpensesPage";
+import { UnitsPage } from "@/components/units/UnitsPage";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -11,6 +12,8 @@ const Index = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
+      case "units":
+        return <UnitsPage />;
       case "expenses":
         return <ExpensesPage />;
       default:
@@ -18,8 +21,7 @@ const Index = () => {
           <div className="flex items-center justify-center h-[60vh]">
             <div className="text-center animate-fade-in">
               <h2 className="text-2xl font-bold text-muted-foreground mb-2">
-                بخش {activeTab === "units" ? "واحدها" : 
-                      activeTab === "residents" ? "ساکنین" :
+                بخش {activeTab === "residents" ? "ساکنین" :
                       activeTab === "payments" ? "پرداخت‌ها" :
                       activeTab === "reports" ? "گزارش‌ها" :
                       activeTab === "announcements" ? "اعلانات" :
