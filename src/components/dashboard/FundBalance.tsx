@@ -1,23 +1,121 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, TrendingUp, TrendingDown, ChevronLeft } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Wallet, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
 import { usePayments, FundType } from "@/hooks/usePayments";
 import { useExpenses } from "@/hooks/useExpenses";
-import { FundTransactionsDialog } from "./FundTransactionsDialog";
+import { formatJalaliDate } from "@/lib/jalaliDate";
 
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat("fa-IR").format(amount);
 };
 
+function FundTransactions({ fundType }: { fundType: FundType }) {
+  const { data: payments = [] } = usePayments();
+  const { data: expenses = [] } = useExpenses();
+
+  const fundPayments = payments.filter((p) => p.fund_type === fundType);
+  const fundExpenses = expenses.filter((e) => e.fund_type === fundType);
+
+  const transactions = [
+    ...fundPayments.map((p) => ({
+      id: p.id,
+      type: "credit" as const,
+      amount: Number(p.amount),
+      date: p.payment_date,
+      description: p.description || `واحد ${p.units?.unit_number || "-"}`,
+    })),
+    ...fundExpenses.map((e) => ({
+      id: e.id,
+      type: "debit" as const,
+      amount: Number(e.amount),
+      date: e.expense_date,
+      description: e.title,
+    })),
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  let runningBalance = 0;
+  const transactionsWithBalance = transactions.map((t) => {
+    if (t.type === "credit") {
+      runningBalance += t.amount;
+    } else {
+      runningBalance -= t.amount;
+    }
+    return { ...t, balance: runningBalance };
+  });
+
+  const displayTransactions = [...transactionsWithBalance].reverse();
+
+  if (displayTransactions.length === 0) {
+    return (
+      <div className="text-center py-4 text-xs text-muted-foreground">
+        هیچ تراکنشی ثبت نشده
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 border rounded-lg overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/30">
+            <TableHead className="text-right text-xs py-2 h-8">تاریخ</TableHead>
+            <TableHead className="text-right text-xs py-2 h-8">شرح</TableHead>
+            <TableHead className="text-center text-xs py-2 h-8 w-20">بد</TableHead>
+            <TableHead className="text-center text-xs py-2 h-8 w-20">بس</TableHead>
+            <TableHead className="text-center text-xs py-2 h-8 w-24">مانده</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {displayTransactions.slice(0, 10).map((t) => (
+            <TableRow key={t.id} className="text-xs">
+              <TableCell className="py-1.5 text-muted-foreground">
+                {formatJalaliDate(t.date)}
+              </TableCell>
+              <TableCell className="py-1.5 max-w-[120px] truncate">
+                {t.description}
+              </TableCell>
+              <TableCell className="py-1.5 text-center">
+                {t.type === "debit" ? (
+                  <span className="text-red-600">{formatAmount(t.amount)}</span>
+                ) : "-"}
+              </TableCell>
+              <TableCell className="py-1.5 text-center">
+                {t.type === "credit" ? (
+                  <span className="text-green-600">{formatAmount(t.amount)}</span>
+                ) : "-"}
+              </TableCell>
+              <TableCell className="py-1.5 text-center font-medium">
+                <span className={t.balance >= 0 ? "text-green-600" : "text-red-600"}>
+                  {formatAmount(Math.abs(t.balance))}
+                  {t.balance < 0 && "-"}
+                </span>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export function FundBalance() {
   const { data: payments = [] } = usePayments();
   const { data: expenses = [] } = useExpenses();
-  const [selectedFund, setSelectedFund] = useState<{
-    type: FundType;
-    name: string;
-  } | null>(null);
+  const [openFund, setOpenFund] = useState<FundType | null>(null);
 
-  // Calculate totals for each fund type
   const chargePayments = payments
     .filter((p) => p.fund_type === "charge")
     .reduce((sum, p) => sum + Number(p.amount), 0);
@@ -61,25 +159,31 @@ export function FundBalance() {
   ];
 
   return (
-    <>
-      <Card className="animate-fade-in h-fit">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Wallet className="w-4 h-4" />
-            موجودی صندوق‌ها
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {funds.map((fund, index) => (
-            <div
-              key={index}
-              onClick={() => setSelectedFund({ type: fund.type, name: fund.name })}
-              className={`p-3 rounded-lg border ${fund.borderColor} ${fund.bgColor} cursor-pointer hover:opacity-80 transition-opacity`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className={`font-medium text-sm ${fund.color}`}>{fund.name}</h3>
-                <ChevronLeft className={`w-4 h-4 ${fund.color}`} />
-              </div>
+    <Card className="animate-fade-in h-fit">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Wallet className="w-4 h-4" />
+          موجودی صندوق‌ها
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {funds.map((fund) => (
+          <Collapsible
+            key={fund.type}
+            open={openFund === fund.type}
+            onOpenChange={(open) => setOpenFund(open ? fund.type : null)}
+          >
+            <div className={`p-3 rounded-lg border ${fund.borderColor} ${fund.bgColor}`}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`font-medium text-sm ${fund.color}`}>{fund.name}</h3>
+                  <ChevronDown
+                    className={`w-4 h-4 ${fund.color} transition-transform ${
+                      openFund === fund.type ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              </CollapsibleTrigger>
               
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
@@ -115,33 +219,30 @@ export function FundBalance() {
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-          
-          {/* Total Balance */}
-          <div className="p-3 rounded-lg bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">موجودی کل</span>
-              <span
-                className={`text-sm font-bold ${
-                  chargeBalance + extraChargeBalance >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
-              >
-                {formatAmount(chargeBalance + extraChargeBalance)} ت
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <FundTransactionsDialog
-        open={selectedFund !== null}
-        onOpenChange={(open) => !open && setSelectedFund(null)}
-        fundType={selectedFund?.type || "charge"}
-        fundName={selectedFund?.name || ""}
-      />
-    </>
+              <CollapsibleContent>
+                <FundTransactions fundType={fund.type} />
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+        ))}
+        
+        {/* Total Balance */}
+        <div className="p-3 rounded-lg bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium">موجودی کل</span>
+            <span
+              className={`text-sm font-bold ${
+                chargeBalance + extraChargeBalance >= 0
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
+              {formatAmount(chargeBalance + extraChargeBalance)} ت
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
