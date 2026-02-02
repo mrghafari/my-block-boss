@@ -5,8 +5,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUpLeft, ArrowDownRight } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { usePayments, FundType } from "@/hooks/usePayments";
 import { useExpenses } from "@/hooks/useExpenses";
 import { formatJalaliDate } from "@/lib/jalaliDate";
@@ -34,81 +40,105 @@ export function FundTransactionsDialog({
   const fundPayments = payments.filter((p) => p.fund_type === fundType);
   const fundExpenses = expenses.filter((e) => e.fund_type === fundType);
 
-  // Combine and sort by date
+  // Combine and sort by date (oldest first for running balance)
   const transactions = [
     ...fundPayments.map((p) => ({
       id: p.id,
-      type: "income" as const,
+      type: "credit" as const,
       amount: Number(p.amount),
       date: p.payment_date,
       description: p.description || `پرداخت واحد ${p.units?.unit_number || "-"}`,
-      unit: p.units?.unit_number,
     })),
     ...fundExpenses.map((e) => ({
       id: e.id,
-      type: "expense" as const,
+      type: "debit" as const,
       amount: Number(e.amount),
       date: e.expense_date,
       description: e.title,
-      unit: null,
     })),
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Calculate running balance
+  let runningBalance = 0;
+  const transactionsWithBalance = transactions.map((t) => {
+    if (t.type === "credit") {
+      runningBalance += t.amount;
+    } else {
+      runningBalance -= t.amount;
+    }
+    return { ...t, balance: runningBalance };
+  });
+
+  // Reverse for display (newest first)
+  const displayTransactions = [...transactionsWithBalance].reverse();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            تراکنش‌های {fundName}
+            دفتر {fundName}
           </DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh]">
-          {transactions.length === 0 ? (
+          {displayTransactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               هیچ تراکنشی ثبت نشده است
             </div>
           ) : (
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        transaction.type === "income"
-                          ? "bg-green-500/10"
-                          : "bg-red-500/10"
-                      }`}
-                    >
-                      {transaction.type === "income" ? (
-                        <ArrowUpLeft className="w-4 h-4 text-green-500" />
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right w-24">تاریخ</TableHead>
+                  <TableHead className="text-right">شرح</TableHead>
+                  <TableHead className="text-center w-28">بدهکار</TableHead>
+                  <TableHead className="text-center w-28">بستانکار</TableHead>
+                  <TableHead className="text-center w-28">مانده</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayTransactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="text-right text-xs text-muted-foreground">
+                      {formatJalaliDate(transaction.date)}
+                    </TableCell>
+                    <TableCell className="text-right text-sm">
+                      {transaction.description}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {transaction.type === "debit" ? (
+                        <span className="text-red-600 font-medium">
+                          {formatAmount(transaction.amount)}
+                        </span>
                       ) : (
-                        <ArrowDownRight className="w-4 h-4 text-red-500" />
+                        <span className="text-muted-foreground">-</span>
                       )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium line-clamp-1">
-                        {transaction.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatJalaliDate(transaction.date)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-left">
-                    <Badge
-                      variant={transaction.type === "income" ? "default" : "destructive"}
-                      className="font-medium"
-                    >
-                      {transaction.type === "income" ? "+" : "-"}
-                      {formatAmount(transaction.amount)}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {transaction.type === "credit" ? (
+                        <span className="text-green-600 font-medium">
+                          {formatAmount(transaction.amount)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span
+                        className={`font-bold ${
+                          transaction.balance >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {formatAmount(Math.abs(transaction.balance))}
+                        {transaction.balance < 0 && " -"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </ScrollArea>
       </DialogContent>
