@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -23,6 +23,7 @@ import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import { generateUnitReportPDF } from "@/lib/pdfGenerator";
 import { DateRangeFilter } from "./DateRangeFilter";
+import { UnitReportPrintable } from "./UnitReportPrintable";
 
 interface UnitDetailReportProps {
   selectedUnitId: string | null;
@@ -46,6 +47,7 @@ const allocationLabels: Record<string, string> = {
 export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDateRangeChange }: UnitDetailReportProps) {
   const { unitBalances, isLoading } = useUnitBalanceFiltered(dateRange);
   const { data: categories = [] } = useExpenseCategories();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const selectedBalance = useMemo(() => {
     return unitBalances.find((ub) => ub.unit.id === selectedUnitId);
@@ -64,9 +66,14 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
     return labels;
   }, [categories]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (selectedBalance) {
-      generateUnitReportPDF(selectedBalance, dateRange, categoryLabels);
+      setIsGeneratingPDF(true);
+      // Wait for the printable component to render
+      setTimeout(async () => {
+        await generateUnitReportPDF("pdf-report-content", selectedBalance.unit.unit_number);
+        setIsGeneratingPDF(false);
+      }, 100);
     }
   };
 
@@ -106,9 +113,18 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
             </Select>
             
             {selectedBalance && (
-              <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-                <FileDown className="w-4 h-4" />
-                خروجی PDF
+              <Button 
+                onClick={handleExportPDF} 
+                variant="outline" 
+                className="gap-2"
+                disabled={isGeneratingPDF}
+              >
+                {isGeneratingPDF ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4" />
+                )}
+                {isGeneratingPDF ? "در حال تولید..." : "خروجی PDF"}
               </Button>
             )}
           </div>
@@ -285,6 +301,17 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Hidden printable component for PDF generation */}
+      {selectedBalance && isGeneratingPDF && (
+        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+          <UnitReportPrintable
+            unitBalance={selectedBalance}
+            dateRange={dateRange}
+            categoryLabels={categoryLabels}
+          />
+        </div>
       )}
     </div>
   );
