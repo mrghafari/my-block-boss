@@ -135,6 +135,59 @@ export type Database = {
           },
         ]
       }
+      managers: {
+        Row: {
+          charge_discount_percent: number
+          created_at: string
+          email: string | null
+          end_date: string | null
+          extra_charge_discount_percent: number
+          id: string
+          is_active: boolean
+          mobile: string | null
+          role_type: string
+          start_date: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          charge_discount_percent?: number
+          created_at?: string
+          email?: string | null
+          end_date?: string | null
+          extra_charge_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          mobile?: string | null
+          role_type: string
+          start_date?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          charge_discount_percent?: number
+          created_at?: string
+          email?: string | null
+          end_date?: string | null
+          extra_charge_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          mobile?: string | null
+          role_type?: string
+          start_date?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "managers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number

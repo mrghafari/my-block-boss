@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useUnits, Unit } from "./useUnits";
 import { useExpenses, Expense, AllocationType } from "./useExpenses";
 import { usePayments, PaymentWithUnit } from "./usePayments";
+import { useActiveManager } from "./useManagers";
 
 export interface UnitBalance {
   unit: Unit;
@@ -20,12 +21,19 @@ export interface DateRange {
   to: Date | undefined;
 }
 
+interface ManagerDiscount {
+  unitId: string;
+  chargeDiscountPercent: number;
+  extraChargeDiscountPercent: number;
+}
+
 function calculateAllocatedAmount(
   expense: Expense,
   unit: Unit,
-  allUnits: Unit[]
+  allUnits: Unit[],
+  managerDiscount: ManagerDiscount | null
 ): number {
-  const { allocation_type, amount, unit_id, area_ratio } = expense;
+  const { allocation_type, amount, unit_id, area_ratio, fund_type } = expense;
 
   const validUnits = allUnits.filter((u) => {
     switch (allocation_type) {
@@ -45,25 +53,37 @@ function calculateAllocatedAmount(
     }
   });
 
+  let baseAmount = 0;
+
   switch (allocation_type) {
     case "single_unit":
-      return unit_id === unit.id ? amount : 0;
+      baseAmount = unit_id === unit.id ? amount : 0;
+      break;
 
     case "equal":
-      return validUnits.length > 0 ? amount / validUnits.length : 0;
+      baseAmount = validUnits.length > 0 ? amount / validUnits.length : 0;
+      break;
 
     case "by_area":
       const totalArea = validUnits.reduce((sum, u) => sum + (u.area || 0), 0);
-      if (totalArea === 0 || unit.area === null) return 0;
-      return (amount * unit.area) / totalArea;
+      if (totalArea === 0 || unit.area === null) {
+        baseAmount = 0;
+      } else {
+        baseAmount = (amount * unit.area) / totalArea;
+      }
+      break;
 
     case "by_residents":
       const totalResidents = validUnits.reduce(
         (sum, u) => sum + (u.resident_count || 0),
         0
       );
-      if (totalResidents === 0 || unit.resident_count === null) return 0;
-      return (amount * unit.resident_count) / totalResidents;
+      if (totalResidents === 0 || unit.resident_count === null) {
+        baseAmount = 0;
+      } else {
+        baseAmount = (amount * unit.resident_count) / totalResidents;
+      }
+      break;
 
     case "by_area_residents":
       const areaWeight = (area_ratio || 50) / 100;
@@ -75,17 +95,32 @@ function calculateAllocatedAmount(
         0
       );
 
-      if (totArea === 0 || totResidents === 0) return 0;
-      if (unit.area === null || unit.resident_count === null) return 0;
-
-      const areaShare = (unit.area / totArea) * areaWeight;
-      const residentShare = (unit.resident_count / totResidents) * residentWeight;
-
-      return amount * (areaShare + residentShare);
+      if (totArea === 0 || totResidents === 0) {
+        baseAmount = 0;
+      } else if (unit.area === null || unit.resident_count === null) {
+        baseAmount = 0;
+      } else {
+        const areaShare = (unit.area / totArea) * areaWeight;
+        const residentShare = (unit.resident_count / totResidents) * residentWeight;
+        baseAmount = amount * (areaShare + residentShare);
+      }
+      break;
 
     default:
-      return 0;
+      baseAmount = 0;
   }
+
+  // Apply manager discount if this unit belongs to the active manager
+  if (managerDiscount && unit.id === managerDiscount.unitId && baseAmount > 0) {
+    const discountPercent =
+      fund_type === "charge"
+        ? managerDiscount.chargeDiscountPercent
+        : managerDiscount.extraChargeDiscountPercent;
+    
+    baseAmount = baseAmount * (1 - discountPercent / 100);
+  }
+
+  return baseAmount;
 }
 
 function isInDateRange(dateStr: string, range: DateRange): boolean {
@@ -107,6 +142,17 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
   const { data: units = [], isLoading: unitsLoading } = useUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: payments = [], isLoading: paymentsLoading } = usePayments();
+  const { data: activeManager, isLoading: managerLoading } = useActiveManager();
+
+  // Get manager discount info
+  const managerDiscount = useMemo((): ManagerDiscount | null => {
+    if (!activeManager) return null;
+    return {
+      unitId: activeManager.unit_id,
+      chargeDiscountPercent: activeManager.charge_discount_percent,
+      extraChargeDiscountPercent: activeManager.extra_charge_discount_percent,
+    };
+  }, [activeManager]);
 
   // Filter expenses and payments by date range
   const filteredExpenses = useMemo(() => {
@@ -121,7 +167,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
     return units.map((unit): UnitBalance => {
       const expenseBreakdown = filteredExpenses.map((expense) => ({
         expense,
-        allocatedAmount: calculateAllocatedAmount(expense, unit, units),
+        allocatedAmount: calculateAllocatedAmount(expense, unit, units, managerDiscount),
       })).filter((e) => e.allocatedAmount > 0);
 
       const totalAllocatedExpenses = expenseBreakdown.reduce(
@@ -143,11 +189,11 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
         paymentBreakdown: unitPayments,
       };
     });
-  }, [units, filteredExpenses, filteredPayments]);
+  }, [units, filteredExpenses, filteredPayments, managerDiscount]);
 
   return {
     unitBalances,
-    isLoading: unitsLoading || expensesLoading || paymentsLoading,
+    isLoading: unitsLoading || expensesLoading || paymentsLoading || managerLoading,
     totals: useMemo(() => {
       const totalPayments = unitBalances.reduce((sum, ub) => sum + ub.totalPayments, 0);
       const totalExpenses = unitBalances.reduce((sum, ub) => sum + ub.totalAllocatedExpenses, 0);
