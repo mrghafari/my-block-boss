@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useBuilding } from "@/contexts/BuildingContext";
 
 export type FundType = "charge" | "extra_charge";
 
@@ -13,6 +14,7 @@ export interface Payment {
   year: number;
   description: string | null;
   fund_type: FundType;
+  building_id: string;
   created_at: string;
 }
 
@@ -24,9 +26,12 @@ export interface PaymentWithUnit extends Payment {
 }
 
 export function usePayments() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["payments"],
+    queryKey: ["payments", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
       const { data, error } = await supabase
         .from("payments")
         .select(`
@@ -36,22 +41,25 @@ export function usePayments() {
             owner_name
           )
         `)
+        .eq("building_id", currentBuildingId)
         .order("payment_date", { ascending: false });
       
       if (error) throw error;
       return data as PaymentWithUnit[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCreatePayment() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
   
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
+    mutationFn: async (payment: Omit<Payment, "id" | "created_at" | "building_id">) => {
       const { data, error } = await supabase
         .from("payments")
-        .insert(payment)
+        .insert({ ...payment, building_id: currentBuildingId! })
         .select()
         .single();
       

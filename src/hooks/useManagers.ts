@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useBuilding } from "@/contexts/BuildingContext";
 
 export interface Manager {
   id: string;
@@ -13,6 +14,7 @@ export interface Manager {
   charge_discount_percent: number;
   extra_charge_discount_percent: number;
   is_active: boolean;
+  building_id: string;
   created_at: string;
   updated_at: string;
   unit?: {
@@ -38,27 +40,35 @@ export interface ManagerInsert {
 }
 
 export function useManagers() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["managers"],
+    queryKey: ["managers", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
       const { data, error } = await supabase
         .from("managers")
         .select(`
           *,
           unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone)
         `)
+        .eq("building_id", currentBuildingId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Manager[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useActiveManager() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["managers", "active"],
+    queryKey: ["managers", "active", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return null;
       const today = new Date().toISOString().split("T")[0];
       const { data, error } = await supabase
         .from("managers")
@@ -66,6 +76,7 @@ export function useActiveManager() {
           *,
           unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone)
         `)
+        .eq("building_id", currentBuildingId)
         .eq("is_active", true)
         .lte("start_date", today)
         .or(`end_date.is.null,end_date.gte.${today}`)
@@ -73,20 +84,22 @@ export function useActiveManager() {
         .limit(1)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows
+      if (error && error.code !== "PGRST116") throw error;
       return data as Manager | null;
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCreateManager() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
 
   return useMutation({
     mutationFn: async (manager: ManagerInsert) => {
       const { data, error } = await supabase
         .from("managers")
-        .insert(manager)
+        .insert({ ...manager, building_id: currentBuildingId! })
         .select()
         .single();
 

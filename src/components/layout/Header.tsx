@@ -1,6 +1,7 @@
 import { Bell, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BuildingSelector } from "./BuildingSelector";
 
 export function Header() {
   return (
@@ -17,6 +18,7 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
+          <BuildingSelector />
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1 left-1 w-2 h-2 bg-accent rounded-full" />

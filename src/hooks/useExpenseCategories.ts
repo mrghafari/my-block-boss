@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useBuilding } from "@/contexts/BuildingContext";
 import type { AllocationType } from "./useExpenses";
 
 export interface ExpenseCategory {
@@ -9,6 +10,7 @@ export interface ExpenseCategory {
   label: string;
   icon: string;
   is_system: boolean;
+  building_id: string;
   created_at: string;
 }
 
@@ -20,28 +22,38 @@ export interface CategoryWithSettings extends ExpenseCategory {
 }
 
 export function useExpenseCategories() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["expense-categories"],
+    queryKey: ["expense-categories", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
       const { data, error } = await supabase
         .from("expense_categories")
         .select("*")
+        .eq("building_id", currentBuildingId)
         .order("is_system", { ascending: false })
         .order("created_at");
       
       if (error) throw error;
       return data as ExpenseCategory[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCategoriesWithSettings() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["categories-with-settings"],
+    queryKey: ["categories-with-settings", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
+      
       const { data: categories, error: catError } = await supabase
         .from("expense_categories")
         .select("*")
+        .eq("building_id", currentBuildingId)
         .order("is_system", { ascending: false })
         .order("created_at");
       
@@ -49,7 +61,8 @@ export function useCategoriesWithSettings() {
 
       const { data: settings, error: settingsError } = await supabase
         .from("category_allocation_settings")
-        .select("*");
+        .select("*")
+        .eq("building_id", currentBuildingId);
       
       if (settingsError) throw settingsError;
 
@@ -63,17 +76,19 @@ export function useCategoriesWithSettings() {
           : undefined,
       })) as CategoryWithSettings[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCreateCategory() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
   
   return useMutation({
     mutationFn: async ({ name, label, icon }: { name: string; label: string; icon: string }) => {
       const { data, error } = await supabase
         .from("expense_categories")
-        .insert({ name, label, icon, is_system: false })
+        .insert({ name, label, icon, is_system: false, building_id: currentBuildingId! })
         .select()
         .single();
       

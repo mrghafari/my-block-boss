@@ -14,9 +14,37 @@ export type Database = {
   }
   public: {
     Tables: {
+      buildings: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          total_units: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          total_units?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          total_units?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       category_allocation_settings: {
         Row: {
           allowed_allocation_types: Database["public"]["Enums"]["allocation_type"][]
+          building_id: string
           category: Database["public"]["Enums"]["expense_category"] | null
           category_id: string | null
           created_at: string
@@ -26,6 +54,7 @@ export type Database = {
         }
         Insert: {
           allowed_allocation_types?: Database["public"]["Enums"]["allocation_type"][]
+          building_id: string
           category?: Database["public"]["Enums"]["expense_category"] | null
           category_id?: string | null
           created_at?: string
@@ -35,6 +64,7 @@ export type Database = {
         }
         Update: {
           allowed_allocation_types?: Database["public"]["Enums"]["allocation_type"][]
+          building_id?: string
           category?: Database["public"]["Enums"]["expense_category"] | null
           category_id?: string | null
           created_at?: string
@@ -43,6 +73,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "category_allocation_settings_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "category_allocation_settings_category_id_fkey"
             columns: ["category_id"]
@@ -54,6 +91,7 @@ export type Database = {
       }
       expense_categories: {
         Row: {
+          building_id: string
           created_at: string
           icon: string
           id: string
@@ -62,6 +100,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          building_id: string
           created_at?: string
           icon?: string
           id?: string
@@ -70,6 +109,7 @@ export type Database = {
           name: string
         }
         Update: {
+          building_id?: string
           created_at?: string
           icon?: string
           id?: string
@@ -77,13 +117,22 @@ export type Database = {
           label?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
           allocation_type: Database["public"]["Enums"]["allocation_type"]
           amount: number
           area_ratio: number | null
+          building_id: string
           category: Database["public"]["Enums"]["expense_category"]
           created_at: string
           description: string | null
@@ -99,6 +148,7 @@ export type Database = {
           allocation_type?: Database["public"]["Enums"]["allocation_type"]
           amount: number
           area_ratio?: number | null
+          building_id: string
           category?: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           description?: string | null
@@ -114,6 +164,7 @@ export type Database = {
           allocation_type?: Database["public"]["Enums"]["allocation_type"]
           amount?: number
           area_ratio?: number | null
+          building_id?: string
           category?: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           description?: string | null
@@ -127,6 +178,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "expenses_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "expenses_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -137,6 +195,7 @@ export type Database = {
       }
       managers: {
         Row: {
+          building_id: string
           charge_discount_percent: number
           created_at: string
           email: string | null
@@ -151,6 +210,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          building_id: string
           charge_discount_percent?: number
           created_at?: string
           email?: string | null
@@ -165,6 +225,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          building_id?: string
           charge_discount_percent?: number
           created_at?: string
           email?: string | null
@@ -180,6 +241,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "managers_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "managers_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
@@ -191,6 +259,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          building_id: string
           created_at: string
           description: string | null
           fund_type: Database["public"]["Enums"]["fund_type"]
@@ -202,6 +271,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          building_id: string
           created_at?: string
           description?: string | null
           fund_type?: Database["public"]["Enums"]["fund_type"]
@@ -213,6 +283,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          building_id?: string
           created_at?: string
           description?: string | null
           fund_type?: Database["public"]["Enums"]["fund_type"]
@@ -223,6 +294,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_unit_id_fkey"
             columns: ["unit_id"]
@@ -235,6 +313,7 @@ export type Database = {
       units: {
         Row: {
           area: number | null
+          building_id: string
           created_at: string
           floor: number | null
           id: string
@@ -250,6 +329,7 @@ export type Database = {
         }
         Insert: {
           area?: number | null
+          building_id: string
           created_at?: string
           floor?: number | null
           id?: string
@@ -265,6 +345,7 @@ export type Database = {
         }
         Update: {
           area?: number | null
+          building_id?: string
           created_at?: string
           floor?: number | null
           id?: string
@@ -278,7 +359,15 @@ export type Database = {
           unit_number?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "units_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
