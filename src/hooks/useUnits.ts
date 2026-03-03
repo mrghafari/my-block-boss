@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useBuilding } from "@/contexts/BuildingContext";
 
 export interface Unit {
   id: string;
@@ -14,36 +15,43 @@ export interface Unit {
   resident_name: string | null;
   resident_phone: string | null;
   landline_phone: string | null;
+  building_id: string;
   created_at: string;
   updated_at: string;
 }
 
-export type CreateUnitData = Omit<Unit, "id" | "created_at" | "updated_at">;
+export type CreateUnitData = Omit<Unit, "id" | "created_at" | "updated_at" | "building_id">;
 export type UpdateUnitData = Partial<CreateUnitData> & { id: string };
 
 export function useUnits() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["units"],
+    queryKey: ["units", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
       const { data, error } = await supabase
         .from("units")
         .select("*")
+        .eq("building_id", currentBuildingId)
         .order("unit_number", { ascending: true });
       
       if (error) throw error;
       return data as Unit[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCreateUnit() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
   
   return useMutation({
-    mutationFn: async (unit: CreateUnitData) => {
+    mutationFn: async (unit: Omit<CreateUnitData, "building_id">) => {
       const { data, error } = await supabase
         .from("units")
-        .insert(unit)
+        .insert({ ...unit, building_id: currentBuildingId! })
         .select()
         .single();
       

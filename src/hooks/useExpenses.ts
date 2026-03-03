@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useBuilding } from "@/contexts/BuildingContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type ExpenseCategory = Database["public"]["Enums"]["expense_category"];
@@ -19,6 +20,7 @@ export interface Expense {
   fund_type: FundType;
   allocation_type: AllocationType;
   area_ratio: number | null;
+  building_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -37,28 +39,34 @@ export interface CreateExpenseData {
 }
 
 export function useExpenses() {
+  const { currentBuildingId } = useBuilding();
+  
   return useQuery({
-    queryKey: ["expenses"],
+    queryKey: ["expenses", currentBuildingId],
     queryFn: async () => {
+      if (!currentBuildingId) return [];
       const { data, error } = await supabase
         .from("expenses")
         .select("*")
+        .eq("building_id", currentBuildingId)
         .order("expense_date", { ascending: false });
       
       if (error) throw error;
       return data as Expense[];
     },
+    enabled: !!currentBuildingId,
   });
 }
 
 export function useCreateExpense() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
   
   return useMutation({
     mutationFn: async (expense: CreateExpenseData) => {
       const { data, error } = await supabase
         .from("expenses")
-        .insert(expense)
+        .insert({ ...expense, building_id: currentBuildingId! })
         .select()
         .single();
       
