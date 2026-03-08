@@ -98,6 +98,14 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/building/:buildingId"
+            element={
+              <ProtectedRoute>
+                <AdminBuildingView />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
