@@ -250,35 +250,35 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">سهم این واحد</TableHead>
-                    <TableHead className="text-right">مبلغ کل</TableHead>
-                    <TableHead className="text-right">نحوه تسهیم</TableHead>
-                    <TableHead className="text-right">دسته‌بندی</TableHead>
-                    <TableHead className="text-right">پروژه</TableHead>
-                    <TableHead className="text-right">عنوان</TableHead>
                     <TableHead className="text-right">تاریخ</TableHead>
+                    <TableHead className="text-right">عنوان</TableHead>
+                    <TableHead className="text-right">پروژه</TableHead>
+                    <TableHead className="text-right">دسته‌بندی</TableHead>
+                    <TableHead className="text-right">نحوه تسهیم</TableHead>
+                    <TableHead className="text-right">مبلغ کل</TableHead>
+                    <TableHead className="text-right">سهم این واحد</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selectedBalance.expenseBreakdown.map(({ expense, allocatedAmount, project }) => (
                     <TableRow key={expense.id}>
-                      <TableCell className="text-red-600 font-medium">
-                        {formatNumber(allocatedAmount)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatNumber(expense.amount)}
+                      <TableCell>{formatJalaliDate(expense.expense_date)}</TableCell>
+                      <TableCell>{expense.title}</TableCell>
+                      <TableCell>{project ? project.name : "-"}</TableCell>
+                      <TableCell>
+                        {getCategoryLabel(expense.category)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
                           {allocationLabels[expense.allocation_type] || expense.allocation_type}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {getCategoryLabel(expense.category)}
+                      <TableCell className="text-muted-foreground">
+                        {formatNumber(expense.amount)}
                       </TableCell>
-                      <TableCell>{project ? project.name : "-"}</TableCell>
-                      <TableCell>{expense.title}</TableCell>
-                      <TableCell>{formatJalaliDate(expense.expense_date)}</TableCell>
+                      <TableCell className="text-red-600 font-medium">
+                        {formatNumber(allocatedAmount)}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {selectedBalance.expenseBreakdown.length === 0 && (
