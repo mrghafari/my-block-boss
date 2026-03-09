@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import {
-  useBuildings,
+  useBuilding,
   useCreateBuilding,
   useUpdateBuilding,
   useDeleteBuilding,
@@ -34,7 +34,7 @@ interface BuildingFormData {
 }
 
 export function BuildingSettings() {
-  const { data: buildings = [], isLoading } = useBuildings();
+  const { buildings, isLoading } = useBuilding();
   const createBuilding = useCreateBuilding();
   const updateBuilding = useUpdateBuilding();
   const deleteBuilding = useDeleteBuilding();
