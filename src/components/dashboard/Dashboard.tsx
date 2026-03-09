@@ -83,7 +83,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
 
         {/* Right Side - Quick Actions + Fund Balance */}
         <div className="space-y-6">
-          <QuickActions />
+          <QuickActions onTabChange={onTabChange || (() => {})} />
           <FundBalance />
         </div>
       </div>
