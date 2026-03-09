@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Filter, Loader2 } from "lucide-react";
+import { Trash2, Filter, Loader2, Eye } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,6 +22,7 @@ import { useExpenses, useDeleteExpense, type Expense } from "@/hooks/useExpenses
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { ExpenseDetailsDialog } from "./ExpenseDetailsDialog";
 
 const fundTypeLabels: Record<string, string> = {
   charge: "صندوق شارژ",
