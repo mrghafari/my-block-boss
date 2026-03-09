@@ -252,6 +252,7 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
                   <TableRow>
                     <TableHead className="text-right">تاریخ</TableHead>
                     <TableHead className="text-right">عنوان</TableHead>
+                    <TableHead className="text-right">پروژه</TableHead>
                     <TableHead className="text-right">دسته‌بندی</TableHead>
                     <TableHead className="text-right">نحوه تسهیم</TableHead>
                     <TableHead className="text-right">مبلغ کل</TableHead>
