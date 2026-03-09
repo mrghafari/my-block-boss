@@ -242,13 +242,14 @@ export type Database = {
           created_at: string
           email: string | null
           end_date: string | null
+          external_name: string | null
           extra_charge_discount_percent: number
           id: string
           is_active: boolean
           mobile: string | null
           role_type: string
           start_date: string
-          unit_id: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -257,13 +258,14 @@ export type Database = {
           created_at?: string
           email?: string | null
           end_date?: string | null
+          external_name?: string | null
           extra_charge_discount_percent?: number
           id?: string
           is_active?: boolean
           mobile?: string | null
           role_type: string
           start_date?: string
-          unit_id: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -272,13 +274,14 @@ export type Database = {
           created_at?: string
           email?: string | null
           end_date?: string | null
+          external_name?: string | null
           extra_charge_discount_percent?: number
           id?: string
           is_active?: boolean
           mobile?: string | null
           role_type?: string
           start_date?: string
-          unit_id?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
