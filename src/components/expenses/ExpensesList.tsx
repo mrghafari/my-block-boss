@@ -138,7 +138,11 @@ export function ExpensesList() {
                   const categoryInfo = categories.find(c => c.name === expense.category) || { label: "سایر", icon: "📋" };
                   const projectInfo = projects.find(p => p.id === expense.project_id);
                   return (
-                    <TableRow key={expense.id} className="hover:bg-muted/50 transition-colors">
+                    <TableRow 
+                      key={expense.id} 
+                      className="hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => handleExpenseClick(expense)}
+                    >
                       <TableCell>
                         <div>
                           <p className="font-medium">{expense.title}</p>
@@ -182,8 +186,22 @@ export function ExpensesList() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
+                            className="h-8 w-8 text-primary hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExpenseClick(expense);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
                             className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteExpense.mutate(expense.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteExpense.mutate(expense.id);
+                            }}
                             disabled={deleteExpense.isPending}
                           >
                             <Trash2 className="w-4 h-4" />
