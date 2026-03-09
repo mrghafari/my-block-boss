@@ -197,7 +197,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
 
   return {
     unitBalances,
-    isLoading: unitsLoading || expensesLoading || paymentsLoading || managerLoading,
+    isLoading: unitsLoading || expensesLoading || paymentsLoading || managerLoading || projectsLoading,
     totals: useMemo(() => {
       const totalPayments = unitBalances.reduce((sum, ub) => sum + ub.totalPayments, 0);
       const totalExpenses = unitBalances.reduce((sum, ub) => sum + ub.totalAllocatedExpenses, 0);
