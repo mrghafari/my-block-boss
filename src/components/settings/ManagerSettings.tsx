@@ -90,22 +90,24 @@ export function ManagerSettings() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          واحد {manager.unit?.unit_number}
+                          {manager.role_type === "external"
+                            ? manager.external_name || "مدیر خارجی"
+                            : `واحد ${manager.unit?.unit_number}`}
                         </span>
-                        <Badge variant={manager.role_type === "owner" ? "default" : "secondary"}>
-                          {manager.role_type === "owner" ? "مالک" : "ساکن"}
+                        <Badge variant={manager.role_type === "owner" ? "default" : manager.role_type === "external" ? "outline" : "secondary"}>
+                          {manager.role_type === "owner" ? "مالک" : manager.role_type === "external" ? "خارج از ساختمان" : "ساکن"}
                         </Badge>
                         {isActiveManager(manager) && (
-                          <Badge variant="outline" className="text-primary border-primary">
-                            فعال
-                          </Badge>
+                          <Badge variant="outline" className="text-primary border-primary">فعال</Badge>
                         )}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {manager.role_type === "owner"
-                          ? manager.unit?.owner_name
-                          : manager.unit?.resident_name || manager.unit?.owner_name}
-                      </div>
+                      {manager.role_type !== "external" && (
+                        <div className="text-sm text-muted-foreground">
+                          {manager.role_type === "owner"
+                            ? manager.unit?.owner_name
+                            : manager.unit?.resident_name || manager.unit?.owner_name}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button
