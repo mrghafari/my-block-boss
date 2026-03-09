@@ -12,7 +12,11 @@ const formatAmount = (amount: number) => {
   return new Intl.NumberFormat("fa-IR").format(amount);
 };
 
-export function Dashboard() {
+interface DashboardProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export function Dashboard({ onTabChange }: DashboardProps) {
   const { data: units = [], isLoading: unitsLoading } = useUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: payments = [], isLoading: paymentsLoading } = usePayments();
@@ -79,7 +83,7 @@ export function Dashboard() {
 
         {/* Right Side - Quick Actions + Fund Balance */}
         <div className="space-y-6">
-          <QuickActions />
+          <QuickActions onTabChange={onTabChange || (() => {})} />
           <FundBalance />
         </div>
       </div>
