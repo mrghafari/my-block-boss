@@ -18,6 +18,7 @@ interface BuildingContextType {
   buildings: Building[];
   isLoading: boolean;
   currentBuilding: Building | undefined;
+  adminForUserId?: string;
 }
 
 const BuildingContext = createContext<BuildingContextType | null>(null);
@@ -44,8 +45,22 @@ export function useBuildings() {
 
 export function useCreateBuilding() {
   const queryClient = useQueryClient();
+  const ctx = useContext(BuildingContext);
+  const adminForUserId = ctx?.adminForUserId;
+
   return useMutation({
     mutationFn: async (building: { name: string; address?: string; total_units?: number }) => {
+      if (adminForUserId) {
+        // Admin creating building for a specific customer
+        const { data, error } = await supabase.rpc("admin_create_building_for_user", {
+          _user_id: adminForUserId,
+          _name: building.name,
+          _address: building.address || null,
+          _total_units: building.total_units || null,
+        });
+        if (error) throw error;
+        return { id: data };
+      }
       const { data, error } = await supabase
         .from("buildings")
         .insert(building)
@@ -57,6 +72,8 @@ export function useCreateBuilding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buildings"] });
       queryClient.invalidateQueries({ queryKey: ["building_members"] });
+      queryClient.invalidateQueries({ queryKey: ["customer_building_ids"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_customers"] });
       toast({ title: "موفق", description: "ساختمان با موفقیت اضافه شد" });
     },
     onError: () => {
@@ -97,6 +114,8 @@ export function useDeleteBuilding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buildings"] });
+      queryClient.invalidateQueries({ queryKey: ["customer_building_ids"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_customers"] });
       toast({ title: "حذف شد", description: "ساختمان حذف شد" });
     },
     onError: () => {
@@ -105,7 +124,7 @@ export function useDeleteBuilding() {
   });
 }
 
-export function BuildingProvider({ children, filterBuildingIds }: { children: ReactNode; filterBuildingIds?: string[] }) {
+export function BuildingProvider({ children, filterBuildingIds, adminForUserId }: { children: ReactNode; filterBuildingIds?: string[]; adminForUserId?: string }) {
   const { data: allBuildings = [], isLoading } = useBuildings();
   const [currentBuildingId, setCurrentBuildingId] = useState<string | null>(null);
 
@@ -136,6 +155,7 @@ export function BuildingProvider({ children, filterBuildingIds }: { children: Re
         buildings,
         isLoading,
         currentBuilding,
+        adminForUserId,
       }}
     >
       {children}

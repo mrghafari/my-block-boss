@@ -62,7 +62,7 @@ export default function AdminBuildingView() {
   }
 
   return (
-    <BuildingProvider filterBuildingIds={buildingIds}>
+    <BuildingProvider filterBuildingIds={buildingIds} adminForUserId={userId}>
       <div className="sticky top-0 z-50 bg-amber-500 text-amber-950 px-4 py-2.5 flex items-center justify-between" dir="rtl">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Shield className="h-4 w-4" />
