@@ -100,50 +100,53 @@ export function AdminCustomers() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>نام</TableHead>
-                    <TableHead>ایمیل</TableHead>
-                    <TableHead>پلن</TableHead>
-                    <TableHead>ساختمان‌ها</TableHead>
-                    <TableHead>واحدها</TableHead>
-                    <TableHead>تاریخ عضویت</TableHead>
-                    <TableHead>وضعیت</TableHead>
-                    <TableHead>عملیات</TableHead>
+                    <TableHead className="w-36">نام</TableHead>
+                    <TableHead>ایمیل / موبایل</TableHead>
+                    <TableHead className="w-24">پلن</TableHead>
+                    <TableHead className="w-24 text-center">ساختمان‌ها</TableHead>
+                    <TableHead className="w-20 text-center">واحدها</TableHead>
+                    <TableHead className="w-28">تاریخ عضویت</TableHead>
+                    <TableHead className="w-20">وضعیت</TableHead>
+                    <TableHead className="w-52">عملیات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCustomers?.map((c) => (
-                        <TableRow key={c.user_id} className={c.is_blocked ? "opacity-50" : ""}>
-                          <TableCell className="font-medium">{c.full_name || "—"}</TableCell>
-                          <TableCell className="text-xs ltr">{c.email}</TableCell>
-                          <TableCell><PlanBadge plan={c.subscription_plan} /></TableCell>
-                          <TableCell>{c.buildings_count.toLocaleString("fa-IR")} / {c.max_buildings.toLocaleString("fa-IR")}</TableCell>
-                          <TableCell>{c.total_units.toLocaleString("fa-IR")}</TableCell>
-                          <TableCell>{formatDate(c.created_at)}</TableCell>
-                          <TableCell>
-                            {c.is_blocked ? (
-                              <Badge variant="destructive">مسدود</Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-emerald-600 border-emerald-600">فعال</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {c.buildings_count > 0 && (
-                                <Button size="sm" variant="default" className="gap-1" onClick={() => navigate(`/admin/customer/${c.user_id}`)}>
-                                  <LogIn className="h-4 w-4" />
-                                  ورود
-                                </Button>
-                              )}
-                              <Button size="sm" variant="outline" onClick={() => openEdit(c)}>ویرایش</Button>
-                              <Button size="sm" variant={c.is_blocked ? "default" : "destructive"} onClick={() => handleToggleBlock(c)} disabled={updateCustomer.isPending}>
-                                {c.is_blocked ? "فعال‌سازی" : "مسدود"}
-                              </Button>
-                              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(c)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                    <TableRow key={c.user_id} className={c.is_blocked ? "opacity-50" : ""}>
+                      <TableCell className="font-medium">{c.full_name || "—"}</TableCell>
+                      <TableCell>
+                        <div className="text-xs ltr">{c.email}</div>
+                        {c.phone && <div className="text-xs text-muted-foreground ltr mt-0.5">{c.phone}</div>}
+                      </TableCell>
+                      <TableCell><PlanBadge plan={c.subscription_plan} /></TableCell>
+                      <TableCell className="text-center">{c.buildings_count.toLocaleString("fa-IR")} / {c.max_buildings.toLocaleString("fa-IR")}</TableCell>
+                      <TableCell className="text-center">{c.total_units.toLocaleString("fa-IR")}</TableCell>
+                      <TableCell>{formatDate(c.created_at)}</TableCell>
+                      <TableCell>
+                        {c.is_blocked ? (
+                          <Badge variant="destructive">مسدود</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-emerald-600 border-emerald-600">فعال</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {c.buildings_count > 0 && (
+                            <Button size="sm" variant="default" className="gap-1" onClick={() => navigate(`/admin/customer/${c.user_id}`)}>
+                              <LogIn className="h-4 w-4" />
+                              ورود
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => openEdit(c)}>ویرایش</Button>
+                          <Button size="sm" variant={c.is_blocked ? "default" : "destructive"} onClick={() => handleToggleBlock(c)} disabled={updateCustomer.isPending}>
+                            {c.is_blocked ? "فعال‌سازی" : "مسدود"}
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(c)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
