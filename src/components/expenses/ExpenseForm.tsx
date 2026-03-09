@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { useCreateExpense, type CreateExpenseData, type AllocationType } from "@/hooks/useExpenses";
 import { useUnits } from "@/hooks/useUnits";
 import { useCategoriesWithSettings } from "@/hooks/useExpenseCategories";
+import { useActiveProjects } from "@/hooks/useProjects";
 
 interface ExpenseFormProps {
   onClose: () => void;
@@ -60,10 +61,12 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
   const [allocationType, setAllocationType] = useState<AllocationType>("equal");
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [areaRatio, setAreaRatio] = useState<number>(50);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   
   const createExpense = useCreateExpense();
   const { data: units } = useUnits();
   const { data: categoriesWithSettings } = useCategoriesWithSettings();
+  const { data: projects = [] } = useActiveProjects();
 
   // Get current category settings
   const currentCategorySetting = categoriesWithSettings?.find(c => c.name === category);
@@ -107,6 +110,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
       allocation_type: allocationType,
       unit_id: allocationType === "single_unit" ? selectedUnitId : undefined,
       area_ratio: allocationType === "by_area_residents" ? areaRatio : undefined,
+      project_id: selectedProjectId || undefined,
     };
 
     createExpense.mutate(expense, {
@@ -198,6 +202,23 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
                 {fundTypes.map((fund) => (
                   <SelectItem key={fund.value} value={fund.value}>
                     {fund.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>پروژه (اختیاری)</Label>
+            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+              <SelectTrigger>
+                <SelectValue placeholder="انتخاب پروژه (اگر هزینه مربوط به پروژه است)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">بدون پروژه</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
                   </SelectItem>
                 ))}
               </SelectContent>

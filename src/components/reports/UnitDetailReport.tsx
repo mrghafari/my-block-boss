@@ -252,6 +252,7 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
                   <TableRow>
                     <TableHead className="text-right">تاریخ</TableHead>
                     <TableHead className="text-right">عنوان</TableHead>
+                    <TableHead className="text-right">پروژه</TableHead>
                     <TableHead className="text-right">دسته‌بندی</TableHead>
                     <TableHead className="text-right">نحوه تسهیم</TableHead>
                     <TableHead className="text-right">مبلغ کل</TableHead>
@@ -259,10 +260,11 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedBalance.expenseBreakdown.map(({ expense, allocatedAmount }) => (
+                  {selectedBalance.expenseBreakdown.map(({ expense, allocatedAmount, project }) => (
                     <TableRow key={expense.id}>
                       <TableCell>{formatJalaliDate(expense.expense_date)}</TableCell>
                       <TableCell>{expense.title}</TableCell>
+                      <TableCell>{project ? project.name : "-"}</TableCell>
                       <TableCell>
                         {getCategoryLabel(expense.category)}
                       </TableCell>

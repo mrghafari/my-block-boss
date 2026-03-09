@@ -3,6 +3,7 @@ import { useUnits, Unit } from "./useUnits";
 import { useExpenses, Expense, AllocationType } from "./useExpenses";
 import { usePayments, PaymentWithUnit } from "./usePayments";
 import { useActiveManager } from "./useManagers";
+import { useProjects } from "./useProjects";
 
 export interface UnitBalance {
   unit: Unit;
@@ -12,6 +13,7 @@ export interface UnitBalance {
   expenseBreakdown: {
     expense: Expense;
     allocatedAmount: number;
+    project?: { name: string } | null;
   }[];
   paymentBreakdown: PaymentWithUnit[];
 }
@@ -143,6 +145,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: payments = [], isLoading: paymentsLoading } = usePayments();
   const { data: activeManager, isLoading: managerLoading } = useActiveManager();
+  const { data: projects = [], isLoading: projectsLoading } = useProjects();
 
   // Get manager discount info
   const managerDiscount = useMemo((): ManagerDiscount | null => {
@@ -168,6 +171,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
       const expenseBreakdown = filteredExpenses.map((expense) => ({
         expense,
         allocatedAmount: calculateAllocatedAmount(expense, unit, units, managerDiscount),
+        project: projects.find(p => p.id === expense.project_id) || null,
       })).filter((e) => e.allocatedAmount > 0);
 
       const totalAllocatedExpenses = expenseBreakdown.reduce(
@@ -193,7 +197,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
 
   return {
     unitBalances,
-    isLoading: unitsLoading || expensesLoading || paymentsLoading || managerLoading,
+    isLoading: unitsLoading || expensesLoading || paymentsLoading || managerLoading || projectsLoading,
     totals: useMemo(() => {
       const totalPayments = unitBalances.reduce((sum, ub) => sum + ub.totalPayments, 0);
       const totalExpenses = unitBalances.reduce((sum, ub) => sum + ub.totalAllocatedExpenses, 0);
