@@ -145,6 +145,7 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: payments = [], isLoading: paymentsLoading } = usePayments();
   const { data: activeManager, isLoading: managerLoading } = useActiveManager();
+  const { data: projects = [], isLoading: projectsLoading } = useProjects();
 
   // Get manager discount info
   const managerDiscount = useMemo((): ManagerDiscount | null => {
@@ -155,11 +156,6 @@ export function useUnitBalanceFiltered(dateRange: DateRange) {
       extraChargeDiscountPercent: activeManager.extra_charge_discount_percent,
     };
   }, [activeManager]);
-
-  // Fetch projects directly here if possible or just rely on a new hook, 
-  // but to keep it simple, we can fetch projects if there are expenses with project_ids
-  // For now, let's assume we can import useProjects
-  // Note: I will add the useProjects hook import to the top of the file in the next step.
 
   // Filter expenses and payments by date range
   const filteredExpenses = useMemo(() => {
