@@ -110,6 +110,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
       allocation_type: allocationType,
       unit_id: allocationType === "single_unit" ? selectedUnitId : undefined,
       area_ratio: allocationType === "by_area_residents" ? areaRatio : undefined,
+      project_id: selectedProjectId || undefined,
     };
 
     createExpense.mutate(expense, {
