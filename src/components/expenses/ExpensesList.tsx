@@ -128,6 +128,7 @@ export function ExpensesList() {
               <TableBody>
                 {filteredExpenses.map((expense) => {
                   const categoryInfo = categories.find(c => c.name === expense.category) || { label: "سایر", icon: "📋" };
+                  const projectInfo = projects.find(p => p.id === expense.project_id);
                   return (
                     <TableRow key={expense.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell>
@@ -137,6 +138,11 @@ export function ExpensesList() {
                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                               {expense.description}
                             </p>
+                          )}
+                          {projectInfo && (
+                            <Badge variant="outline" className="mt-1 text-[10px]">
+                              پروژه: {projectInfo.name}
+                            </Badge>
                           )}
                         </div>
                       </TableCell>
