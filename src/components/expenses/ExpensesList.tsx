@@ -55,6 +55,7 @@ const getCategoryColor = (categoryId: string) => {
 
 export function ExpensesList() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>("all");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   
@@ -63,9 +64,15 @@ export function ExpensesList() {
   const { data: projects = [] } = useProjects();
   const deleteExpense = useDeleteExpense();
 
-  const filteredExpenses = filterCategory === "all" 
-    ? expenses 
-    : expenses.filter(exp => exp.category === filterCategory);
+  const filteredExpenses = expenses.filter(exp => {
+    const catMatch = filterCategory === "all" || exp.category === filterCategory;
+    const projMatch = filterProject === "all" 
+      ? true 
+      : filterProject === "none" 
+        ? !exp.project_id 
+        : exp.project_id === filterProject;
+    return catMatch && projMatch;
+  });
 
   const handleExpenseClick = (expense: Expense) => {
     setSelectedExpense(expense);
@@ -93,7 +100,7 @@ export function ExpensesList() {
             مجموع: <span className="font-bold text-foreground">{formatAmount(totalAmount)}</span> تومان
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <Select value={filterCategory} onValueChange={setFilterCategory}>
             <SelectTrigger className="w-40">
@@ -111,6 +118,22 @@ export function ExpensesList() {
               ))}
             </SelectContent>
           </Select>
+          {projects.length > 0 && (
+            <Select value={filterProject} onValueChange={setFilterProject}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="همه پروژه‌ها" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه پروژه‌ها</SelectItem>
+                <SelectItem value="none">بدون پروژه</SelectItem>
+                {projects.map((proj) => (
+                  <SelectItem key={proj.id} value={proj.id}>
+                    📁 {proj.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </CardHeader>
       <CardContent>
