@@ -20,6 +20,7 @@ export interface Expense {
   fund_type: FundType;
   allocation_type: AllocationType;
   area_ratio: number | null;
+  project_id: string | null;
   building_id: string;
   created_at: string;
   updated_at: string;
