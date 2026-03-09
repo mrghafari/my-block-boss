@@ -209,6 +209,23 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
           </div>
 
           <div className="space-y-2">
+            <Label>پروژه (اختیاری)</Label>
+            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+              <SelectTrigger>
+                <SelectValue placeholder="انتخاب پروژه (اگر هزینه مربوط به پروژه است)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">بدون پروژه</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="description">توضیحات</Label>
             <Textarea
               id="description"
