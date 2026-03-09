@@ -341,31 +341,35 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="charge_discount_percent"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>تخفیف شارژ: {field.value}%</FormLabel>
-                  <FormControl>
-                    <Slider value={[field.value]} onValueChange={(val) => field.onChange(val[0])} min={0} max={100} step={5} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {source === "internal" && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="charge_discount_percent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>تخفیف شارژ: {field.value}%</FormLabel>
+                      <FormControl>
+                        <Slider value={[field.value]} onValueChange={(val) => field.onChange(val[0])} min={0} max={100} step={5} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="extra_charge_discount_percent"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>تخفیف شارژ اضافی: {field.value}%</FormLabel>
-                  <FormControl>
-                    <Slider value={[field.value]} onValueChange={(val) => field.onChange(val[0])} min={0} max={100} step={5} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="extra_charge_discount_percent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>تخفیف شارژ اضافی: {field.value}%</FormLabel>
+                      <FormControl>
+                        <Slider value={[field.value]} onValueChange={(val) => field.onChange(val[0])} min={0} max={100} step={5} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}
