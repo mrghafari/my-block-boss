@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { useExpenses, useDeleteExpense, type Expense } from "@/hooks/useExpenses";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
+import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 
 const fundTypeLabels: Record<string, string> = {
