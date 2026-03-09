@@ -28,39 +28,18 @@ interface CategoryAllocationDialogProps {
 }
 
 export function CategoryAllocationDialog({ category, onClose }: CategoryAllocationDialogProps) {
-  const [allowedTypes, setAllowedTypes] = useState<AllocationType[]>(
-    category.allocation_settings?.allowed_allocation_types || []
-  );
-  const [defaultType, setDefaultType] = useState<AllocationType>(
+  const [selectedType, setSelectedType] = useState<AllocationType>(
     category.allocation_settings?.default_allocation_type || "equal"
   );
   
   const updateAllocation = useUpdateCategoryAllocation();
 
-  // Ensure default type is in allowed types
-  useEffect(() => {
-    if (!allowedTypes.includes(defaultType) && allowedTypes.length > 0) {
-      setDefaultType(allowedTypes[0]);
-    }
-  }, [allowedTypes, defaultType]);
-
-  const handleToggleType = (type: AllocationType, checked: boolean) => {
-    if (checked) {
-      setAllowedTypes([...allowedTypes, type]);
-    } else {
-      // Don't allow removing if it's the only one or if it's the default
-      if (allowedTypes.length > 1) {
-        setAllowedTypes(allowedTypes.filter(t => t !== type));
-      }
-    }
-  };
-
   const handleSave = () => {
     updateAllocation.mutate(
       {
         categoryId: category.id,
-        allowed_allocation_types: allowedTypes,
-        default_allocation_type: defaultType,
+        allowed_allocation_types: [selectedType],
+        default_allocation_type: selectedType,
       },
       { onSuccess: onClose }
     );
