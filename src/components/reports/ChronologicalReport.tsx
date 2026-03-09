@@ -314,35 +314,21 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">مانده</TableHead>
-                      <TableHead className="text-right text-red-600">هزینه</TableHead>
-                      <TableHead className="text-right text-green-600">دریافت</TableHead>
-                      <TableHead className="text-right">دسته‌بندی</TableHead>
-                      <TableHead className="text-right">شرح</TableHead>
-                      <TableHead className="text-right">نوع</TableHead>
-                      <TableHead className="text-right">تاریخ</TableHead>
                       <TableHead className="text-right w-12">ردیف</TableHead>
+                      <TableHead className="text-right">تاریخ</TableHead>
+                      <TableHead className="text-right">نوع</TableHead>
+                      <TableHead className="text-right">شرح</TableHead>
+                      <TableHead className="text-right">دسته‌بندی</TableHead>
+                      <TableHead className="text-right text-green-600">دریافت</TableHead>
+                      <TableHead className="text-right text-red-600">هزینه</TableHead>
+                      <TableHead className="text-right">مانده</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {transactions.map((t, index) => (
                       <TableRow key={t.id} className={t.type === "payment" ? "bg-green-50/50" : "bg-red-50/50"}>
-                        <TableCell className={`font-bold ${(t.runningBalance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatNumber(Math.abs(t.runningBalance || 0))}
-                          <span className="text-xs mr-1">
-                            {(t.runningBalance || 0) >= 0 ? "(+)" : "(-)"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-red-600 font-medium">
-                          {t.type === "expense" ? formatNumber(t.amount) : "-"}
-                        </TableCell>
-                        <TableCell className="text-green-600 font-medium">
-                          {t.type === "payment" ? formatNumber(t.amount) : "-"}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">{t.category}</span>
-                        </TableCell>
-                        <TableCell className="font-medium">{t.title}</TableCell>
+                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                        <TableCell>{formatJalaliDate(t.date)}</TableCell>
                         <TableCell>
                           {t.type === "payment" ? (
                             <Badge variant="outline" className="text-green-600 border-green-600 gap-1">
@@ -356,8 +342,22 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>{formatJalaliDate(t.date)}</TableCell>
-                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+                        <TableCell className="font-medium">{t.title}</TableCell>
+                        <TableCell>
+                          <span className="text-sm">{t.category}</span>
+                        </TableCell>
+                        <TableCell className="text-green-600 font-medium">
+                          {t.type === "payment" ? formatNumber(t.amount) : "-"}
+                        </TableCell>
+                        <TableCell className="text-red-600 font-medium">
+                          {t.type === "expense" ? formatNumber(t.amount) : "-"}
+                        </TableCell>
+                        <TableCell className={`font-bold ${(t.runningBalance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatNumber(Math.abs(t.runningBalance || 0))}
+                          <span className="text-xs mr-1">
+                            {(t.runningBalance || 0) >= 0 ? "(+)" : "(-)"}
+                          </span>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {transactions.length === 0 && (
@@ -370,16 +370,16 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
                     {/* Total Row */}
                     {transactions.length > 0 && (
                       <TableRow className="bg-muted font-bold border-t-2">
-                        <TableCell className={selectedBalance.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {formatNumber(Math.abs(selectedBalance.balance))}
+                        <TableCell colSpan={5} className="text-right">جمع کل</TableCell>
+                        <TableCell className="text-green-600">
+                          {formatNumber(selectedBalance.totalPayments)}
                         </TableCell>
                         <TableCell className="text-red-600">
                           {formatNumber(selectedBalance.totalAllocatedExpenses)}
                         </TableCell>
-                        <TableCell className="text-green-600">
-                          {formatNumber(selectedBalance.totalPayments)}
+                        <TableCell className={selectedBalance.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {formatNumber(Math.abs(selectedBalance.balance))}
                         </TableCell>
-                        <TableCell colSpan={5} className="text-right">جمع کل</TableCell>
                       </TableRow>
                     )}
                   </TableBody>
