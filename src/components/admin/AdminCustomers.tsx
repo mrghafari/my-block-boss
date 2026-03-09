@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Loader2, Trash2, ChevronDown, ChevronUp, Building2, LogIn } from "lucide-react";
-import { useAdminCustomers, useUpdateCustomer, useDeleteCustomer, useAdminBuildings } from "@/hooks/useAdmin";
+import { Users, Loader2, Trash2, LogIn } from "lucide-react";
+import { useAdminCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useAdmin";
 import type { AdminCustomer } from "@/hooks/useAdmin";
 
 function PlanBadge({ plan }: { plan: string }) {
