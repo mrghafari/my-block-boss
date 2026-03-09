@@ -29,12 +29,10 @@ function formatDate(d: string) {
 export function AdminCustomers() {
   const navigate = useNavigate();
   const { data: customers, isLoading } = useAdminCustomers();
-  const { data: allBuildings } = useAdminBuildings();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
   const [editCustomer, setEditCustomer] = useState<AdminCustomer | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminCustomer | null>(null);
-  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [editPlan, setEditPlan] = useState("free");
   const [editMaxBuildings, setEditMaxBuildings] = useState(1);
   const [editMaxUnits, setEditMaxUnits] = useState(10);
@@ -61,14 +59,6 @@ export function AdminCustomers() {
   const handleDelete = () => {
     if (!deleteTarget) return;
     deleteCustomer.mutate(deleteTarget.user_id, { onSuccess: () => setDeleteTarget(null) });
-  };
-
-  const getCustomerBuildings = (userId: string) => {
-    return allBuildings?.filter(b => b.manager_email && customers?.find(c => c.user_id === userId)?.email === b.manager_email) ?? [];
-  };
-
-  const toggleExpand = (userId: string) => {
-    setExpandedCustomer(prev => prev === userId ? null : userId);
   };
 
   return (
