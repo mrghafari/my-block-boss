@@ -82,7 +82,7 @@ export function useUnitBalance() {
         paymentBreakdown: unitPayments,
       };
     });
-  }, [units, expenses, payments, managerDiscount, vacantDiscount]);
+  }, [units, expenses, payments, managerDiscount, vacantDiscount, projects]);
 
   return {
     unitBalances,
