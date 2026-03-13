@@ -123,7 +123,7 @@ export function PaymentsList() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleDelete(payment.id)}
+                  onClick={() => setDeleteId(payment.id)}
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="w-4 h-4" />
