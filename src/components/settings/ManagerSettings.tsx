@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, UserCog, Plus, Pencil, Trash2, Phone, Mail, Calendar } from "lucide-react";
 import { useManagers, useDeleteManager, Manager } from "@/hooks/useManagers";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { useBuilding } from "@/contexts/BuildingContext";
 import { ManagerFormDialog } from "./ManagerFormDialog";
 import {
   AlertDialog,
@@ -19,6 +20,7 @@ import {
 
 export function ManagerSettings() {
   const { data: managers = [], isLoading } = useManagers();
+  const { currentBuilding } = useBuilding();
   const deleteManager = useDeleteManager();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
@@ -65,7 +67,7 @@ export function ManagerSettings() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <UserCog className="w-5 h-5" />
-            مدیریت ساختمان
+            مدیریت ساختمان {currentBuilding ? `(${currentBuilding.name})` : ""}
           </CardTitle>
           <Button onClick={handleAdd} size="sm" className="gap-2">
             <Plus className="w-4 h-4" />
