@@ -109,7 +109,7 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
       t.runningBalance = runningBalance;
     });
 
-    return allTransactions;
+    return [...allTransactions].reverse();
   }, [selectedBalance, categories]);
 
   const handleExportExcel = () => {

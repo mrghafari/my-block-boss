@@ -87,7 +87,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
       t.runningBalance = running;
     });
 
-    return all;
+    return [...all].reverse();
   }, [balance, categories]);
 
   const handleExportExcel = () => {
