@@ -95,6 +95,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       end_date: values.end_date || undefined,
       budget: values.budget ? parseFloat(values.budget) : undefined,
       is_active: values.is_active,
+      manager_charge_discount_percent: values.manager_charge_discount_percent,
+      manager_extra_charge_discount_percent: values.manager_extra_charge_discount_percent,
     };
 
     if (project) {
