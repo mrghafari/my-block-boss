@@ -99,6 +99,15 @@ export function useCreateManager() {
 
   return useMutation({
     mutationFn: async (manager: ManagerInsert) => {
+      // Deactivate current active manager if new one is active
+      if (manager.is_active !== false) {
+        await supabase
+          .from("managers")
+          .update({ is_active: false })
+          .eq("building_id", currentBuildingId!)
+          .eq("is_active", true);
+      }
+
       const { data, error } = await supabase
         .from("managers")
         .insert({ ...manager, building_id: currentBuildingId! })
