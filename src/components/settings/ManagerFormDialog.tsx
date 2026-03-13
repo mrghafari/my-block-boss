@@ -304,7 +304,7 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
                   <FormItem>
                     <FormLabel>ایمیل</FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" placeholder="email@example.com" dir="ltr" />
+                      <Input {...field} type="email" dir="ltr" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
