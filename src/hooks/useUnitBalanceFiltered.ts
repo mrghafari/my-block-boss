@@ -90,18 +90,31 @@ export function calculateAllUnitAllocations(
   expense: Expense,
   allUnits: Unit[],
   managerDiscount: ManagerDiscount | null,
-  vacantDiscount: VacantDiscount | null
+  vacantDiscount: VacantDiscount | null,
+  projectManagerDiscount?: { chargeDiscountPercent: number; extraChargeDiscountPercent: number } | null
 ): Map<string, number> {
   const result = new Map<string, number>();
   const { allocation_type, fund_type } = expense;
+
+  // Determine effective manager discount: use project-specific if expense has project_id and override exists
+  const effectiveManagerDiscount = managerDiscount
+    ? {
+        ...managerDiscount,
+        chargeDiscountPercent: projectManagerDiscount
+          ? projectManagerDiscount.chargeDiscountPercent
+          : managerDiscount.chargeDiscountPercent,
+        extraChargeDiscountPercent: projectManagerDiscount
+          ? projectManagerDiscount.extraChargeDiscountPercent
+          : managerDiscount.extraChargeDiscountPercent,
+      }
+    : null;
 
   // For single_unit allocation, no redistribution needed
   if (allocation_type === "single_unit") {
     allUnits.forEach((unit) => {
       let amount = expense.unit_id === unit.id ? expense.amount : 0;
-      // Apply manager discount
-      if (managerDiscount && unit.id === managerDiscount.unitId && amount > 0) {
-        const dp = fund_type === "charge" ? managerDiscount.chargeDiscountPercent : managerDiscount.extraChargeDiscountPercent;
+      if (effectiveManagerDiscount && unit.id === effectiveManagerDiscount.unitId && amount > 0) {
+        const dp = fund_type === "charge" ? effectiveManagerDiscount.chargeDiscountPercent : effectiveManagerDiscount.extraChargeDiscountPercent;
         amount = amount * (1 - dp / 100);
       }
       result.set(unit.id, amount);
@@ -162,14 +175,39 @@ export function calculateAllUnitAllocations(
     }
   }
 
-  // Step 4: Apply manager discount
-  allUnits.forEach((unit) => {
-    let amount = baseAmounts.get(unit.id) || 0;
-    if (managerDiscount && unit.id === managerDiscount.unitId && amount > 0) {
-      const dp = fund_type === "charge" ? managerDiscount.chargeDiscountPercent : managerDiscount.extraChargeDiscountPercent;
-      amount = amount * (1 - dp / 100);
+  // Step 4: Apply manager discount and redistribute
+  let totalManagerDiscount = 0;
+  const managerUnitId = effectiveManagerDiscount?.unitId;
+  
+  if (effectiveManagerDiscount && managerUnitId) {
+    const managerBase = baseAmounts.get(managerUnitId) || 0;
+    if (managerBase > 0) {
+      const dp = fund_type === "charge" ? effectiveManagerDiscount.chargeDiscountPercent : effectiveManagerDiscount.extraChargeDiscountPercent;
+      totalManagerDiscount = managerBase * (dp / 100);
+      baseAmounts.set(managerUnitId, managerBase - totalManagerDiscount);
     }
-    result.set(unit.id, amount);
+  }
+
+  // Step 5: Redistribute manager discount to other units proportionally
+  if (totalManagerDiscount > 0) {
+    const otherUnitIds = [...baseAmounts.keys()].filter((id) => id !== managerUnitId);
+    let totalOtherBase = 0;
+    otherUnitIds.forEach((id) => {
+      totalOtherBase += baseAmounts.get(id) || 0;
+    });
+
+    if (totalOtherBase > 0) {
+      otherUnitIds.forEach((id) => {
+        const base = baseAmounts.get(id) || 0;
+        const share = (base / totalOtherBase) * totalManagerDiscount;
+        baseAmounts.set(id, base + share);
+      });
+    }
+  }
+
+  // Final: set results
+  allUnits.forEach((unit) => {
+    result.set(unit.id, baseAmounts.get(unit.id) || 0);
   });
 
   return result;
