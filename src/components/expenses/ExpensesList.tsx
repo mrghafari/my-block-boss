@@ -18,6 +18,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useExpenses, useDeleteExpense, type Expense } from "@/hooks/useExpenses";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { useProjects } from "@/hooks/useProjects";
