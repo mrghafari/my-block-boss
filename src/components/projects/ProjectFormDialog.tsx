@@ -55,6 +55,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
       end_date: "",
       budget: "",
       is_active: true,
+      manager_charge_discount_percent: 0,
+      manager_extra_charge_discount_percent: 0,
     },
   });
 
