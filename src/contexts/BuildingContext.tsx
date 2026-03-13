@@ -8,6 +8,8 @@ export interface Building {
   name: string;
   address: string | null;
   total_units: number | null;
+  vacant_charge_discount_percent: number;
+  vacant_extra_charge_discount_percent: number;
   created_at: string;
   updated_at: string;
 }
