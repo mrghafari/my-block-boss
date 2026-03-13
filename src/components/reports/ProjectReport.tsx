@@ -93,7 +93,7 @@ export function ProjectReport() {
 
     return units.map((unit) => {
       const totalAllocated = projectExpenses.reduce((sum, expense) => {
-        return sum + calculateAllocatedAmount(expense, unit, units, managerDiscount);
+        return sum + calculateAllocatedAmount(expense, unit, units, managerDiscount, vacantDiscount);
       }, 0);
 
       return {
