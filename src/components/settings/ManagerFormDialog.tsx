@@ -320,7 +320,7 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
                   <FormItem>
                     <FormLabel>تاریخ شروع</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="1403/01/01" dir="ltr" />
+                      <Input {...field} dir="ltr" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
