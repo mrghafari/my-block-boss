@@ -30,6 +30,8 @@ const formSchema = z.object({
   end_date: z.string().optional(),
   budget: z.string().optional(),
   is_active: z.boolean(),
+  manager_charge_discount_percent: z.number().min(0).max(100),
+  manager_extra_charge_discount_percent: z.number().min(0).max(100),
 });
 
 type FormValues = z.infer<typeof formSchema>;
