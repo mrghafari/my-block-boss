@@ -19,6 +19,7 @@ import { FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import { useUnits } from "@/hooks/useUnits";
 import { useActiveManager } from "@/hooks/useManagers";
 import { Expense } from "@/hooks/useExpenses";
+import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import {
   calculateAllocatedAmount,
