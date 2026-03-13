@@ -99,6 +99,15 @@ export function useCreateManager() {
 
   return useMutation({
     mutationFn: async (manager: ManagerInsert) => {
+      // Deactivate current active manager if new one is active
+      if (manager.is_active !== false) {
+        await supabase
+          .from("managers")
+          .update({ is_active: false })
+          .eq("building_id", currentBuildingId!)
+          .eq("is_active", true);
+      }
+
       const { data, error } = await supabase
         .from("managers")
         .insert({ ...manager, building_id: currentBuildingId! })
@@ -120,9 +129,20 @@ export function useCreateManager() {
 
 export function useUpdateManager() {
   const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ManagerInsert> & { id: string }) => {
+      // If activating this manager, deactivate others first
+      if (updates.is_active === true && currentBuildingId) {
+        await supabase
+          .from("managers")
+          .update({ is_active: false })
+          .eq("building_id", currentBuildingId)
+          .neq("id", id)
+          .eq("is_active", true);
+      }
+
       const { data, error } = await supabase
         .from("managers")
         .update(updates)
