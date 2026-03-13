@@ -20,6 +20,7 @@ import {
 
 export function ManagerSettings() {
   const { data: managers = [], isLoading } = useManagers();
+  const { currentBuilding } = useBuilding();
   const deleteManager = useDeleteManager();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
