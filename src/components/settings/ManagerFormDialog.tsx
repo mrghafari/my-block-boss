@@ -275,7 +275,7 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
                   <FormItem>
                     <FormLabel>نام و نام خانوادگی مدیر</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="نام کامل مدیر خارج از ساختمان" />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
