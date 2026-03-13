@@ -66,7 +66,7 @@ export function ExpenseDetailsDialog({
 
   if (!expense) return null;
 
-  const managerDiscount: ManagerDiscount | null = activeManager
+  const managerDiscount: ManagerDiscount | null = activeManager && activeManager.unit_id
     ? {
         unitId: activeManager.unit_id,
         chargeDiscountPercent: activeManager.charge_discount_percent,
