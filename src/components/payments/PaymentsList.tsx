@@ -9,6 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, CreditCard } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 import { usePayments, useDeletePayment } from "@/hooks/usePayments";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 
@@ -35,10 +46,12 @@ const fundTypeLabels: Record<string, string> = {
 export function PaymentsList() {
   const { data: payments, isLoading } = usePayments();
   const deletePayment = useDeletePayment();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
-    if (confirm("آیا از حذف این پرداخت اطمینان دارید؟")) {
-      deletePayment.mutate(id);
+  const handleDeleteConfirm = () => {
+    if (deleteId) {
+      deletePayment.mutate(deleteId);
+      setDeleteId(null);
     }
   };
 
@@ -110,7 +123,7 @@ export function PaymentsList() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleDelete(payment.id)}
+                  onClick={() => setDeleteId(payment.id)}
                   className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -120,6 +133,25 @@ export function PaymentsList() {
           ))}
         </TableBody>
       </Table>
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف پرداخت</AlertDialogTitle>
+            <AlertDialogDescription>
+              آیا از حذف این پرداخت اطمینان دارید؟ این عملیات غیرقابل بازگشت است و امکان بازیابی اطلاعات وجود ندارد.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

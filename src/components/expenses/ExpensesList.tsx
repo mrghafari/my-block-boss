@@ -18,6 +18,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useExpenses, useDeleteExpense, type Expense } from "@/hooks/useExpenses";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { useProjects } from "@/hooks/useProjects";
@@ -58,6 +68,7 @@ export function ExpensesList() {
   const [filterProject, setFilterProject] = useState<string>("all");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: categories = [] } = useExpenseCategories();
@@ -223,7 +234,7 @@ export function ExpensesList() {
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteExpense.mutate(expense.id);
+                              setDeleteId(expense.id);
                             }}
                             disabled={deleteExpense.isPending}
                           >
@@ -245,6 +256,26 @@ export function ExpensesList() {
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
       />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف هزینه</AlertDialogTitle>
+            <AlertDialogDescription>
+              آیا از حذف این هزینه اطمینان دارید؟ این عملیات غیرقابل بازگشت است و امکان بازیابی اطلاعات وجود ندارد.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { if (deleteId) { deleteExpense.mutate(deleteId); setDeleteId(null); } }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
