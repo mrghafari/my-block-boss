@@ -35,6 +35,7 @@ function exportBalanceExcel(data: UnitBalance[], debtorsOnly: boolean) {
     پلاک: ub.unit.unit_number,
     مالک: ub.unit.owner_name,
     "دریافتی‌ها (تومان)": Math.round(ub.totalPayments),
+    "بدهی شارژ (تومان)": Math.round(ub.totalCharges),
     "هزینه تسهیم‌شده (تومان)": Math.round(ub.totalAllocatedExpenses),
     "مانده (تومان)": Math.round(ub.balance),
     وضعیت: ub.balance >= 0 ? "بستانکار" : "بدهکار",
@@ -42,6 +43,7 @@ function exportBalanceExcel(data: UnitBalance[], debtorsOnly: boolean) {
 
   const totalPayments = filtered.reduce((s, u) => s + u.totalPayments, 0);
   const totalExpenses = filtered.reduce((s, u) => s + u.totalAllocatedExpenses, 0);
+  const totalCharges = filtered.reduce((s, u) => s + u.totalCharges, 0);
   const totalBalance = filtered.reduce((s, u) => s + u.balance, 0);
 
   rows.push({
@@ -49,6 +51,7 @@ function exportBalanceExcel(data: UnitBalance[], debtorsOnly: boolean) {
     پلاک: "",
     مالک: "جمع کل",
     "دریافتی‌ها (تومان)": Math.round(totalPayments),
+    "بدهی شارژ (تومان)": Math.round(totalCharges),
     "هزینه تسهیم‌شده (تومان)": Math.round(totalExpenses),
     "مانده (تومان)": Math.round(totalBalance),
     وضعیت: "",
@@ -210,6 +213,7 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                   <TableHead className="text-right">پلاک</TableHead>
                   <TableHead className="text-right">مالک</TableHead>
                   <TableHead className="text-right">دریافتی‌ها</TableHead>
+                  <TableHead className="text-right">بدهی شارژ</TableHead>
                   <TableHead className="text-right">هزینه‌های تسهیم‌شده</TableHead>
                   <TableHead className="text-right">مانده</TableHead>
                   <TableHead className="text-right">وضعیت</TableHead>
@@ -226,6 +230,9 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                     <TableCell>{ub.unit.owner_name}</TableCell>
                     <TableCell className="text-green-600">
                       {formatNumber(ub.totalPayments)}
+                    </TableCell>
+                    <TableCell className="text-orange-500">
+                      {formatNumber(ub.totalCharges)}
                     </TableCell>
                     <TableCell className="text-red-600">
                       {formatNumber(ub.totalAllocatedExpenses)}
@@ -250,7 +257,7 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                 ))}
                 {displayData.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       {debtorsOnly ? "واحد بدهکاری وجود ندارد" : "هنوز واحدی ثبت نشده است"}
                     </TableCell>
                   </TableRow>

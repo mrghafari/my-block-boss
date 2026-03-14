@@ -3,10 +3,11 @@ import { UnitBalanceReport } from "./UnitBalanceReport";
 import { UnitDetailReport } from "./UnitDetailReport";
 import { ProjectReport } from "./ProjectReport";
 import { ChronologicalReport } from "./ChronologicalReport";
+import { ChargeDebtReport } from "./ChargeDebtReport";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, FileText, FolderKanban, History } from "lucide-react";
+import { ArrowRight, FileText, FolderKanban, History, CreditCard } from "lucide-react";
 import { DateRange } from "@/hooks/useUnitBalanceFiltered";
 
 export function ReportsPage() {
@@ -31,15 +32,21 @@ export function ReportsPage() {
             <p className="text-muted-foreground mt-1">
               {activeTab === "units"
                 ? "بیلان واحدها - برای مشاهده جزئیات روی هر سطر کلیک کنید"
+                : activeTab === "charges"
+                ? "گزارش بدهی شارژ - مبالغ اعلام‌شده و وضعیت پرداخت هر واحد"
                 : activeTab === "chronological"
                 ? "دفتر معین - گردش حساب به ترتیب زمانی با مانده"
                 : "گزارش مالی پروژه‌ها - سهم هر واحد از هزینه‌های پروژه"}
             </p>
           </div>
-          <TabsList className="grid w-full sm:w-auto grid-cols-3">
+          <TabsList className="grid w-full sm:w-auto grid-cols-4">
             <TabsTrigger value="units" className="gap-2">
               <FileText className="w-4 h-4" />
               بیلان واحدها
+            </TabsTrigger>
+            <TabsTrigger value="charges" className="gap-2">
+              <CreditCard className="w-4 h-4" />
+              بدهی شارژ
             </TabsTrigger>
             <TabsTrigger value="chronological" className="gap-2">
               <History className="w-4 h-4" />
@@ -76,6 +83,10 @@ export function ReportsPage() {
               <UnitBalanceReport onSelectUnit={handleSelectUnit} dateRange={dateRange} />
             </>
           )}
+        </TabsContent>
+
+        <TabsContent value="charges" className="mt-6">
+          <ChargeDebtReport dateRange={dateRange} onDateRangeChange={setDateRange} />
         </TabsContent>
 
         <TabsContent value="chronological" className="mt-6">
