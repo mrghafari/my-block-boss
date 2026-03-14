@@ -124,12 +124,12 @@ export function PollsList() {
       const { data: hash } = await supabase.rpc("get_voter_hash", { _poll_id: pollId });
       if (!hash) throw new Error("خطا در دریافت هش");
 
-      const { error } = await supabase.from("building_poll_votes").insert({
+      const { error } = await (supabase as any).from("building_poll_votes").insert({
         poll_id: pollId,
         building_id: currentBuildingId,
         voter_hash: hash,
         selected_option: optionIndex,
-      } as any);
+      });
       if (error) {
         if (error.code === "23505") throw new Error("شما قبلاً رأی داده‌اید");
         throw error;
