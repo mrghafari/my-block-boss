@@ -56,7 +56,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<Date>(new Date());
   const [description, setDescription] = useState("");
   const [fundType, setFundType] = useState<string>("charge");
   const [allocationType, setAllocationType] = useState<AllocationType>("equal");
