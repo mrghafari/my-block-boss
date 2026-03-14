@@ -51,13 +51,13 @@ export function PollsList() {
     queryKey: ["building-polls", currentBuildingId],
     queryFn: async () => {
       if (!currentBuildingId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("building_polls")
         .select("*")
         .eq("building_id", currentBuildingId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Poll[];
+      return (data as Poll[]) || [];
     },
     enabled: !!currentBuildingId,
   });
