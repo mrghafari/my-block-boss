@@ -87,8 +87,11 @@ export default function Landing() {
             <a href="#faq" className="hover:text-foreground transition-colors">سوالات متداول</a>
           </div>
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/resident-auth")}>
+              پنل ساکنین
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/auth")}>
-              ورود
+              ورود مدیران
             </Button>
             <Button onClick={() => navigate("/auth")} className="bg-gradient-primary hover:opacity-90 shadow-glow">
               شروع رایگان
