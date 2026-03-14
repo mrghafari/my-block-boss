@@ -15,6 +15,7 @@ const menuItems = [
   { id: "payments", label: "پرداخت‌ها", icon: CreditCard },
   { id: "reports", label: "گزارش‌ها", icon: FileText },
   { id: "announcements", label: "اعلانات", icon: Bell },
+  { id: "documents", label: "اسناد ساختمان", icon: FolderOpen },
   { id: "settings", label: "تنظیمات", icon: Settings },
 ];
 
