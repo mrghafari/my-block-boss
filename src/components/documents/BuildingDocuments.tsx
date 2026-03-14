@@ -42,6 +42,7 @@ export function BuildingDocuments() {
   const queryClient = useQueryClient();
 
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [customFolders, setCustomFolders] = useState<string[]>([]);
   const [newFolderDialog, setNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [uploading, setUploading] = useState(false);
