@@ -15,10 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { FileSpreadsheet, FileText, Loader2, Paperclip, Download, ExternalLink } from "lucide-react";
 import { useUnits } from "@/hooks/useUnits";
 import { Expense } from "@/hooks/useExpenses";
 import { useExpenseShares } from "@/hooks/useExpenseShares";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import {
   exportToExcel,
