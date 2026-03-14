@@ -159,14 +159,25 @@ export function BuildingDocuments() {
 
   // Download
   const handleDownload = async (doc: DocRow) => {
-    const { data, error } = await supabase.storage
-      .from("building-documents")
-      .createSignedUrl(doc.file_path, 60);
-    if (error || !data?.signedUrl) {
+    try {
+      const { data, error } = await supabase.storage
+        .from("building-documents")
+        .download(doc.file_path);
+      if (error || !data) {
+        toast({ title: "خطا در دانلود", variant: "destructive" });
+        return;
+      }
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.file_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
       toast({ title: "خطا در دانلود", variant: "destructive" });
-      return;
     }
-    window.open(data.signedUrl, "_blank");
   };
 
   const formatSize = (bytes: number) => {
