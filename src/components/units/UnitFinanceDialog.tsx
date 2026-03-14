@@ -288,7 +288,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
                     <TableRow className="bg-muted font-bold border-t-2">
                       <TableCell colSpan={5} className="text-left">جمع کل</TableCell>
                       <TableCell className="text-green-600">{formatNumber(balance.totalPayments)}</TableCell>
-                      <TableCell className="text-red-600">{formatNumber(balance.totalAllocatedExpenses + balance.totalCharges)}</TableCell>
+                      <TableCell className="text-red-600">{formatNumber(balance.totalAllocatedExpenses)}</TableCell>
                       <TableCell className={balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
                         {formatNumber(Math.abs(balance.balance))}
                       </TableCell>
