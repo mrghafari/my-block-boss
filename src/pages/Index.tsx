@@ -8,6 +8,7 @@ import { PaymentsPage } from "@/components/payments/PaymentsPage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { ReportsPage } from "@/components/reports/ReportsPage";
 import { BuildingDocuments } from "@/components/documents/BuildingDocuments";
+import { AnnouncementsPage } from "@/components/announcements/AnnouncementsPage";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
