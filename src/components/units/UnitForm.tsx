@@ -30,6 +30,22 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
 
+  // Check if unit has any related records (payments or expenses)
+  const { data: hasRecords = false } = useQuery({
+    queryKey: ["unit-has-records", editUnit?.id],
+    queryFn: async () => {
+      if (!editUnit?.id) return false;
+      const [payments, expenses] = await Promise.all([
+        supabase.from("payments").select("id", { count: "exact", head: true }).eq("unit_id", editUnit.id),
+        supabase.from("expenses").select("id", { count: "exact", head: true }).eq("unit_id", editUnit.id),
+      ]);
+      return ((payments.count || 0) + (expenses.count || 0)) > 0;
+    },
+    enabled: !!editUnit?.id,
+  });
+
+  const isUnitNumberLocked = !!editUnit && hasRecords;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
