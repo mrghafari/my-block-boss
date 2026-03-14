@@ -66,7 +66,7 @@ export function BuildingDocuments() {
 
   // Get unique folders
   const folders = Array.from(
-    new Set([...DEFAULT_FOLDERS, ...documents.map((d) => d.folder)])
+    new Set([...DEFAULT_FOLDERS, ...customFolders, ...documents.map((d) => d.folder)])
   );
 
   const folderDocs = activeFolder
