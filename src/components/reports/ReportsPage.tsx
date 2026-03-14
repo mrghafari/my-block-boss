@@ -85,6 +85,10 @@ export function ReportsPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="charges" className="mt-6">
+          <ChargeDebtReport dateRange={dateRange} onDateRangeChange={setDateRange} />
+        </TabsContent>
+
         <TabsContent value="chronological" className="mt-6">
           <ChronologicalReport dateRange={dateRange} onDateRangeChange={setDateRange} />
         </TabsContent>
