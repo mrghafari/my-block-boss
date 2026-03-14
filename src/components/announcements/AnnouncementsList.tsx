@@ -90,13 +90,13 @@ export function AnnouncementsList() {
       } else {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Not authenticated");
-        const { error } = await supabase.from("building_announcements").insert({
+        const { error } = await (supabase as any).from("building_announcements").insert({
           building_id: currentBuildingId,
           title: trimmedTitle,
           content: trimmedContent,
           is_pinned: isPinned,
           created_by: user.id,
-        } as any);
+        });
         if (error) throw error;
       }
     },
