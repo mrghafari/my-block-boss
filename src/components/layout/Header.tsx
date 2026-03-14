@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Bell, Search, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuildingSelector } from "./BuildingSelector";
+import { SearchCommand } from "./SearchCommand";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -11,7 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
+interface HeaderProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export function Header({ onTabChange }: HeaderProps) {
+  const [searchOpen, setSearchOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -29,13 +36,17 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="flex items-center justify-between h-16 px-6">
         {/* Search */}
-        <div className="relative w-80">
+        <div className="relative w-80 cursor-pointer" onClick={() => setSearchOpen(true)}>
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="جستجو..."
-            className="pr-10 bg-secondary/50 border-0 focus-visible:ring-1"
+            placeholder="جستجو... (Ctrl+K)"
+            className="pr-10 bg-secondary/50 border-0 focus-visible:ring-1 cursor-pointer"
+            readOnly
           />
         </div>
+        {onTabChange && (
+          <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} onTabChange={onTabChange} />
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-4">
