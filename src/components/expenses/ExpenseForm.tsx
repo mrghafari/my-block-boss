@@ -100,22 +100,38 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
 
   const uploadAttachments = async (expenseId: string) => {
     if (!currentBuildingId || attachments.length === 0) return;
-    for (const file of attachments) {
-      const filePath = `${currentBuildingId}/${expenseId}/${Date.now()}_${file.name}`;
+    
+    const uploadPromises = attachments.map(async (file, index) => {
+      const filePath = `${currentBuildingId}/${expenseId}/${Date.now()}_${index}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("expense-attachments")
         .upload(filePath, file);
       if (uploadError) {
-        console.error("Upload error:", uploadError);
-        continue;
+        console.error("Upload error for file:", file.name, uploadError);
+        return null;
       }
-      await supabase.from("expense_attachments").insert({
+      const { error: insertError } = await supabase.from("expense_attachments").insert({
         expense_id: expenseId,
         building_id: currentBuildingId,
         file_name: file.name,
         file_path: filePath,
         file_size: file.size,
         file_type: file.type,
+      });
+      if (insertError) {
+        console.error("DB insert error for file:", file.name, insertError);
+        return null;
+      }
+      return filePath;
+    });
+    
+    const results = await Promise.all(uploadPromises);
+    const successCount = results.filter(Boolean).length;
+    if (successCount < attachments.length) {
+      toast({
+        title: "هشدار",
+        description: `${successCount} از ${attachments.length} فایل با موفقیت آپلود شد`,
+        variant: "destructive",
       });
     }
   };
