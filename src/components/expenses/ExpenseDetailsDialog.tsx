@@ -231,6 +231,34 @@ export function ExpenseDetailsDialog({
               </TableBody>
             </Table>
           )}
+
+          {/* Attachments */}
+          {attachments.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Paperclip className="w-4 h-4" />
+                مستندات پیوست ({attachments.length})
+              </h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {attachments.map((att: any) => (
+                  <div key={att.id} className="flex items-center gap-2 p-2 rounded-md border bg-muted/30">
+                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="flex-1 text-sm truncate">{att.file_name}</span>
+                    <a
+                      href={getFileUrl(att.file_path)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0"
+                    >
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Button>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
