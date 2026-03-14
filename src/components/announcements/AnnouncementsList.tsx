@@ -47,14 +47,14 @@ export function AnnouncementsList() {
     queryKey: ["building-announcements", currentBuildingId],
     queryFn: async () => {
       if (!currentBuildingId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("building_announcements")
         .select("*")
         .eq("building_id", currentBuildingId)
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Announcement[];
+      return (data as Announcement[]) || [];
     },
     enabled: !!currentBuildingId,
   });
