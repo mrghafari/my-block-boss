@@ -35,6 +35,7 @@ function exportBalanceExcel(data: UnitBalance[], debtorsOnly: boolean) {
     پلاک: ub.unit.unit_number,
     مالک: ub.unit.owner_name,
     "دریافتی‌ها (تومان)": Math.round(ub.totalPayments),
+    "بدهی شارژ (تومان)": Math.round(ub.totalCharges),
     "هزینه تسهیم‌شده (تومان)": Math.round(ub.totalAllocatedExpenses),
     "مانده (تومان)": Math.round(ub.balance),
     وضعیت: ub.balance >= 0 ? "بستانکار" : "بدهکار",
