@@ -32,15 +32,21 @@ export function ReportsPage() {
             <p className="text-muted-foreground mt-1">
               {activeTab === "units"
                 ? "بیلان واحدها - برای مشاهده جزئیات روی هر سطر کلیک کنید"
+                : activeTab === "charges"
+                ? "گزارش بدهی شارژ - مبالغ اعلام‌شده و وضعیت پرداخت هر واحد"
                 : activeTab === "chronological"
                 ? "دفتر معین - گردش حساب به ترتیب زمانی با مانده"
                 : "گزارش مالی پروژه‌ها - سهم هر واحد از هزینه‌های پروژه"}
             </p>
           </div>
-          <TabsList className="grid w-full sm:w-auto grid-cols-3">
+          <TabsList className="grid w-full sm:w-auto grid-cols-4">
             <TabsTrigger value="units" className="gap-2">
               <FileText className="w-4 h-4" />
               بیلان واحدها
+            </TabsTrigger>
+            <TabsTrigger value="charges" className="gap-2">
+              <CreditCard className="w-4 h-4" />
+              بدهی شارژ
             </TabsTrigger>
             <TabsTrigger value="chronological" className="gap-2">
               <History className="w-4 h-4" />
