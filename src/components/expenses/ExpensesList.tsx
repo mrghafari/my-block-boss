@@ -210,11 +210,6 @@ export function ExpensesList() {
                       </TableCell>
                       <TableCell>{formatDate(expense.expense_date)}</TableCell>
                       <TableCell>
-                        <Badge variant={expense.is_paid ? "default" : "secondary"}>
-                          {expense.is_paid ? "پرداخت شده" : "در انتظار"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
