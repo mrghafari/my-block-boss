@@ -10,6 +10,7 @@ export interface UnitBalance {
   unit: Unit;
   totalPayments: number;
   totalAllocatedExpenses: number;
+  totalCharges: number;
   balance: number;
   expenseBreakdown: {
     expense: Expense;
@@ -17,6 +18,7 @@ export interface UnitBalance {
     project?: { name: string } | null;
   }[];
   paymentBreakdown: PaymentWithUnit[];
+  chargeBreakdown: UnitCharge[];
 }
 
 export interface DateRange {
