@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, X, Loader2, Edit } from "lucide-react";
+import { Plus, X, Loader2, Edit, Lock } from "lucide-react";
 import { useCreateUnit, useUpdateUnit, type Unit, type CreateUnitData } from "@/hooks/useUnits";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UnitFormProps {
   onClose: () => void;
@@ -27,6 +29,22 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
 
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
+
+  // Check if unit has any related records (payments or expenses)
+  const { data: hasRecords = false } = useQuery({
+    queryKey: ["unit-has-records", editUnit?.id],
+    queryFn: async () => {
+      if (!editUnit?.id) return false;
+      const [payments, expenses] = await Promise.all([
+        supabase.from("payments").select("id", { count: "exact", head: true }).eq("unit_id", editUnit.id),
+        supabase.from("expenses").select("id", { count: "exact", head: true }).eq("unit_id", editUnit.id),
+      ]);
+      return ((payments.count || 0) + (expenses.count || 0)) > 0;
+    },
+    enabled: !!editUnit?.id,
+  });
+
+  const isUnitNumberLocked = !!editUnit && hasRecords;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,13 +106,23 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">اطلاعات پایه</h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="unitNumber">شماره پلاک *</Label>
-                <Input
-                  id="unitNumber"
-                  value={unitNumber}
-                  onChange={(e) => setUnitNumber(e.target.value)}
-                  maxLength={20}
-                />
+                <Label htmlFor="unitNumber">شماره واحد *</Label>
+                <div className="relative">
+                  <Input
+                    id="unitNumber"
+                    value={unitNumber}
+                    onChange={(e) => setUnitNumber(e.target.value)}
+                    maxLength={20}
+                    disabled={isUnitNumberLocked}
+                    className={isUnitNumberLocked ? "bg-muted cursor-not-allowed pr-9" : ""}
+                  />
+                  {isUnitNumberLocked && (
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
+                {isUnitNumberLocked && (
+                  <p className="text-xs text-muted-foreground">شماره واحد قابل تغییر نمی‌باشد</p>
+                )}
               </div>
 
               <div className="space-y-2">
