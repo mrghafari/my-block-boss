@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, Paperclip, FileIcon, Trash2 } from "lucide-react";
 import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { toast } from "@/hooks/use-toast";
 import { useCreateExpense, type CreateExpenseData, type AllocationType } from "@/hooks/useExpenses";
@@ -21,6 +21,8 @@ import { useUnits } from "@/hooks/useUnits";
 import { useCategoriesWithSettings } from "@/hooks/useExpenseCategories";
 import { useActiveProjects } from "@/hooks/useProjects";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { supabase } from "@/integrations/supabase/client";
+import { useBuilding } from "@/contexts/BuildingContext";
 
 interface ExpenseFormProps {
   onClose: () => void;
