@@ -3,10 +3,11 @@ import { UnitBalanceReport } from "./UnitBalanceReport";
 import { UnitDetailReport } from "./UnitDetailReport";
 import { ProjectReport } from "./ProjectReport";
 import { ChronologicalReport } from "./ChronologicalReport";
+import { ChargeDebtReport } from "./ChargeDebtReport";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, FileText, FolderKanban, History } from "lucide-react";
+import { ArrowRight, FileText, FolderKanban, History, CreditCard } from "lucide-react";
 import { DateRange } from "@/hooks/useUnitBalanceFiltered";
 
 export function ReportsPage() {
