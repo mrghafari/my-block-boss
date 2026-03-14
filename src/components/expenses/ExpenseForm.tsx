@@ -66,7 +66,11 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [areaRatio, setAreaRatio] = useState<number>(50);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const { currentBuildingId } = useBuilding();
   const createExpense = useCreateExpense();
   const { data: units } = useUnits();
   const { data: categoriesWithSettings } = useCategoriesWithSettings();
