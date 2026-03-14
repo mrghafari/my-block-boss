@@ -33,6 +33,7 @@ import { useExpenses, useDeleteExpense, type Expense } from "@/hooks/useExpenses
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { supabase } from "@/integrations/supabase/client";
 import { ExpenseDetailsDialog } from "./ExpenseDetailsDialog";
 
 const fundTypeLabels: Record<string, string> = {
