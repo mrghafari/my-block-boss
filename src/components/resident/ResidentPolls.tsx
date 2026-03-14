@@ -1,0 +1,139 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3, CheckCircle2, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Props {
+  buildingId: string;
+}
+
+export function ResidentPolls({ buildingId }: Props) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: polls = [], isLoading } = useQuery({
+    queryKey: ["resident_polls", buildingId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("building_polls")
+        .select("*")
+        .eq("building_id", buildingId)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: votes = [] } = useQuery({
+    queryKey: ["resident_poll_votes", buildingId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("building_poll_votes")
+        .select("*")
+        .eq("building_id", buildingId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: voterHash } = useQuery({
+    queryKey: ["voter_hash_resident"],
+    queryFn: async () => {
+      // We'll compute per poll
+      return null;
+    },
+    enabled: false,
+  });
+
+  const voteMutation = useMutation({
+    mutationFn: async ({ pollId, optionIndex }: { pollId: string; optionIndex: number }) => {
+      const { data: hash } = await supabase.rpc("get_voter_hash", { _poll_id: pollId });
+      if (!hash) throw new Error("خطا");
+      const { error } = await supabase.from("building_poll_votes").insert({
+        poll_id: pollId,
+        building_id: buildingId,
+        selected_option: optionIndex,
+        voter_hash: hash,
+      });
+      if (error) {
+        if (error.code === "23505") throw new Error("شما قبلاً رأی داده‌اید");
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resident_poll_votes"] });
+      toast({ title: "رأی شما ثبت شد" });
+    },
+    onError: (err: any) => {
+      toast({ title: "خطا", description: err.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (polls.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <BarChart3 className="w-12 h-12 mb-3 opacity-30" />
+          <p>نظرسنجی فعالی وجود ندارد</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {polls.map((poll) => {
+        const options = (poll.options as any[]) || [];
+        const pollVotes = votes.filter((v) => v.poll_id === poll.id);
+        const totalVotes = pollVotes.length;
+
+        return (
+          <Card key={poll.id}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">{poll.question}</CardTitle>
+              <p className="text-xs text-muted-foreground">{totalVotes} رأی</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {options.map((opt: any, i: number) => {
+                const optVotes = pollVotes.filter((v) => v.selected_option === i).length;
+                const pct = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-sm h-auto py-1 px-2"
+                        onClick={() => voteMutation.mutate({ pollId: poll.id, optionIndex: i })}
+                        disabled={voteMutation.isPending}
+                      >
+                        {typeof opt === "string" ? opt : opt.text || `گزینه ${i + 1}`}
+                      </Button>
+                      <span className="text-xs text-muted-foreground">{pct}%</span>
+                    </div>
+                    <Progress value={pct} className="h-1.5" />
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
