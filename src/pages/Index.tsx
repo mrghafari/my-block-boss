@@ -9,6 +9,7 @@ import { SettingsPage } from "@/components/settings/SettingsPage";
 import { ReportsPage } from "@/components/reports/ReportsPage";
 import { BuildingDocuments } from "@/components/documents/BuildingDocuments";
 import { AnnouncementsPage } from "@/components/announcements/AnnouncementsPage";
+import { UtilitiesPage } from "@/components/utilities/UtilitiesPage";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
