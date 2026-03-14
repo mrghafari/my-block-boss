@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { useCreateProject, useUpdateProject, Project } from "@/hooks/useProjects";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
+import { fromJalaliString, toJalaliString } from "@/lib/jalaliDate";
 
 const formSchema = z.object({
   name: z.string().min(1, "نام پروژه را وارد کنید"),
@@ -164,7 +166,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   <FormItem>
                     <FormLabel>تاریخ شروع</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,7 +183,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   <FormItem>
                     <FormLabel>تاریخ پایان</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

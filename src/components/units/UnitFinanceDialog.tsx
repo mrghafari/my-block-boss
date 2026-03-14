@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, Receipt, TrendingUp, TrendingDown, FileSpreadsheet, FileDown, CalendarDays } from "lucide-react";
+import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { useUnitBalanceFiltered, DateRange } from "@/hooks/useUnitBalanceFiltered";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { formatJalaliDate, toJalaliString } from "@/lib/jalaliDate";
@@ -160,20 +161,20 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
             <CalendarDays className="w-4 h-4 text-muted-foreground" />
             <div className="space-y-1">
               <Label className="text-xs">از تاریخ</Label>
-              <Input
-                type="date"
-                className="h-8 text-sm w-36"
-                value={dateRange.from ? dateRange.from.toISOString().split("T")[0] : ""}
-                onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value ? new Date(e.target.value) : undefined }))}
+              <JalaliDatePicker
+                value={dateRange.from}
+                onChange={(d) => setDateRange(prev => ({ ...prev, from: d }))}
+                placeholder="از تاریخ"
+                buttonClassName="h-8 text-sm w-36"
               />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">تا تاریخ</Label>
-              <Input
-                type="date"
-                className="h-8 text-sm w-36"
-                value={dateRange.to ? dateRange.to.toISOString().split("T")[0] : ""}
-                onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value ? new Date(e.target.value) : undefined }))}
+              <JalaliDatePicker
+                value={dateRange.to}
+                onChange={(d) => setDateRange(prev => ({ ...prev, to: d }))}
+                placeholder="تا تاریخ"
+                buttonClassName="h-8 text-sm w-36"
               />
             </div>
             {(dateRange.from || dateRange.to) && (

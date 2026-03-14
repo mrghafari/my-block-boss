@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
-import { Calendar, Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
+import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { toast } from "@/hooks/use-toast";
 import { useCreateExpense, type CreateExpenseData, type AllocationType } from "@/hooks/useExpenses";
 import { useUnits } from "@/hooks/useUnits";
@@ -56,7 +57,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<Date>(new Date());
   const [description, setDescription] = useState("");
   const [fundType, setFundType] = useState<string>("charge");
   const [allocationType, setAllocationType] = useState<AllocationType>("equal");
@@ -105,7 +106,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
       title: title.trim(),
       amount: parseFloat(amount),
       category: category as any,
-      expense_date: date,
+      expense_date: date.toISOString().split("T")[0],
       description: description.trim() || undefined,
       fund_type: fundType as "charge" | "extra_charge",
       allocation_type: allocationType,
@@ -176,16 +177,11 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">تاریخ</Label>
-              <div className="relative">
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
+              <Label>تاریخ</Label>
+              <JalaliDatePicker
+                value={date}
+                onChange={(d) => d && setDate(d)}
+              />
             </div>
           </div>
 

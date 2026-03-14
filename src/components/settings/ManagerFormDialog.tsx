@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Building2, UserCircle2 } from "lucide-react";
+import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { useUnits } from "@/hooks/useUnits";
 import { useCreateManager, useUpdateManager, Manager } from "@/hooks/useManagers";
 import { toJalaliString, fromJalaliString, getTodayJalali } from "@/lib/jalaliDate";
@@ -320,7 +321,11 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
                   <FormItem>
                     <FormLabel>تاریخ شروع</FormLabel>
                     <FormControl>
-                      <Input {...field} dir="ltr" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -333,7 +338,11 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
                   <FormItem>
                     <FormLabel>تاریخ پایان (اختیاری)</FormLabel>
                     <FormControl>
-                      <Input {...field} dir="ltr" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
