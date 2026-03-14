@@ -75,6 +75,8 @@ export function useApplyCharges() {
         month: number;
         year: number;
         description: string | null;
+        owner_name: string | null;
+        resident_name: string | null;
       }[] = [];
 
       const applyForFund = (baseAmount: number, fundType: FundType) => {
