@@ -182,6 +182,7 @@ export function BuildingDocuments() {
       toast({ title: "این پوشه قبلاً وجود دارد", variant: "destructive" });
       return;
     }
+    setCustomFolders((prev) => [...prev, name]);
     setActiveFolder(name);
     setNewFolderDialog(false);
     setNewFolderName("");
