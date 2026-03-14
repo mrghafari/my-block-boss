@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, Receipt, TrendingUp, TrendingDown, FileSpreadsheet, FileDown, CalendarDays } from "lucide-react";
+import { Loader2, ArrowUpCircle, ArrowDownCircle, Wallet, Receipt, TrendingUp, TrendingDown, FileSpreadsheet, FileDown, CalendarDays, X } from "lucide-react";
 import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { useUnitBalanceFiltered, DateRange } from "@/hooks/useUnitBalanceFiltered";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
