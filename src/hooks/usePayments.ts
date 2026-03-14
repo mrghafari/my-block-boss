@@ -56,10 +56,13 @@ export function useCreatePayment() {
   const { currentBuildingId } = useBuilding();
   
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, "id" | "created_at" | "building_id">) => {
+    mutationFn: async (payment: Omit<Payment, "id" | "created_at" | "building_id"> & { owner_name?: string; resident_name?: string }) => {
       const { data, error } = await supabase
         .from("payments")
-        .insert({ ...payment, building_id: currentBuildingId! })
+        .insert({
+          ...payment,
+          building_id: currentBuildingId!,
+        })
         .select()
         .single();
       

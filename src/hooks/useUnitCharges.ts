@@ -106,6 +106,8 @@ export function useApplyCharges() {
               month,
               year,
               description: description || null,
+              owner_name: unit.owner_name || null,
+              resident_name: unit.resident_name || null,
             });
           }
         });
