@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useUtilityReadings, useCreateUtilityReading, useDeleteUtilityReading } from "@/hooks/useUtilityReadings";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useBuilding } from "@/contexts/BuildingContext";
-import { toJalali } from "@/lib/jalaliDate";
+import { formatJalaliDate } from "@/lib/jalaliDate";
 import { Plus, Trash2, Droplets, Zap, Flame, TrendingUp, Loader2, Gauge } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
