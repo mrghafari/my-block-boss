@@ -15,6 +15,8 @@ export interface UnitCharge {
   month: number;
   year: number;
   description: string | null;
+  owner_name: string | null;
+  resident_name: string | null;
   created_at: string;
 }
 

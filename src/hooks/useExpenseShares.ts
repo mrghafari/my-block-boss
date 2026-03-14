@@ -8,6 +8,8 @@ export interface ExpenseShare {
   unit_id: string;
   building_id: string;
   allocated_amount: number;
+  owner_name: string | null;
+  resident_name: string | null;
   created_at: string;
 }
 
