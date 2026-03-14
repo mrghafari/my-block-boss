@@ -56,6 +56,26 @@ export function ExpenseDetailsDialog({
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const { data: units = [], isLoading: unitsLoading } = useUnits();
   const { data: shares = [], isLoading: sharesLoading } = useExpenseShares();
+  
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["expense_attachments", expense?.id],
+    queryFn: async () => {
+      if (!expense) return [];
+      const { data, error } = await supabase
+        .from("expense_attachments" as any)
+        .select("*")
+        .eq("expense_id", expense.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!expense,
+  });
+
+  const getFileUrl = (filePath: string) => {
+    const { data } = supabase.storage.from("expense-attachments").getPublicUrl(filePath);
+    return data.publicUrl;
+  };
 
   if (!expense) return null;
 
