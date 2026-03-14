@@ -213,6 +213,7 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                   <TableHead className="text-right">پلاک</TableHead>
                   <TableHead className="text-right">مالک</TableHead>
                   <TableHead className="text-right">دریافتی‌ها</TableHead>
+                  <TableHead className="text-right">بدهی شارژ</TableHead>
                   <TableHead className="text-right">هزینه‌های تسهیم‌شده</TableHead>
                   <TableHead className="text-right">مانده</TableHead>
                   <TableHead className="text-right">وضعیت</TableHead>
@@ -229,6 +230,9 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                     <TableCell>{ub.unit.owner_name}</TableCell>
                     <TableCell className="text-green-600">
                       {formatNumber(ub.totalPayments)}
+                    </TableCell>
+                    <TableCell className="text-orange-500">
+                      {formatNumber(ub.totalCharges)}
                     </TableCell>
                     <TableCell className="text-red-600">
                       {formatNumber(ub.totalAllocatedExpenses)}
@@ -253,7 +257,7 @@ export function UnitBalanceReport({ onSelectUnit, dateRange }: UnitBalanceReport
                 ))}
                 {displayData.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       {debtorsOnly ? "واحد بدهکاری وجود ندارد" : "هنوز واحدی ثبت نشده است"}
                     </TableCell>
                   </TableRow>
