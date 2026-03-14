@@ -147,7 +147,7 @@ export function PollsList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("building_polls").delete().eq("id", id);
+      const { error } = await (supabase as any).from("building_polls").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
