@@ -249,7 +249,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
                       <TableHead className="text-right">شرح</TableHead>
                       <TableHead className="text-right">مالک/ساکن</TableHead>
                       <TableHead className="text-right text-green-600">دریافت</TableHead>
-                      <TableHead className="text-right text-red-600">بدهی</TableHead>
+                      <TableHead className="text-right text-red-600">هزینه</TableHead>
                       <TableHead className="text-right">مانده</TableHead>
                     </TableRow>
                   </TableHeader>
