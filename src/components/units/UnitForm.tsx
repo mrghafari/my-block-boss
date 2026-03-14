@@ -106,13 +106,23 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3">اطلاعات پایه</h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="unitNumber">شماره پلاک *</Label>
-                <Input
-                  id="unitNumber"
-                  value={unitNumber}
-                  onChange={(e) => setUnitNumber(e.target.value)}
-                  maxLength={20}
-                />
+                <Label htmlFor="unitNumber">شماره واحد *</Label>
+                <div className="relative">
+                  <Input
+                    id="unitNumber"
+                    value={unitNumber}
+                    onChange={(e) => setUnitNumber(e.target.value)}
+                    maxLength={20}
+                    disabled={isUnitNumberLocked}
+                    className={isUnitNumberLocked ? "bg-muted cursor-not-allowed pr-9" : ""}
+                  />
+                  {isUnitNumberLocked && (
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
+                {isUnitNumberLocked && (
+                  <p className="text-xs text-muted-foreground">شماره واحد قابل تغییر نمی‌باشد</p>
+                )}
               </div>
 
               <div className="space-y-2">
