@@ -92,9 +92,8 @@ export function UtilitiesPage() {
   const chartData = useMemo(() => {
     const monthMap: Record<string, Record<string, number>> = {};
     readings.forEach(r => {
-      const d = new Date(r.reading_date);
-      const j = toJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
-      const key = `${j.jy}/${String(j.jm).padStart(2, "0")}`;
+      const jalali = formatJalaliDate(r.reading_date); // "1404/01/15"
+      const key = jalali.substring(0, 7); // "1404/01"
       if (!monthMap[key]) monthMap[key] = {};
       const qtyKey = `${r.utility_type}_qty`;
       const amtKey = `${r.utility_type}_amt`;
