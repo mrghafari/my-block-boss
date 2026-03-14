@@ -58,7 +58,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
   const transactions = useMemo(() => {
     if (!balance) return [];
 
-    const all: { id: string; date: string; type: "payment" | "expense"; title: string; amount: number; runningBalance?: number }[] = [];
+    const all: { id: string; date: string; type: "payment" | "expense" | "charge"; title: string; amount: number; ownerName?: string | null; residentName?: string | null; runningBalance?: number }[] = [];
 
     balance.paymentBreakdown.forEach((p) => {
       all.push({
@@ -67,6 +67,8 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
         type: "payment",
         title: `پرداخت ${p.month}/${p.year}${p.description ? ` - ${p.description}` : ""}`,
         amount: p.amount,
+        ownerName: (p as any).owner_name,
+        residentName: (p as any).resident_name,
       });
     });
 
@@ -79,6 +81,21 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
         amount: allocatedAmount,
       });
     });
+
+    // Include charge debts
+    if (balance.chargeBreakdown) {
+      balance.chargeBreakdown.forEach((c) => {
+        all.push({
+          id: c.id,
+          date: c.created_at,
+          type: "charge",
+          title: c.description || `شارژ ${c.month}/${c.year}`,
+          amount: c.amount,
+          ownerName: c.owner_name,
+          residentName: c.resident_name,
+        });
+      });
+    }
 
     all.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -244,8 +261,9 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
                       <TableHead className="text-right">تاریخ</TableHead>
                       <TableHead className="text-right">نوع</TableHead>
                       <TableHead className="text-right">شرح</TableHead>
+                      <TableHead className="text-right">مالک/ساکن</TableHead>
                       <TableHead className="text-right text-green-600">دریافت</TableHead>
-                      <TableHead className="text-right text-red-600">هزینه</TableHead>
+                      <TableHead className="text-right text-red-600">بدهی</TableHead>
                       <TableHead className="text-right">مانده</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -257,16 +275,24 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
                         <TableCell>
                           {t.type === "payment" ? (
                             <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                          ) : t.type === "charge" ? (
+                            <ArrowDownCircle className="w-4 h-4 text-orange-500" />
                           ) : (
                             <ArrowDownCircle className="w-4 h-4 text-red-600" />
                           )}
                         </TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">{t.title}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">
+                          {t.ownerName || "-"}
+                          {t.residentName && t.residentName !== t.ownerName && (
+                            <span className="block text-[10px]">ساکن: {t.residentName}</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-green-600 font-medium text-sm">
                           {t.type === "payment" ? formatNumber(t.amount) : ""}
                         </TableCell>
                         <TableCell className="text-red-600 font-medium text-sm">
-                          {t.type === "expense" ? formatNumber(t.amount) : ""}
+                          {t.type !== "payment" ? formatNumber(t.amount) : ""}
                         </TableCell>
                         <TableCell className={`font-bold text-sm ${(t.runningBalance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatNumber(Math.abs(t.runningBalance || 0))}
@@ -276,9 +302,9 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
                     ))}
                     {/* Total Row */}
                     <TableRow className="bg-muted font-bold border-t-2">
-                      <TableCell colSpan={4} className="text-left">جمع کل</TableCell>
+                      <TableCell colSpan={5} className="text-left">جمع کل</TableCell>
                       <TableCell className="text-green-600">{formatNumber(balance.totalPayments)}</TableCell>
-                      <TableCell className="text-red-600">{formatNumber(balance.totalAllocatedExpenses)}</TableCell>
+                      <TableCell className="text-red-600">{formatNumber(balance.totalAllocatedExpenses + balance.totalCharges)}</TableCell>
                       <TableCell className={balance.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
                         {formatNumber(Math.abs(balance.balance))}
                       </TableCell>

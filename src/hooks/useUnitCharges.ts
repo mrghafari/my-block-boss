@@ -15,6 +15,8 @@ export interface UnitCharge {
   month: number;
   year: number;
   description: string | null;
+  owner_name: string | null;
+  resident_name: string | null;
   created_at: string;
 }
 
@@ -75,6 +77,8 @@ export function useApplyCharges() {
         month: number;
         year: number;
         description: string | null;
+        owner_name: string | null;
+        resident_name: string | null;
       }[] = [];
 
       const applyForFund = (baseAmount: number, fundType: FundType) => {
@@ -106,6 +110,8 @@ export function useApplyCharges() {
               month,
               year,
               description: description || null,
+              owner_name: unit.owner_name || null,
+              resident_name: unit.resident_name || null,
             });
           }
         });

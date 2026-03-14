@@ -216,12 +216,17 @@ async function storeExpenseShares(
 
   const shares = Array.from(allocations.entries())
     .filter(([, amount]) => amount > 0)
-    .map(([unitId, amount]) => ({
-      expense_id: expense.id,
-      unit_id: unitId,
-      building_id: buildingId,
-      allocated_amount: amount,
-    }));
+    .map(([unitId, amount]) => {
+      const unit = units.find((u: any) => u.id === unitId);
+      return {
+        expense_id: expense.id,
+        unit_id: unitId,
+        building_id: buildingId,
+        allocated_amount: amount,
+        owner_name: unit?.owner_name || null,
+        resident_name: unit?.resident_name || null,
+      };
+    });
 
   if (shares.length > 0) {
     const { error } = await supabase
