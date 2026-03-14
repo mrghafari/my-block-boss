@@ -77,6 +77,27 @@ export function ExpensesList() {
   const { data: projects = [] } = useProjects();
   const deleteExpense = useDeleteExpense();
 
+  const { data: attachmentCounts = {} } = useQuery({
+    queryKey: ["expense-attachments-summary", expenses.map((exp) => exp.id).join(",")],
+    queryFn: async () => {
+      if (expenses.length === 0) return {} as Record<string, number>;
+
+      const { data, error } = await supabase
+        .from("expense_attachments")
+        .select("expense_id")
+        .in("expense_id", expenses.map((exp) => exp.id));
+
+      if (error) throw error;
+
+      return (data || []).reduce((acc, row) => {
+        const expenseId = row.expense_id;
+        acc[expenseId] = (acc[expenseId] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    },
+    enabled: expenses.length > 0,
+  });
+
   const filteredExpenses = expenses.filter(exp => {
     const catMatch = filterCategory === "all" || exp.category === filterCategory;
     const projMatch = filterProject === "all" 
