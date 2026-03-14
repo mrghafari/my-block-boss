@@ -10,6 +10,7 @@ import { ReportsPage } from "@/components/reports/ReportsPage";
 import { BuildingDocuments } from "@/components/documents/BuildingDocuments";
 import { AnnouncementsPage } from "@/components/announcements/AnnouncementsPage";
 import { UtilitiesPage } from "@/components/utilities/UtilitiesPage";
+import { PhoneBookPage } from "@/components/phonebook/PhoneBookPage";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
