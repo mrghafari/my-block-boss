@@ -177,16 +177,11 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">تاریخ</Label>
-              <div className="relative">
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
+              <Label>تاریخ</Label>
+              <JalaliDatePicker
+                value={date}
+                onChange={(d) => d && setDate(d)}
+              />
             </div>
           </div>
 

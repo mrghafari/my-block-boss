@@ -166,7 +166,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   <FormItem>
                     <FormLabel>تاریخ شروع</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -179,7 +183,11 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                   <FormItem>
                     <FormLabel>تاریخ پایان</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <JalaliDatePicker
+                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
+                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        placeholder="انتخاب تاریخ"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
