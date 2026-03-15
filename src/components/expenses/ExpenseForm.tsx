@@ -138,8 +138,12 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting || createExpense.isPending) return;
 
     if (!title.trim() || !amount || !category) {
       toast({
@@ -172,6 +176,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
       project_id: selectedProjectId || undefined,
     };
 
+    setIsSubmitting(true);
     setIsUploading(true);
     createExpense.mutate(expense, {
       onSuccess: async (data: any) => {
@@ -181,11 +186,13 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
           }
         } finally {
           setIsUploading(false);
+          setIsSubmitting(false);
           onClose();
         }
       },
       onError: () => {
         setIsUploading(false);
+        setIsSubmitting(false);
       },
     });
   };
@@ -418,8 +425,8 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" className="flex-1" disabled={createExpense.isPending || isUploading}>
-              {(createExpense.isPending || isUploading) ? (
+            <Button type="submit" className="flex-1" disabled={isSubmitting || createExpense.isPending || isUploading}>
+              {(isSubmitting || createExpense.isPending || isUploading) ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin ml-2" />
                   {isUploading ? "در حال آپلود مستندات..." : "در حال ثبت..."}
