@@ -138,8 +138,12 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting || createExpense.isPending) return;
 
     if (!title.trim() || !amount || !category) {
       toast({
