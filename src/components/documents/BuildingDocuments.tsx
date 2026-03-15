@@ -262,24 +262,40 @@ export function BuildingDocuments() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {folders.map((folder) => {
               const count = documents.filter((d) => d.folder === folder).length;
+              const isDefault = DEFAULT_FOLDERS.includes(folder);
+              const canDelete = !isDefault || count === 0;
               return (
-                <button
-                  key={folder}
-                  onClick={() => setActiveFolder(folder)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border",
-                    "hover:bg-accent/50 hover:border-primary/30 transition-all duration-200",
-                    "group cursor-pointer"
+                <div key={folder} className="relative group">
+                  <button
+                    onClick={() => setActiveFolder(folder)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 rounded-xl border w-full",
+                      "hover:bg-accent/50 hover:border-primary/30 transition-all duration-200",
+                      "cursor-pointer"
+                    )}
+                  >
+                    <FolderOpen className="w-10 h-10 text-amber-500 group-hover:text-primary transition-colors" />
+                    <span className="text-sm font-medium text-center leading-tight">{folder}</span>
+                    {count > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {count} فایل
+                      </Badge>
+                    )}
+                  </button>
+                  {!isDefault && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-1 left-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteFolderTarget(folder);
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   )}
-                >
-                  <FolderOpen className="w-10 h-10 text-amber-500 group-hover:text-primary transition-colors" />
-                  <span className="text-sm font-medium text-center leading-tight">{folder}</span>
-                  {count > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {count} فایل
-                    </Badge>
-                  )}
-                </button>
+                </div>
               );
             })}
           </div>
