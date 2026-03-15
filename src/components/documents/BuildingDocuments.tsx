@@ -47,6 +47,7 @@ export function BuildingDocuments() {
   const [newFolderName, setNewFolderName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DocRow | null>(null);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<string | null>(null);
 
   // Fetch documents
   const { data: documents = [], isLoading } = useQuery({
