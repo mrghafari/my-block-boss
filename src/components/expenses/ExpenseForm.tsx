@@ -176,6 +176,7 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
       project_id: selectedProjectId || undefined,
     };
 
+    setIsSubmitting(true);
     setIsUploading(true);
     createExpense.mutate(expense, {
       onSuccess: async (data: any) => {
@@ -185,11 +186,13 @@ export function ExpenseForm({ onClose }: ExpenseFormProps) {
           }
         } finally {
           setIsUploading(false);
+          setIsSubmitting(false);
           onClose();
         }
       },
       onError: () => {
         setIsUploading(false);
+        setIsSubmitting(false);
       },
     });
   };
