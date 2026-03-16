@@ -50,6 +50,7 @@ const ResidentAuth = () => {
         return;
       }
       setMatches(data.matches);
+      setSelectedMatchIndex(0);
       setStep("otp");
       toast({ title: "کد تأیید ارسال شد", description: "کد ۱۲۳۴۵۶ را وارد کنید (حالت تست)" });
     } catch (err: any) {
