@@ -249,7 +249,7 @@ export default function Landing() {
               </p>
               <Button
                 size="lg"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/resident-auth")}
                 className="bg-white text-primary hover:bg-white/90 text-base px-8 h-12 font-bold shadow-lg"
               >
                 ثبت‌نام رایگان

@@ -150,8 +150,8 @@ const ResidentAuth = () => {
                 </Button>
               </form>
               <div className="mt-4 text-center">
-                <button onClick={() => navigate("/auth")} className="text-sm text-primary hover:underline">
-                  ورود مدیران (ایمیل و رمز عبور)
+                <button onClick={() => navigate("/auth")} className="text-xs text-muted-foreground hover:underline">
+                  ورود ادمین سایت
                 </button>
               </div>
             </CardContent>
