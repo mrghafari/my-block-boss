@@ -80,7 +80,7 @@ export default function Landing() {
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Building2 className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground">بلاک‌باس</span>
+            <span className="text-lg font-bold text-foreground">شارژان</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">امکانات</a>
