@@ -80,7 +80,7 @@ export default function Landing() {
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Building2 className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground">بلاک‌باس</span>
+            <span className="text-lg font-bold text-foreground">شارژان</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">امکانات</a>
@@ -266,9 +266,9 @@ export default function Landing() {
               <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
                 <Building2 className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-foreground">بلاک‌باس</span>
+              <span className="font-bold text-foreground">شارژان</span>
             </div>
-            <p className="text-sm text-muted-foreground">© ۱۴۰۴ بلاک‌باس — تمامی حقوق محفوظ است.</p>
+            <p className="text-sm text-muted-foreground">© ۱۴۰۴ شارژان — تمامی حقوق محفوظ است.</p>
           </div>
         </div>
       </footer>
