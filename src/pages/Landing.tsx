@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import blueTehran from "@/assets/blue-tehran.png";
+import sharjanLogo from "@/assets/sharjan-logo.png";
 
 const features = [
   {
@@ -77,9 +78,7 @@ export default function Landing() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Building2 className="w-6 h-6 text-primary-foreground" />
-            </div>
+            <img src={sharjanLogo} alt="شارژان" className="w-10 h-10" />
             <span className="text-lg font-bold text-foreground">شارژان</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
@@ -263,9 +262,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-primary-foreground" />
-              </div>
+              <img src={sharjanLogo} alt="شارژان" className="w-8 h-8" />
               <span className="font-bold text-foreground">شارژان</span>
             </div>
             <p className="text-sm text-muted-foreground">© ۱۴۰۴ شارژان — تمامی حقوق محفوظ است.</p>
