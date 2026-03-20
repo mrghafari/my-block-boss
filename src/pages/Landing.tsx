@@ -262,9 +262,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-primary-foreground" />
-              </div>
+              <img src={sharjanLogo} alt="شارژان" className="w-8 h-8" />
               <span className="font-bold text-foreground">شارژان</span>
             </div>
             <p className="text-sm text-muted-foreground">© ۱۴۰۴ شارژان — تمامی حقوق محفوظ است.</p>
