@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Phone, KeyRound, Loader2, ShieldCheck, Home, Plus } from "lucide-react";
+import { Phone, KeyRound, Loader2, ShieldCheck, Home, Plus } from "lucide-react";
+import sharjanLogo from "@/assets/sharjan-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
