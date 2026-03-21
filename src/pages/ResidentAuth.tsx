@@ -195,6 +195,8 @@ const ResidentAuth = () => {
                   تغییر شماره
                 </Button>
               </form>
+            </Card>
+          )}
 
           {step === "role-select" && (
             <div className="space-y-4">
