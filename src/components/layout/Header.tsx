@@ -29,8 +29,11 @@ export function Header({ onTabChange }: HeaderProps) {
     }
   };
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "کاربر";
-  const displayEmail = user?.email || "";
+  const rawEmail = user?.email || "";
+  const displayPhone = rawEmail.includes("@resident.local") 
+    ? rawEmail.replace("@resident.local", "") 
+    : "";
+  const displayName = user?.user_metadata?.full_name || displayPhone || rawEmail || "کاربر";
 
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
