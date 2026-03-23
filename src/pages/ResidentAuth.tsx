@@ -172,6 +172,9 @@ const ResidentAuth = () => {
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                   دریافت کد تأیید
                 </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={() => navigate("/")}>
+                  انصراف
+                </Button>
               </form>
             </CardContent>
           </Card>
