@@ -41,6 +41,9 @@ interface Transaction {
   category?: string;
   amount: number;
   runningBalance?: number;
+  unitNumber?: string;
+  personName?: string;
+  personRole?: string;
 }
 
 function formatNumber(num: number): string {
