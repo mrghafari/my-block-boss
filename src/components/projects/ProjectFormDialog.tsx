@@ -211,8 +211,8 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
                     <FormLabel>تاریخ پایان</FormLabel>
                     <FormControl>
                       <JalaliDatePicker
-                        value={field.value ? new Date(fromJalaliString(field.value)) : undefined}
-                        onChange={(d) => field.onChange(d ? toJalaliString(d) : "")}
+                        value={parseStoredDate(field.value)}
+                        onChange={(d) => field.onChange(toIsoDate(d))}
                         placeholder="انتخاب تاریخ"
                       />
                     </FormControl>
