@@ -45,11 +45,14 @@ const ResidentAuth = () => {
     [matches],
   );
 
+  const normalizedPhone = phone.replace(/\D/g, "");
+  const isPhoneValid = normalizedPhone.length === 11 && normalizedPhone.startsWith("09");
+
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!phone.trim() || phone.trim().length < 10) {
-      toast({ title: "لطفاً شماره موبایل معتبر وارد کنید", variant: "destructive" });
+    if (!isPhoneValid) {
+      toast({ title: "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود", variant: "destructive" });
       return;
     }
 
