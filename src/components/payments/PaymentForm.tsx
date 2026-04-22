@@ -61,26 +61,65 @@ export function PaymentForm() {
 
   const createPayment = useCreatePayment();
   const { data: units } = useUnits();
+  const { data: policy } = usePaymentPolicy();
+  const { currentBuildingId } = useBuilding();
+  const qc = useQueryClient();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const selectedUnit = units?.find((u) => u.id === formData.unit_id);
-    
+    const paymentDate = new Date();
+    const paymentAmount = Number(formData.amount);
+
     createPayment.mutate(
       {
         unit_id: formData.unit_id,
-        amount: Number(formData.amount),
+        amount: paymentAmount,
         month: Number(formData.month),
         year: Number(formData.year),
         fund_type: formData.fund_type as "charge" | "extra_charge",
-        payment_date: new Date().toISOString().split("T")[0],
+        payment_date: paymentDate.toISOString().split("T")[0],
         description: formData.description || null,
         owner_name: selectedUnit?.owner_name || null,
         resident_name: selectedUnit?.resident_name || null,
       } as any,
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          if (
+            policy?.early_pay_enabled &&
+            policy.early_pay_discount_percent > 0 &&
+            currentBuildingId &&
+            selectedUnit
+          ) {
+            const dayOfMonth = Number(format(paymentDate, "d", { locale: faIR }));
+            if (dayOfMonth <= policy.early_pay_days) {
+              const discount = Math.round(
+                (paymentAmount * policy.early_pay_discount_percent) / 100
+              );
+              if (discount > 0) {
+                const { error } = await supabase.from("unit_charges").insert({
+                  building_id: currentBuildingId,
+                  unit_id: selectedUnit.id,
+                  amount: -discount,
+                  fund_type: formData.fund_type as "charge" | "extra_charge",
+                  month: Number(formData.month),
+                  year: Number(formData.year),
+                  description: `تخفیف خوش‌حسابی ${policy.early_pay_discount_percent}٪ (پرداخت در روز ${dayOfMonth} ماه)`,
+                  owner_name: selectedUnit.owner_name || null,
+                  resident_name: selectedUnit.resident_name || null,
+                });
+                if (!error) {
+                  qc.invalidateQueries({ queryKey: ["unit-charges"] });
+                  toast({
+                    title: "تخفیف خوش‌حسابی اعمال شد",
+                    description: `${discount.toLocaleString("fa-IR")} تومان به‌عنوان بستانکاری ثبت شد.`,
+                  });
+                }
+              }
+            }
+          }
+
           setOpen(false);
           setFormData({
             unit_id: "",
