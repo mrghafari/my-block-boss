@@ -237,7 +237,7 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
       {/* Unit Selector and Date Filter */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center justify-end gap-2 text-right" dir="rtl">
             <History className="w-5 h-5" />
             دفتر معین - گردش حساب به ترتیب زمانی
           </CardTitle>
