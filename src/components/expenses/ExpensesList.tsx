@@ -35,6 +35,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import { supabase } from "@/integrations/supabase/client";
 import { ExpenseDetailsDialog } from "./ExpenseDetailsDialog";
+import { AttachmentsQuickDialog } from "./AttachmentsQuickDialog";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -72,6 +73,8 @@ export function ExpensesList() {
   const [filterProject, setFilterProject] = useState<string>("all");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [attachmentsExpense, setAttachmentsExpense] = useState<Expense | null>(null);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [uploadingExpenseId, setUploadingExpenseId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -355,7 +358,8 @@ export function ExpensesList() {
                               title="مشاهده پیوست‌ها"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleExpenseClick(expense);
+                                setAttachmentsExpense(expense);
+                                setAttachmentsOpen(true);
                               }}
                             >
                               <Paperclip className="w-4 h-4" />
@@ -410,6 +414,13 @@ export function ExpensesList() {
         expense={selectedExpense}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
+      />
+
+      <AttachmentsQuickDialog
+        expenseId={attachmentsExpense?.id ?? null}
+        expenseTitle={attachmentsExpense?.title}
+        open={attachmentsOpen}
+        onOpenChange={setAttachmentsOpen}
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
