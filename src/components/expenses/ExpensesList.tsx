@@ -73,7 +73,12 @@ export function ExpensesList() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  
+  const [uploadingExpenseId, setUploadingExpenseId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const targetExpenseIdRef = useRef<string | null>(null);
+  const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
+
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: categories = [] } = useExpenseCategories();
   const { data: projects = [] } = useProjects();
