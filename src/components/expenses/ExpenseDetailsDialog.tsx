@@ -270,21 +270,14 @@ export function ExpenseDetailsDialog({
             </Table>
           )}
 
-          {/* Attachments */}
-          <div className="mt-6">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Paperclip className="w-4 h-4" />
-              مستندات پیوست {attachments.length > 0 ? `(${attachments.length})` : ""}
-            </h3>
+          {/* Attachments - only render when there are attachments */}
+          {attachments.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Paperclip className="w-4 h-4" />
+                مستندات پیوست ({attachments.length})
+              </h3>
 
-            {attachmentsLoading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                در حال دریافت مستندات...
-              </div>
-            ) : attachments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">مستندی برای این هزینه ثبت نشده است.</p>
-            ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {attachments.map((att) => (
                   <div key={att.id} className="flex items-center gap-2 p-2 rounded-md border bg-muted/30">
@@ -317,8 +310,8 @@ export function ExpenseDetailsDialog({
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
