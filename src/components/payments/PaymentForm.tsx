@@ -20,6 +20,13 @@ import { Plus, CreditCard } from "lucide-react";
 import { useCreatePayment } from "@/hooks/usePayments";
 import { useUnits } from "@/hooks/useUnits";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { usePaymentPolicy } from "@/hooks/usePaymentPolicy";
+import { useBuilding } from "@/contexts/BuildingContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale";
 
 const persianMonths = [
   { value: 1, label: "فروردین" },
