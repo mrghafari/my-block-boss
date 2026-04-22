@@ -73,6 +73,8 @@ export function ExpensesList() {
   const [filterProject, setFilterProject] = useState<string>("all");
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [attachmentsExpense, setAttachmentsExpense] = useState<Expense | null>(null);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [uploadingExpenseId, setUploadingExpenseId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
