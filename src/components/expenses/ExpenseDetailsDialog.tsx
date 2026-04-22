@@ -133,6 +133,77 @@ export function ExpenseDetailsDialog({
     }
   };
 
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !expense || !currentBuildingId) return;
+    const files = Array.from(e.target.files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      let successCount = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+        const safeExtension = extension.replace(/[^a-z0-9]/g, "") || "bin";
+        const filePath = `${currentBuildingId}/${expense.id}/${Date.now()}_${i}_${crypto.randomUUID()}.${safeExtension}`;
+        const { error: uploadError } = await supabase.storage
+          .from("expense-attachments")
+          .upload(filePath, file);
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          continue;
+        }
+        const { error: insertError } = await supabase.from("expense_attachments").insert({
+          expense_id: expense.id,
+          building_id: currentBuildingId,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+        });
+        if (insertError) {
+          console.error("DB insert error:", insertError);
+          continue;
+        }
+        successCount++;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["expense_attachments", expense.id] });
+      await queryClient.invalidateQueries({ queryKey: ["expense-attachment-counts"] });
+
+      toast({
+        title: successCount === files.length ? "موفق" : "هشدار",
+        description: `${successCount} از ${files.length} فایل آپلود شد`,
+        variant: successCount === files.length ? "default" : "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (att: ExpenseAttachment) => {
+    if (!expense) return;
+    setDeletingId(att.id);
+    try {
+      await supabase.storage.from("expense-attachments").remove([att.file_path]);
+      const { error } = await supabase
+        .from("expense_attachments")
+        .delete()
+        .eq("id", att.id);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["expense_attachments", expense.id] });
+      await queryClient.invalidateQueries({ queryKey: ["expense-attachment-counts"] });
+      toast({ title: "حذف شد", description: "پیوست با موفقیت حذف شد" });
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast({ title: "خطا", description: "خطا در حذف پیوست", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
+    }
+  };
+
   if (!expense) return null;
 
   // Get stored shares for this expense
