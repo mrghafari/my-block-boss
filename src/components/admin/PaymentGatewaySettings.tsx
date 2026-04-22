@@ -299,7 +299,99 @@ export function PaymentGatewaySettings({ userId }: Props) {
           )}
         </div>
 
-        <div className="flex justify-end pt-4 border-t">
+        <Separator />
+
+        {/* Direct Bank Gateways */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-base">درگاه‌های مستقیم بانکی</h3>
+            <p className="text-xs text-muted-foreground">
+              اگر مستقیماً از یک بانک ایرانی درگاه پرداخت دریافت کرده‌اید، اطلاعات آن را اینجا وارد کنید.
+            </p>
+          </div>
+
+          {BANK_META.map((bank, idx) => {
+            const cfg = state.banks[bank.key];
+            return (
+              <div key={bank.key} className="space-y-3">
+                {idx > 0 && <Separator className="opacity-50" />}
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <h4 className="font-medium">{bank.name}</h4>
+                    <p className="text-xs text-muted-foreground">{bank.desc}</p>
+                  </div>
+                  <Switch
+                    checked={cfg.enabled}
+                    onCheckedChange={(v) =>
+                      setState((s) => ({
+                        ...s,
+                        banks: { ...s.banks, [bank.key]: { ...s.banks[bank.key], enabled: v } },
+                      }))
+                    }
+                  />
+                </div>
+                {cfg.enabled && (
+                  <div className="space-y-3 pr-4 border-r-2 border-primary/20">
+                    {bank.fields.map((field) => (
+                      <div key={field} className="space-y-2">
+                        <Label>{FIELD_LABELS[field]}</Label>
+                        <Input
+                          dir="ltr"
+                          type={field === "password" ? "password" : "text"}
+                          placeholder={FIELD_LABELS[field]}
+                          value={(cfg as any)[field] || ""}
+                          onChange={(e) =>
+                            setState((s) => ({
+                              ...s,
+                              banks: {
+                                ...s.banks,
+                                [bank.key]: { ...s.banks[bank.key], [field]: e.target.value },
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                    ))}
+                    <div className="space-y-2">
+                      <Label>آدرس بازگشت (Callback URL)</Label>
+                      <Input
+                        dir="ltr"
+                        placeholder="https://your-domain.com/payment/callback"
+                        value={cfg.callback_url || ""}
+                        onChange={(e) =>
+                          setState((s) => ({
+                            ...s,
+                            banks: {
+                              ...s.banks,
+                              [bank.key]: { ...s.banks[bank.key], callback_url: e.target.value },
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={cfg.sandbox ?? false}
+                        onCheckedChange={(v) =>
+                          setState((s) => ({
+                            ...s,
+                            banks: {
+                              ...s.banks,
+                              [bank.key]: { ...s.banks[bank.key], sandbox: v },
+                            },
+                          }))
+                        }
+                      />
+                      <Label className="cursor-pointer">حالت تست (Sandbox)</Label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
