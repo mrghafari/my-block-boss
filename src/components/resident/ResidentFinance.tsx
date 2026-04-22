@@ -22,6 +22,9 @@ function formatNumber(n: number) {
 
 export function ResidentFinance({ buildingId, unitId }: Props) {
   const [payOpen, setPayOpen] = useState(false);
+  const [preset, setPreset] = useState<PayPreset>(null);
+
+  const openPay = (p: PayPreset) => { setPreset(p); setPayOpen(true); };
 
   // Fetch unit info for owner/resident snapshot
   const { data: unitInfo } = useQuery({
