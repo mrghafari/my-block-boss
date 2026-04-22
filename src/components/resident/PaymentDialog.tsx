@@ -95,7 +95,7 @@ export function PaymentDialog({ open, onOpenChange, buildingId, unitId, defaultA
             <div className="space-y-4 py-2">
               <div className="space-y-2">
                 <Label>مبلغ پرداخت (تومان)</Label>
-                <NumericInput value={amount} onValueChange={(v) => setAmount(v ?? 0)} placeholder="مبلغ را وارد کنید" />
+                <NumericInput value={String(amount || "")} onChange={(v) => setAmount(Number(v) || 0)} placeholder="مبلغ را وارد کنید" />
                 <p className="text-xs text-muted-foreground">مانده حساب پیشنهادی: {Math.abs(Math.round(defaultAmount)).toLocaleString("fa-IR")} تومان</p>
               </div>
               <div className="space-y-2">
