@@ -120,6 +120,61 @@ export function ExpensesList() {
     setDetailsOpen(true);
   };
 
+  const triggerUpload = (expenseId: string) => {
+    targetExpenseIdRef.current = expenseId;
+    fileInputRef.current?.click();
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const expenseId = targetExpenseIdRef.current;
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    targetExpenseIdRef.current = null;
+    if (!expenseId || !currentBuildingId || files.length === 0) return;
+
+    setUploadingExpenseId(expenseId);
+    try {
+      let successCount = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+        const safeExtension = extension.replace(/[^a-z0-9]/g, "") || "bin";
+        const filePath = `${currentBuildingId}/${expenseId}/${Date.now()}_${i}_${crypto.randomUUID()}.${safeExtension}`;
+        const { error: uploadError } = await supabase.storage
+          .from("expense-attachments")
+          .upload(filePath, file);
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          continue;
+        }
+        const { error: insertError } = await supabase.from("expense_attachments").insert({
+          expense_id: expenseId,
+          building_id: currentBuildingId,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+        });
+        if (insertError) {
+          console.error("DB insert error:", insertError);
+          continue;
+        }
+        successCount++;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["expense-attachments-summary"] });
+      await queryClient.invalidateQueries({ queryKey: ["expense_attachments", expenseId] });
+
+      toast({
+        title: successCount === files.length ? "موفق" : "هشدار",
+        description: `${successCount} از ${files.length} فایل آپلود شد`,
+        variant: successCount === files.length ? "default" : "destructive",
+      });
+    } finally {
+      setUploadingExpenseId(null);
+    }
+  };
+
   const totalAmount = filteredExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
   if (isLoading) {
