@@ -355,6 +355,36 @@ export type Database = {
           },
         ]
       }
+      customer_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_attachments: {
         Row: {
           building_id: string
@@ -697,6 +727,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
