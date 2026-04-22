@@ -359,14 +359,49 @@ export function ExpenseDetailsDialog({
             </Table>
           )}
 
-          {/* Attachments - only render when there are attachments */}
-          {attachments.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+          {/* Attachments management */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Paperclip className="w-4 h-4" />
                 مستندات پیوست ({attachments.length})
               </h3>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.xlsx,.xls"
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  افزودن پیوست
+                </Button>
+              </div>
+            </div>
 
+            {attachmentsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              </div>
+            ) : attachments.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4 border rounded-md bg-muted/20">
+                هیچ پیوستی برای این هزینه ثبت نشده است
+              </p>
+            ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {attachments.map((att) => (
                   <div key={att.id} className="flex items-center gap-2 p-2 rounded-md border bg-muted/30">
@@ -396,11 +431,48 @@ export function ExpenseDetailsDialog({
                         <Download className="w-3.5 h-3.5" />
                       )}
                     </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => setConfirmDeleteId(att.id)}
+                      disabled={deletingId === att.id}
+                    >
+                      {deletingId === att.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>حذف پیوست</AlertDialogTitle>
+                <AlertDialogDescription>
+                  آیا از حذف این پیوست اطمینان دارید؟ این عمل قابل بازگشت نیست.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>انصراف</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    const att = attachments.find((a) => a.id === confirmDeleteId);
+                    if (att) handleDeleteAttachment(att);
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  حذف
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </DialogContent>
     </Dialog>
