@@ -67,13 +67,16 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
   }, [categories]);
 
   const handleExportPDF = async () => {
-    if (selectedBalance) {
-      setIsGeneratingPDF(true);
-      // Wait for the printable component to render
-      setTimeout(async () => {
-        await generateUnitReportPDF("pdf-report-content", selectedBalance.unit.unit_number);
-        setIsGeneratingPDF(false);
-      }, 100);
+    if (!selectedBalance) return;
+
+    setIsGeneratingPDF(true);
+
+    try {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      await generateUnitReportPDF("pdf-report-content", selectedBalance.unit.unit_number);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -296,7 +299,21 @@ export function UnitDetailReport({ selectedUnitId, onSelectUnit, dateRange, onDa
 
       {/* Hidden printable component for PDF generation */}
       {selectedBalance && isGeneratingPDF && (
-        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            opacity: 0,
+            pointerEvents: "none",
+            zIndex: -1,
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            background: "white",
+          }}
+        >
           <UnitReportPrintable
             unitBalance={selectedBalance}
             dateRange={dateRange}

@@ -13,11 +13,9 @@ export async function generateUnitReportPDF(
     return;
   }
 
-  // Wait for fonts (e.g. Vazirmatn) to be fully loaded so Persian text doesn't render as broken glyphs
   if (typeof document !== "undefined" && (document as any).fonts?.ready) {
     try {
       await (document as any).fonts.ready;
-      // Explicitly load the Persian font weights used in the printable
       await Promise.all([
         (document as any).fonts.load('400 12px "Vazirmatn"'),
         (document as any).fonts.load('500 12px "Vazirmatn"'),
@@ -28,27 +26,43 @@ export async function generateUnitReportPDF(
       /* ignore */
     }
   }
-  // Small delay to allow layout/paint to settle
-  await new Promise((r) => setTimeout(r, 150));
 
-  // Render DOM to canvas with high quality
+  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+
   const canvas = await html2canvas(element, {
-    scale: 2, // Higher quality
+    scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
+    foreignObjectRendering: true,
+    onclone: async (clonedDoc) => {
+      const clonedElement = clonedDoc.getElementById(elementId);
+      if (clonedElement instanceof HTMLElement) {
+        clonedElement.style.fontFamily = 'Vazirmatn, Tahoma, Arial, sans-serif';
+        clonedElement.style.direction = 'rtl';
+        clonedElement.style.unicodeBidi = 'plaintext';
+        clonedElement.style.textRendering = 'geometricPrecision';
+        clonedElement.style.webkitFontSmoothing = 'antialiased';
+      }
+
+      if ((clonedDoc as any).fonts?.ready) {
+        try {
+          await (clonedDoc as any).fonts.ready;
+        } catch {
+          /* ignore */
+        }
+      }
+    },
   });
 
-  // Calculate dimensions for A4 paper
-  const imgWidth = 210; // A4 width in mm
-  const pageHeight = 297; // A4 height in mm
+  const imgWidth = 210;
+  const pageHeight = 297;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  // Create PDF
   const pdf = new jsPDF("p", "mm", "a4");
   const imgData = canvas.toDataURL("image/png");
 
-  // Handle multi-page content
   let heightLeft = imgHeight;
   let position = 0;
 
@@ -62,7 +76,6 @@ export async function generateUnitReportPDF(
     heightLeft -= pageHeight;
   }
 
-  // Save the PDF
   const fileName = `گزارش-واحد-${unitNumber}-${toJalaliString(new Date()).replace(/\//g, "-")}.pdf`;
   pdf.save(fileName);
 }
