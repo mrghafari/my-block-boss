@@ -17,9 +17,13 @@ export async function generateUnitReportPDF(
   if (typeof document !== "undefined" && (document as any).fonts?.ready) {
     try {
       await (document as any).fonts.ready;
-      // Explicitly load the Persian font at the size used in the printable
-      await (document as any).fonts.load('12px "Vazirmatn"');
-      await (document as any).fonts.load('bold 22px "Vazirmatn"');
+      // Explicitly load the Persian font weights used in the printable
+      await Promise.all([
+        (document as any).fonts.load('400 12px "Vazirmatn"'),
+        (document as any).fonts.load('500 12px "Vazirmatn"'),
+        (document as any).fonts.load('700 14px "Vazirmatn"'),
+        (document as any).fonts.load('700 22px "Vazirmatn"'),
+      ]);
     } catch {
       /* ignore */
     }
