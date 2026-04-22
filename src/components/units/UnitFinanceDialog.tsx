@@ -91,8 +91,8 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
         type: "charge",
         title: c.description || `بدهی شارژ ${c.month}/${c.year}`,
         amount: c.amount,
-        ownerName: c.owner_name ?? balance.unit.owner_name,
-        residentName: c.resident_name ?? balance.unit.resident_name,
+        ownerName: c.owner_name,
+        residentName: c.resident_name,
       });
     });
 
