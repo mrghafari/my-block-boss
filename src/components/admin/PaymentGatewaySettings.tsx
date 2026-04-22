@@ -13,20 +13,53 @@ import { CreditCard, Loader2, Save } from "lucide-react";
 interface GatewayConfig {
   enabled: boolean;
   merchant_id?: string;
+  terminal_id?: string;
   api_key?: string;
+  username?: string;
+  password?: string;
+  callback_url?: string;
   sandbox?: boolean;
 }
+
+type BankKey = "saman" | "mellat" | "parsian" | "saderat" | "pasargad" | "melli";
 
 type GatewaysState = {
   zarinpal: GatewayConfig;
   idpay: GatewayConfig;
   nextpay: GatewayConfig;
+  banks: Record<BankKey, GatewayConfig>;
 };
+
+const DEFAULT_BANK: GatewayConfig = { enabled: false, merchant_id: "", terminal_id: "", callback_url: "", sandbox: false };
 
 const DEFAULT_STATE: GatewaysState = {
   zarinpal: { enabled: false, merchant_id: "", sandbox: true },
   idpay: { enabled: false, api_key: "", sandbox: true },
   nextpay: { enabled: false, api_key: "", sandbox: true },
+  banks: {
+    saman: { ...DEFAULT_BANK },
+    mellat: { ...DEFAULT_BANK },
+    parsian: { ...DEFAULT_BANK },
+    saderat: { ...DEFAULT_BANK },
+    pasargad: { ...DEFAULT_BANK },
+    melli: { ...DEFAULT_BANK },
+  },
+};
+
+const BANK_META: { key: BankKey; name: string; desc: string; fields: ("merchant_id" | "terminal_id" | "username" | "password")[] }[] = [
+  { key: "saman", name: "بانک سامان (Saman / SEP)", desc: "درگاه پرداخت الکترونیک سامان", fields: ["merchant_id", "terminal_id"] },
+  { key: "mellat", name: "بانک ملت (به‌پرداخت ملت)", desc: "درگاه به‌پرداخت ملت", fields: ["terminal_id", "username", "password"] },
+  { key: "parsian", name: "بانک پارسیان", desc: "درگاه پرداخت پارسیان", fields: ["merchant_id"] },
+  { key: "saderat", name: "بانک صادرات (سداد)", desc: "درگاه پرداخت سداد", fields: ["merchant_id", "terminal_id"] },
+  { key: "pasargad", name: "بانک پاسارگاد", desc: "درگاه پرداخت پاسارگاد", fields: ["merchant_id", "terminal_id"] },
+  { key: "melli", name: "بانک ملی (سپ)", desc: "درگاه پرداخت بانک ملی", fields: ["merchant_id", "terminal_id"] },
+];
+
+const FIELD_LABELS: Record<string, string> = {
+  merchant_id: "Merchant ID / شناسه پذیرنده",
+  terminal_id: "Terminal ID / شماره ترمینال",
+  username: "نام کاربری",
+  password: "رمز عبور",
 };
 
 interface Props {
@@ -69,7 +102,12 @@ export function PaymentGatewaySettings({ userId }: Props) {
 
   useEffect(() => {
     if (data?.setting_value) {
-      setState({ ...DEFAULT_STATE, ...(data.setting_value as any) });
+      const incoming = data.setting_value as any;
+      setState({
+        ...DEFAULT_STATE,
+        ...incoming,
+        banks: { ...DEFAULT_STATE.banks, ...(incoming.banks || {}) },
+      });
     }
   }, [data]);
 
@@ -259,6 +297,98 @@ export function PaymentGatewaySettings({ userId }: Props) {
               </div>
             </div>
           )}
+        </div>
+
+        <Separator />
+
+        {/* Direct Bank Gateways */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-base">درگاه‌های مستقیم بانکی</h3>
+            <p className="text-xs text-muted-foreground">
+              اگر مستقیماً از یک بانک ایرانی درگاه پرداخت دریافت کرده‌اید، اطلاعات آن را اینجا وارد کنید.
+            </p>
+          </div>
+
+          {BANK_META.map((bank, idx) => {
+            const cfg = state.banks[bank.key];
+            return (
+              <div key={bank.key} className="space-y-3">
+                {idx > 0 && <Separator className="opacity-50" />}
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <h4 className="font-medium">{bank.name}</h4>
+                    <p className="text-xs text-muted-foreground">{bank.desc}</p>
+                  </div>
+                  <Switch
+                    checked={cfg.enabled}
+                    onCheckedChange={(v) =>
+                      setState((s) => ({
+                        ...s,
+                        banks: { ...s.banks, [bank.key]: { ...s.banks[bank.key], enabled: v } },
+                      }))
+                    }
+                  />
+                </div>
+                {cfg.enabled && (
+                  <div className="space-y-3 pr-4 border-r-2 border-primary/20">
+                    {bank.fields.map((field) => (
+                      <div key={field} className="space-y-2">
+                        <Label>{FIELD_LABELS[field]}</Label>
+                        <Input
+                          dir="ltr"
+                          type={field === "password" ? "password" : "text"}
+                          placeholder={FIELD_LABELS[field]}
+                          value={(cfg as any)[field] || ""}
+                          onChange={(e) =>
+                            setState((s) => ({
+                              ...s,
+                              banks: {
+                                ...s.banks,
+                                [bank.key]: { ...s.banks[bank.key], [field]: e.target.value },
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                    ))}
+                    <div className="space-y-2">
+                      <Label>آدرس بازگشت (Callback URL)</Label>
+                      <Input
+                        dir="ltr"
+                        placeholder="https://your-domain.com/payment/callback"
+                        value={cfg.callback_url || ""}
+                        onChange={(e) =>
+                          setState((s) => ({
+                            ...s,
+                            banks: {
+                              ...s.banks,
+                              [bank.key]: { ...s.banks[bank.key], callback_url: e.target.value },
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={cfg.sandbox ?? false}
+                        onCheckedChange={(v) =>
+                          setState((s) => ({
+                            ...s,
+                            banks: {
+                              ...s.banks,
+                              [bank.key]: { ...s.banks[bank.key], sandbox: v },
+                            },
+                          }))
+                        }
+                      />
+                      <Label className="cursor-pointer">حالت تست (Sandbox)</Label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex justify-end pt-4 border-t">
