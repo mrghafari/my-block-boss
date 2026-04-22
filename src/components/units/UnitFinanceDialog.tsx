@@ -22,6 +22,7 @@ import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { useUnitBalanceFiltered, DateRange } from "@/hooks/useUnitBalanceFiltered";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { formatJalaliDate, toJalaliString } from "@/lib/jalaliDate";
+import { compareByBusinessDateAndCreationAsc } from "@/lib/transactionOrder";
 import type { Unit } from "@/hooks/useUnits";
 import * as XLSX from "xlsx";
 import html2canvas from "html2canvas";
@@ -58,12 +59,13 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
   const transactions = useMemo(() => {
     if (!balance) return [];
 
-    const all: { id: string; date: string; type: "payment" | "expense" | "charge"; title: string; amount: number; ownerName?: string | null; residentName?: string | null; runningBalance?: number }[] = [];
+    const all: { id: string; date: string; createdAt?: string; type: "payment" | "expense" | "charge"; title: string; amount: number; ownerName?: string | null; residentName?: string | null; runningBalance?: number }[] = [];
 
     balance.paymentBreakdown.forEach((p) => {
       all.push({
         id: `payment-${p.id}`,
         date: p.payment_date,
+        createdAt: p.created_at,
         type: "payment",
         title: `پرداخت ${p.month}/${p.year}${p.description ? ` - ${p.description}` : ""}`,
         amount: p.amount,
@@ -76,6 +78,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
       all.push({
         id: `expense-${expense.id}`,
         date: expense.expense_date,
+        createdAt: expense.created_at,
         type: "expense",
         title: `${expense.title} (${getCategoryLabel(expense.category)})`,
         amount: allocatedAmount,
@@ -88,6 +91,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
       all.push({
         id: `charge-${c.id}`,
         date: c.created_at,
+        createdAt: c.created_at,
         type: "charge",
         title: c.description || `بدهی شارژ ${c.month}/${c.year}`,
         amount: c.amount,
@@ -96,7 +100,7 @@ export function UnitFinanceDialog({ unit, open, onOpenChange }: UnitFinanceDialo
       });
     });
 
-    all.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    all.sort(compareByBusinessDateAndCreationAsc);
 
     let running = 0;
     all.forEach((t) => {

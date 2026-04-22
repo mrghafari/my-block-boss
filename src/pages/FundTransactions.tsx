@@ -13,6 +13,7 @@ import {
 import { usePayments, FundType } from "@/hooks/usePayments";
 import { useExpenses } from "@/hooks/useExpenses";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { compareByBusinessDateAndCreationAsc } from "@/lib/transactionOrder";
 
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat("fa-IR").format(Math.round(amount));
@@ -55,6 +56,7 @@ export default function FundTransactions() {
       type: "credit" as const,
       amount: Number(p.amount),
       date: p.payment_date,
+      createdAt: p.created_at,
       description: p.description || `واحد ${p.units?.unit_number || "-"}`,
     })),
     ...fundExpenses.map((e) => ({
@@ -62,9 +64,10 @@ export default function FundTransactions() {
       type: "debit" as const,
       amount: Number(e.amount),
       date: e.expense_date,
+      createdAt: e.created_at,
       description: e.title,
     })),
-  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  ].sort(compareByBusinessDateAndCreationAsc);
 
   let runningBalance = 0;
   const transactionsWithBalance = transactions.map((t) => {
