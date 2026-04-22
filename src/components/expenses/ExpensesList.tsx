@@ -306,11 +306,29 @@ export function ExpensesList() {
                       <TableCell>{formatDate(expense.expense_date)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-primary hover:text-primary"
+                            title="افزودن پیوست"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerUpload(expense.id);
+                            }}
+                            disabled={uploadingExpenseId === expense.id}
+                          >
+                            {uploadingExpenseId === expense.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Upload className="w-4 h-4" />
+                            )}
+                          </Button>
                           {hasAttachments && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-primary hover:text-primary"
+                              title="مشاهده پیوست‌ها"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleExpenseClick(expense);
@@ -319,10 +337,11 @@ export function ExpensesList() {
                               <Paperclip className="w-4 h-4" />
                             </Button>
                           )}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-primary hover:text-primary"
+                            title="مشاهده جزئیات"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleExpenseClick(expense);
@@ -330,10 +349,11 @@ export function ExpensesList() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive"
+                            title="حذف"
                             onClick={(e) => {
                               e.stopPropagation();
                               setDeleteId(expense.id);
