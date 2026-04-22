@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, TrendingDown, Wallet, CreditCard, Loader2 } from "lucide-react";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { PaymentDialog } from "./PaymentDialog";
 
 interface Props {
   buildingId: string;
@@ -17,6 +18,18 @@ function formatNumber(n: number) {
 }
 
 export function ResidentFinance({ buildingId, unitId }: Props) {
+  const [payOpen, setPayOpen] = useState(false);
+
+  // Fetch unit info for owner/resident snapshot
+  const { data: unitInfo } = useQuery({
+    queryKey: ["resident_unit_info", unitId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("units").select("owner_name, resident_name").eq("id", unitId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch payments for this unit
   const { data: payments = [], isLoading: paymentsLoading } = useQuery({
     queryKey: ["resident_payments", unitId],
@@ -111,7 +124,13 @@ export function ResidentFinance({ buildingId, unitId }: Props) {
             <p className="text-xs text-muted-foreground">تومان</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          onClick={() => setPayOpen(true)}
+          className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 active:scale-[0.98]"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPayOpen(true); } }}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-medium">مانده حساب</CardTitle>
             {balance >= 0 ? <TrendingUp className="h-4 w-4 text-emerald-500" /> : <TrendingDown className="h-4 w-4 text-red-500" />}
@@ -120,10 +139,23 @@ export function ResidentFinance({ buildingId, unitId }: Props) {
             <div className={`text-lg font-bold ${balance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
               {balance >= 0 ? "" : "-"}{formatNumber(balance)}
             </div>
-            <p className="text-xs text-muted-foreground">تومان (پرداختی - هزینه)</p>
+            <p className="text-xs text-primary font-medium flex items-center gap-1 mt-1">
+              <CreditCard className="w-3 h-3" />
+              پرداخت آنلاین
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      <PaymentDialog
+        open={payOpen}
+        onOpenChange={setPayOpen}
+        buildingId={buildingId}
+        unitId={unitId}
+        defaultAmount={balance < 0 ? -balance : 0}
+        ownerName={unitInfo?.owner_name}
+        residentName={unitInfo?.resident_name}
+      />
 
       {/* Recent Payments */}
       <Card>
