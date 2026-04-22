@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Loader2, Trash2, LogIn, Search } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Loader2, Trash2, LogIn, Search, Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useAdminCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useAdmin";
 import type { AdminCustomer } from "@/hooks/useAdmin";
+import { AdminPlatformSettings } from "./AdminPlatformSettings";
 
 function PlanBadge({ plan }: { plan: string }) {
   const styles: Record<string, string> = {
