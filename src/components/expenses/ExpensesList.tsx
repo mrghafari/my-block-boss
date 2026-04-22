@@ -35,6 +35,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import { supabase } from "@/integrations/supabase/client";
 import { ExpenseDetailsDialog } from "./ExpenseDetailsDialog";
+import { AttachmentsQuickDialog } from "./AttachmentsQuickDialog";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { toast } from "@/hooks/use-toast";
 
