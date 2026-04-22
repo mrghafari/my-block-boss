@@ -13,20 +13,53 @@ import { CreditCard, Loader2, Save } from "lucide-react";
 interface GatewayConfig {
   enabled: boolean;
   merchant_id?: string;
+  terminal_id?: string;
   api_key?: string;
+  username?: string;
+  password?: string;
+  callback_url?: string;
   sandbox?: boolean;
 }
+
+type BankKey = "saman" | "mellat" | "parsian" | "saderat" | "pasargad" | "melli";
 
 type GatewaysState = {
   zarinpal: GatewayConfig;
   idpay: GatewayConfig;
   nextpay: GatewayConfig;
+  banks: Record<BankKey, GatewayConfig>;
 };
+
+const DEFAULT_BANK: GatewayConfig = { enabled: false, merchant_id: "", terminal_id: "", callback_url: "", sandbox: false };
 
 const DEFAULT_STATE: GatewaysState = {
   zarinpal: { enabled: false, merchant_id: "", sandbox: true },
   idpay: { enabled: false, api_key: "", sandbox: true },
   nextpay: { enabled: false, api_key: "", sandbox: true },
+  banks: {
+    saman: { ...DEFAULT_BANK },
+    mellat: { ...DEFAULT_BANK },
+    parsian: { ...DEFAULT_BANK },
+    saderat: { ...DEFAULT_BANK },
+    pasargad: { ...DEFAULT_BANK },
+    melli: { ...DEFAULT_BANK },
+  },
+};
+
+const BANK_META: { key: BankKey; name: string; desc: string; fields: ("merchant_id" | "terminal_id" | "username" | "password")[] }[] = [
+  { key: "saman", name: "بانک سامان (Saman / SEP)", desc: "درگاه پرداخت الکترونیک سامان", fields: ["merchant_id", "terminal_id"] },
+  { key: "mellat", name: "بانک ملت (به‌پرداخت ملت)", desc: "درگاه به‌پرداخت ملت", fields: ["terminal_id", "username", "password"] },
+  { key: "parsian", name: "بانک پارسیان", desc: "درگاه پرداخت پارسیان", fields: ["merchant_id"] },
+  { key: "saderat", name: "بانک صادرات (سداد)", desc: "درگاه پرداخت سداد", fields: ["merchant_id", "terminal_id"] },
+  { key: "pasargad", name: "بانک پاسارگاد", desc: "درگاه پرداخت پاسارگاد", fields: ["merchant_id", "terminal_id"] },
+  { key: "melli", name: "بانک ملی (سپ)", desc: "درگاه پرداخت بانک ملی", fields: ["merchant_id", "terminal_id"] },
+];
+
+const FIELD_LABELS: Record<string, string> = {
+  merchant_id: "Merchant ID / شناسه پذیرنده",
+  terminal_id: "Terminal ID / شماره ترمینال",
+  username: "نام کاربری",
+  password: "رمز عبور",
 };
 
 interface Props {
