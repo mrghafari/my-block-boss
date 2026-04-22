@@ -31,7 +31,7 @@ interface ChronologicalReportProps {
   onDateRangeChange: (range: DateRange) => void;
 }
 
-type TransactionType = "payment" | "expense";
+type TransactionType = "payment" | "expense" | "charge";
 
 interface Transaction {
   id: string;
@@ -104,6 +104,23 @@ export function ChronologicalReport({ dateRange, onDateRangeChange }: Chronologi
         title: expense.title,
         category: getCategoryLabel(expense.category),
         amount: allocatedAmount,
+        unitNumber,
+        personName: responsibleName,
+        personRole: responsibleRole,
+      });
+    });
+
+    // Add unit charges (بدهی شارژ - debit)
+    selectedBalance.chargeBreakdown.forEach((charge: any) => {
+      const responsibleName = charge.resident_name || charge.owner_name || selectedBalance.unit.resident_name || selectedBalance.unit.owner_name || "-";
+      const responsibleRole = charge.resident_name ? "ساکن" : "مالک";
+      allTransactions.push({
+        id: charge.id,
+        date: charge.created_at,
+        type: "charge",
+        title: charge.description || `بدهی شارژ ${charge.month}/${charge.year}`,
+        category: charge.fund_type === "charge" ? "شارژ" : "شارژ اضافی",
+        amount: charge.amount,
         unitNumber,
         personName: responsibleName,
         personRole: responsibleRole,
