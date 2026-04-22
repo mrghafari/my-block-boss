@@ -261,6 +261,7 @@ export function ResidentFinance({ buildingId, unitId }: Props) {
                   <TableHead className="text-right">نوع</TableHead>
                   <TableHead className="text-right">توضیحات</TableHead>
                   <TableHead className="text-right">مبلغ</TableHead>
+                  <TableHead className="text-right">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,6 +275,20 @@ export function ResidentFinance({ buildingId, unitId }: Props) {
                     </TableCell>
                     <TableCell className="text-xs">{c.description || "-"}</TableCell>
                     <TableCell className="font-semibold text-orange-600">{formatNumber(Number(c.amount))} تومان</TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openPay({
+                          amount: Math.round(Number(c.amount)),
+                          fundType: c.fund_type as "charge" | "extra_charge",
+                          description: `پرداخت بدهی ${c.fund_type === "charge" ? "شارژ" : "فوق‌شارژ"} ${c.year}/${c.month}`,
+                        })}
+                      >
+                        <CreditCard className="w-3 h-3 ml-1" />
+                        پرداخت
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
