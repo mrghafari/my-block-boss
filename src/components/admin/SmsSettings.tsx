@@ -18,7 +18,8 @@ interface SmsConfig {
 }
 
 type SmsState = {
-  active_provider: "kavenegar" | "melipayamak" | "faraz" | "";
+  active_provider: "smsir" | "kavenegar" | "melipayamak" | "faraz" | "";
+  smsir: SmsConfig & { line_number?: string };
   kavenegar: SmsConfig;
   melipayamak: SmsConfig & { username?: string; password?: string };
   faraz: SmsConfig & { username?: string; password?: string };
@@ -31,6 +32,7 @@ type SmsState = {
 
 const DEFAULT_STATE: SmsState = {
   active_provider: "",
+  smsir: { enabled: false, api_key: "", line_number: "" },
   kavenegar: { enabled: false, api_key: "", sender: "" },
   melipayamak: { enabled: false, username: "", password: "", sender: "" },
   faraz: { enabled: false, username: "", password: "", sender: "" },
