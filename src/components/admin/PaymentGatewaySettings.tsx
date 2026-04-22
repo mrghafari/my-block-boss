@@ -46,13 +46,13 @@ const DEFAULT_STATE: GatewaysState = {
   },
 };
 
-const BANK_META: { key: BankKey; name: string; desc: string; fields: ("merchant_id" | "terminal_id" | "username" | "password")[] }[] = [
-  { key: "saman", name: "بانک سامان (Saman / SEP)", desc: "درگاه پرداخت الکترونیک سامان", fields: ["merchant_id", "terminal_id"] },
-  { key: "mellat", name: "بانک ملت (به‌پرداخت ملت)", desc: "درگاه به‌پرداخت ملت", fields: ["terminal_id", "username", "password"] },
-  { key: "parsian", name: "بانک پارسیان", desc: "درگاه پرداخت پارسیان", fields: ["merchant_id"] },
-  { key: "saderat", name: "بانک صادرات (سداد)", desc: "درگاه پرداخت سداد", fields: ["merchant_id", "terminal_id"] },
-  { key: "pasargad", name: "بانک پاسارگاد", desc: "درگاه پرداخت پاسارگاد", fields: ["merchant_id", "terminal_id"] },
-  { key: "melli", name: "بانک ملی (سپ)", desc: "درگاه پرداخت بانک ملی", fields: ["merchant_id", "terminal_id"] },
+const BANK_META: { key: BankKey; name: string; fields: ("merchant_id" | "terminal_id" | "username" | "password")[] }[] = [
+  { key: "saman", name: "بانک سامان", fields: ["merchant_id", "terminal_id"] },
+  { key: "mellat", name: "بانک ملت", fields: ["terminal_id", "username", "password"] },
+  { key: "parsian", name: "بانک پارسیان", fields: ["merchant_id"] },
+  { key: "saderat", name: "بانک صادرات", fields: ["merchant_id", "terminal_id"] },
+  { key: "pasargad", name: "بانک پاسارگاد", fields: ["merchant_id", "terminal_id"] },
+  { key: "melli", name: "بانک ملی", fields: ["merchant_id", "terminal_id"] },
 ];
 
 const FIELD_LABELS: Record<string, string> = {
