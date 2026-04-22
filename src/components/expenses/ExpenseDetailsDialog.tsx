@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,12 +15,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileSpreadsheet, FileText, Loader2, Paperclip, Download, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { FileSpreadsheet, FileText, Loader2, Paperclip, Download, ExternalLink, Upload, Trash2 } from "lucide-react";
 import { useUnits } from "@/hooks/useUnits";
 import { Expense } from "@/hooks/useExpenses";
 import { useExpenseShares } from "@/hooks/useExpenseShares";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useBuilding } from "@/contexts/BuildingContext";
+import { toast } from "@/hooks/use-toast";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 import {
   exportToExcel,
@@ -61,6 +73,12 @@ export function ExpenseDetailsDialog({
 }: ExpenseDetailsDialogProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [activeAttachmentId, setActiveAttachmentId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
   const { data: units = [], isLoading: unitsLoading } = useUnits();
   const { data: shares = [], isLoading: sharesLoading } = useExpenseShares();
 
@@ -112,6 +130,77 @@ export function ExpenseDetailsDialog({
       window.open(url, "_blank", "noopener,noreferrer");
     } finally {
       setActiveAttachmentId(null);
+    }
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !expense || !currentBuildingId) return;
+    const files = Array.from(e.target.files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      let successCount = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
+        const safeExtension = extension.replace(/[^a-z0-9]/g, "") || "bin";
+        const filePath = `${currentBuildingId}/${expense.id}/${Date.now()}_${i}_${crypto.randomUUID()}.${safeExtension}`;
+        const { error: uploadError } = await supabase.storage
+          .from("expense-attachments")
+          .upload(filePath, file);
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          continue;
+        }
+        const { error: insertError } = await supabase.from("expense_attachments").insert({
+          expense_id: expense.id,
+          building_id: currentBuildingId,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+        });
+        if (insertError) {
+          console.error("DB insert error:", insertError);
+          continue;
+        }
+        successCount++;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["expense_attachments", expense.id] });
+      await queryClient.invalidateQueries({ queryKey: ["expense-attachment-counts"] });
+
+      toast({
+        title: successCount === files.length ? "موفق" : "هشدار",
+        description: `${successCount} از ${files.length} فایل آپلود شد`,
+        variant: successCount === files.length ? "default" : "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (att: ExpenseAttachment) => {
+    if (!expense) return;
+    setDeletingId(att.id);
+    try {
+      await supabase.storage.from("expense-attachments").remove([att.file_path]);
+      const { error } = await supabase
+        .from("expense_attachments")
+        .delete()
+        .eq("id", att.id);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["expense_attachments", expense.id] });
+      await queryClient.invalidateQueries({ queryKey: ["expense-attachment-counts"] });
+      toast({ title: "حذف شد", description: "پیوست با موفقیت حذف شد" });
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast({ title: "خطا", description: "خطا در حذف پیوست", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -270,14 +359,49 @@ export function ExpenseDetailsDialog({
             </Table>
           )}
 
-          {/* Attachments - only render when there are attachments */}
-          {attachments.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+          {/* Attachments management */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+              <h3 className="font-semibold flex items-center gap-2">
                 <Paperclip className="w-4 h-4" />
                 مستندات پیوست ({attachments.length})
               </h3>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.xlsx,.xls"
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  افزودن پیوست
+                </Button>
+              </div>
+            </div>
 
+            {attachmentsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              </div>
+            ) : attachments.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4 border rounded-md bg-muted/20">
+                هیچ پیوستی برای این هزینه ثبت نشده است
+              </p>
+            ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {attachments.map((att) => (
                   <div key={att.id} className="flex items-center gap-2 p-2 rounded-md border bg-muted/30">
@@ -307,11 +431,48 @@ export function ExpenseDetailsDialog({
                         <Download className="w-3.5 h-3.5" />
                       )}
                     </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => setConfirmDeleteId(att.id)}
+                      disabled={deletingId === att.id}
+                    >
+                      {deletingId === att.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>حذف پیوست</AlertDialogTitle>
+                <AlertDialogDescription>
+                  آیا از حذف این پیوست اطمینان دارید؟ این عمل قابل بازگشت نیست.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>انصراف</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    const att = attachments.find((a) => a.id === confirmDeleteId);
+                    if (att) handleDeleteAttachment(att);
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  حذف
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </DialogContent>
     </Dialog>
