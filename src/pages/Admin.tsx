@@ -3,9 +3,10 @@ import { useIsSuperAdmin, useAdminStats } from "@/hooks/useAdmin";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, BarChart3, Loader2, LogOut } from "lucide-react";
+import { Shield, Users, BarChart3, Loader2, LogOut, Settings } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStats";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
+import { AdminPlatformSettings } from "@/components/admin/AdminPlatformSettings";
 
 export default function Admin() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -50,6 +51,10 @@ export default function Admin() {
               <BarChart3 className="h-4 w-4" />
               آمار کلی
             </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="customers">
@@ -58,6 +63,10 @@ export default function Admin() {
 
           <TabsContent value="stats">
             <AdminStatsCards stats={stats} isLoading={statsLoading} />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <AdminPlatformSettings />
           </TabsContent>
         </Tabs>
       </main>
