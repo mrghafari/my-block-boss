@@ -14,7 +14,7 @@ const menuItems = [
   { id: "expenses", label: "هزینه‌ها", icon: Receipt },
   { id: "projects", label: "مدیریت پروژه", icon: FolderKanban },
   { id: "payments", label: "پرداخت‌ها", icon: CreditCard },
-  { id: "charges", label: "شارژ", icon: Zap },
+  { id: "charges", label: "شارژ / بدهی", icon: Zap },
   { id: "reports", label: "گزارش‌ها", icon: FileText },
   { id: "announcements", label: "اعلانات", icon: Bell },
   { id: "documents", label: "اسناد ساختمان", icon: FolderOpen },

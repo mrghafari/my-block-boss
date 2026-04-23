@@ -138,17 +138,7 @@ export function CustomDebtForm() {
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Common fields */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="space-y-1.5">
-            <Label>نوع صندوق</Label>
-            <Select value={fundType} onValueChange={(v: FundType) => setFundType(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="charge">شارژ</SelectItem>
-                <SelectItem value="extra_charge">فوق‌شارژ</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
             <Label>ماه</Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(parseInt(v))}>
