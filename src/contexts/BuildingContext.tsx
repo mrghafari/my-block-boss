@@ -29,7 +29,17 @@ const BuildingContext = createContext<BuildingContextType | null>(null);
 
 export function useBuilding() {
   const ctx = useContext(BuildingContext);
-  if (!ctx) throw new Error("useBuilding must be used within BuildingProvider");
+  if (!ctx) {
+    // Safe fallback for components used outside of BuildingProvider (e.g. resident portal)
+    return {
+      currentBuildingId: null,
+      setCurrentBuildingId: () => {},
+      buildings: [],
+      isLoading: false,
+      currentBuilding: null,
+      adminForUserId: undefined,
+    } as BuildingContextType;
+  }
   return ctx;
 }
 
