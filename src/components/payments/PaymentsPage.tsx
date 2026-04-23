@@ -1,4 +1,5 @@
 import { PaymentForm } from "./PaymentForm";
+import { IncomeForm } from "./IncomeForm";
 import { PaymentsList } from "./PaymentsList";
 import { PaymentsStats } from "./PaymentsStats";
 import { CreditCard } from "lucide-react";
@@ -19,7 +20,10 @@ export function PaymentsPage() {
             </p>
           </div>
         </div>
-        <PaymentForm />
+        <div className="flex items-center gap-2">
+          <IncomeForm />
+          <PaymentForm />
+        </div>
       </div>
 
       {/* Stats */}
