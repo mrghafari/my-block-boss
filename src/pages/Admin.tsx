@@ -3,10 +3,11 @@ import { useIsSuperAdmin, useAdminStats } from "@/hooks/useAdmin";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, BarChart3, Loader2, LogOut, Settings } from "lucide-react";
+import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStats";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminPlatformSettings } from "@/components/admin/AdminPlatformSettings";
+import { AdminBankAccounts } from "@/components/admin/AdminBankAccounts";
 
 export default function Admin() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -47,6 +48,10 @@ export default function Admin() {
               <Users className="h-4 w-4" />
               مشتریان
             </TabsTrigger>
+            <TabsTrigger value="bank-accounts" className="gap-2">
+              <Landmark className="h-4 w-4" />
+              حساب‌های بانکی
+            </TabsTrigger>
             <TabsTrigger value="stats" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               آمار کلی
@@ -59,6 +64,10 @@ export default function Admin() {
 
           <TabsContent value="customers">
             <AdminCustomers />
+          </TabsContent>
+
+          <TabsContent value="bank-accounts">
+            <AdminBankAccounts />
           </TabsContent>
 
           <TabsContent value="stats">
