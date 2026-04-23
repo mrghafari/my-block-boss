@@ -46,12 +46,21 @@ export function AdminBankAccounts() {
   const { data: accounts, isLoading } = useQuery({
     queryKey: ["admin-bank-accounts"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: accs, error } = await supabase
         .from("building_bank_accounts")
-        .select("*, buildings(name)")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as BankAccountWithBuilding[];
+
+      const buildingIds = Array.from(new Set((accs || []).map((a) => a.building_id)));
+      const { data: bldgs } = buildingIds.length
+        ? await supabase.from("buildings").select("id, name").in("id", buildingIds)
+        : { data: [] as { id: string; name: string }[] };
+      const map = new Map((bldgs || []).map((b) => [b.id, b.name]));
+      return (accs || []).map((a) => ({
+        ...a,
+        buildings: { name: map.get(a.building_id) || "—" },
+      })) as BankAccountWithBuilding[];
     },
   });
 
