@@ -243,7 +243,7 @@ const ResidentAuth = () => {
                 handleVerifyOtp();
               }} className="space-y-4 px-6 pb-6">
                 <div className="flex justify-center" dir="ltr">
-                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                  <InputOTP maxLength={6} value={otp} onChange={(v) => setOtp(toEnDigits(v).replace(/\D/g, ""))}>
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
