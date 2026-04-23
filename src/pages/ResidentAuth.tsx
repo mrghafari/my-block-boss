@@ -165,7 +165,7 @@ const ResidentAuth = () => {
         <img
           src={sharjanLogo}
           alt="شارژان"
-          className="max-w-sm w-full h-auto rounded-2xl shadow-2xl"
+          className="max-w-sm w-full h-auto drop-shadow-2xl"
         />
       </div>
 
