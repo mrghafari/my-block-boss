@@ -258,8 +258,9 @@ export function PaymentPolicySettings() {
               <Input
                 type="number"
                 min={form.early_pay_days}
-                value={form.late_grace_days}
-                onChange={(e) => update("late_grace_days", Number(e.target.value) || 0)}
+                value={lateDaysInput}
+                onChange={(e) => handleLateDaysChange(e.target.value)}
+                onBlur={handleLateDaysBlur}
                 disabled={!form.late_penalty_enabled}
               />
               <p className="text-[11px] text-muted-foreground">
