@@ -55,6 +55,54 @@ export type Database = {
           },
         ]
       }
+      building_bank_accounts: {
+        Row: {
+          account_holder: string
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          bank_name: string | null
+          building_id: string
+          created_at: string
+          created_by: string
+          iban: string
+          id: string
+          is_active: boolean
+          is_approved: boolean
+          updated_at: string
+        }
+        Insert: {
+          account_holder: string
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_name?: string | null
+          building_id: string
+          created_at?: string
+          created_by: string
+          iban: string
+          id?: string
+          is_active?: boolean
+          is_approved?: boolean
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_name?: string | null
+          building_id?: string
+          created_at?: string
+          created_by?: string
+          iban?: string
+          id?: string
+          is_active?: boolean
+          is_approved?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       building_contacts: {
         Row: {
           building_id: string
