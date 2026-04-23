@@ -12,6 +12,8 @@ export interface PaymentPolicy {
   late_grace_days: number;
   late_penalty_percent_per_month: number;
   late_penalty_max_months: number;
+  late_penalty_auto_apply: boolean;
+  early_pay_auto_apply: boolean;
 }
 
 export function usePaymentPolicy() {

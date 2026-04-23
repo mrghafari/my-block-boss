@@ -21,6 +21,8 @@ interface PaymentPolicy {
   late_grace_days: number;
   late_penalty_percent_per_month: number;
   late_penalty_max_months: number;
+  late_penalty_auto_apply: boolean;
+  early_pay_auto_apply: boolean;
 }
 
 const DEFAULTS = {
@@ -31,6 +33,8 @@ const DEFAULTS = {
   late_grace_days: 30,
   late_penalty_percent_per_month: 0,
   late_penalty_max_months: 12,
+  late_penalty_auto_apply: false,
+  early_pay_auto_apply: false,
 };
 
 export function PaymentPolicySettings() {
