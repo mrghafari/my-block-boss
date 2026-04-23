@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 const internalSchema = z.object({
   source: z.literal("internal"),
   unit_id: z.string().min(1, "واحد را انتخاب کنید"),
+  role_id: z.string().min(1, "نقش مدیریتی را انتخاب کنید"),
   role_type: z.enum(["owner", "resident"]),
   mobile: z.string().optional(),
   email: z.string().email("ایمیل نامعتبر است").optional().or(z.literal("")),
@@ -52,6 +53,7 @@ const internalSchema = z.object({
 const externalSchema = z.object({
   source: z.literal("external"),
   unit_id: z.string().optional(),
+  role_id: z.string().min(1, "نقش مدیریتی را انتخاب کنید"),
   role_type: z.literal("external"),
   external_name: z.string().min(1, "نام مدیر را وارد کنید"),
   mobile: z.string().optional(),
