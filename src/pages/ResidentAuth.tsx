@@ -196,7 +196,7 @@ const ResidentAuth = () => {
                       type="tel"
                       inputMode="numeric"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                      onChange={(e) => setPhone(toEnDigits(e.target.value).replace(/\D/g, "").slice(0, 11))}
                       placeholder="09123456789"
                       maxLength={11}
                       className={`pr-10 transition-colors ${
