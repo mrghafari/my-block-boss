@@ -45,7 +45,11 @@ const ResidentAuth = () => {
     [matches],
   );
 
-  const normalizedPhone = phone.replace(/\D/g, "");
+  const toEnDigits = (s: string) =>
+    s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
+  const normalizedPhone = toEnDigits(phone).replace(/\D/g, "");
   const isPhoneValid = normalizedPhone.length === 11 && normalizedPhone.startsWith("09");
 
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -59,7 +63,7 @@ const ResidentAuth = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("resident-auth", {
-        body: { action: "request", phone: phone.trim() },
+        body: { action: "request", phone: normalizedPhone },
       });
 
       if (error) throw error;
@@ -86,7 +90,7 @@ const ResidentAuth = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("resident-auth", {
-        body: { action: "verify", phone: phone.trim(), otp },
+        body: { action: "verify", phone: normalizedPhone, otp },
       });
 
       if (error) throw error;
@@ -192,7 +196,7 @@ const ResidentAuth = () => {
                       type="tel"
                       inputMode="numeric"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                      onChange={(e) => setPhone(toEnDigits(e.target.value).replace(/\D/g, "").slice(0, 11))}
                       placeholder="09123456789"
                       maxLength={11}
                       className={`pr-10 transition-colors ${
@@ -239,7 +243,7 @@ const ResidentAuth = () => {
                 handleVerifyOtp();
               }} className="space-y-4 px-6 pb-6">
                 <div className="flex justify-center" dir="ltr">
-                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                  <InputOTP maxLength={6} value={otp} onChange={(v) => setOtp(toEnDigits(v).replace(/\D/g, ""))}>
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
