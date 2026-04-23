@@ -10,6 +10,7 @@ import { ResidentAnnouncements } from "@/components/resident/ResidentAnnouncemen
 import { ResidentPolls } from "@/components/resident/ResidentPolls";
 import { ResidentDocuments } from "@/components/resident/ResidentDocuments";
 import { ResidentContacts } from "@/components/resident/ResidentContacts";
+import { ManagersHistoryReport } from "@/components/reports/ManagersHistoryReport";
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("finance");
