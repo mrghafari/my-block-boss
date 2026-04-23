@@ -9,14 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Loader2, Calculator } from "lucide-react";
 import { usePaymentPolicy } from "@/hooks/usePaymentPolicy";
-import { useUnitBalance } from "@/hooks/useUnitBalance";
-import { useBuilding } from "@/contexts/BuildingContext";
+import { useUnits } from "@/hooks/useUnits";
+import { usePayments } from "@/hooks/usePayments";
+import { useExpenseShares } from "@/hooks/useExpenseShares";
 import { useUnitCharges } from "@/hooks/useUnitCharges";
+import { useBuilding } from "@/contexts/BuildingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
+import { endOfJalaliMonthIso } from "@/lib/jalaliMonthRange";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,9 +40,14 @@ const persianMonths = [
 const formatNumber = (n: number) =>
   Math.round(Math.abs(n)).toLocaleString("fa-IR");
 
+const isPenaltyDescription = (d?: string | null) =>
+  !!d && (d.startsWith("جریمه تأخیر") || d.startsWith("جریمه "));
+
 export function LatePenaltyApplier() {
   const { data: policy, isLoading: policyLoading } = usePaymentPolicy();
-  const { unitBalances, isLoading: balanceLoading } = useUnitBalance();
+  const { data: units = [] } = useUnits();
+  const { data: payments = [] } = usePayments();
+  const { data: shares = [] } = useExpenseShares();
   const { data: existingCharges = [] } = useUnitCharges();
   const { currentBuildingId } = useBuilding();
   const qc = useQueryClient();
@@ -52,31 +60,65 @@ export function LatePenaltyApplier() {
   const [year, setYear] = useState(String(currentJalaliYear));
   const [submitting, setSubmitting] = useState(false);
 
-  // Calculate which units would be charged
+  const balanceLoading = !units || !payments || !shares || !existingCharges;
+
+  // Compute candidates based on END-OF-MONTH balance, EXCLUDING penalty rows
   const candidates = useMemo(() => {
     if (!policy?.late_penalty_enabled || policy.late_penalty_percent_per_month <= 0) {
       return [];
     }
     const m = Number(month);
     const y = Number(year);
+    const cutoffIso = endOfJalaliMonthIso(y, m); // YYYY-MM-DD
 
-    return unitBalances
-      .filter((ub) => ub.balance < 0) // debtor
-      .map((ub) => {
-        const debt = Math.abs(ub.balance);
+    // Sum payments per unit up to end of selected jalali month
+    const paySum = new Map<string, number>();
+    for (const p of payments as any[]) {
+      if (p.payment_date && p.payment_date <= cutoffIso) {
+        paySum.set(p.unit_id, (paySum.get(p.unit_id) || 0) + Number(p.amount || 0));
+      }
+    }
+
+    // Sum allocated expense shares per unit up to end of selected jalali month
+    // Use expense.expense_date through joined info if present, fallback to created_at
+    const expSum = new Map<string, number>();
+    for (const s of shares as any[]) {
+      const dateRef: string | undefined = s.expense?.expense_date || s.created_at;
+      if (dateRef && dateRef.split("T")[0] <= cutoffIso) {
+        expSum.set(s.unit_id, (expSum.get(s.unit_id) || 0) + Number(s.allocated_amount || 0));
+      }
+    }
+
+    // Sum unit_charges per unit up to and INCLUDING (year, month) but EXCLUDING penalty descriptions
+    const chargeSum = new Map<string, number>();
+    for (const c of existingCharges as any[]) {
+      const isWithinPeriod =
+        c.year < y || (c.year === y && c.month <= m);
+      if (!isWithinPeriod) continue;
+      if (isPenaltyDescription(c.description)) continue; // exclude penalties themselves
+      chargeSum.set(c.unit_id, (chargeSum.get(c.unit_id) || 0) + Number(c.amount || 0));
+    }
+
+    return units
+      .map((u: any) => {
+        const paid = paySum.get(u.id) || 0;
+        const expenses = expSum.get(u.id) || 0;
+        const charges = chargeSum.get(u.id) || 0;
+        // balance = paid - (expenses + charges); negative means debtor
+        const balance = paid - (expenses + charges);
+        const debt = balance < 0 ? Math.abs(balance) : 0;
         const penalty = Math.round((debt * policy.late_penalty_percent_per_month) / 100);
-        // Check if a penalty for this period already exists
-        const alreadyApplied = existingCharges.some(
+        const alreadyApplied = (existingCharges as any[]).some(
           (c) =>
-            c.unit_id === ub.unit.id &&
+            c.unit_id === u.id &&
             c.month === m &&
             c.year === y &&
-            (c.description || "").startsWith("جریمه تأخیر")
+            isPenaltyDescription(c.description)
         );
-        return { unit: ub.unit, debt, penalty, alreadyApplied };
+        return { unit: u, debt, penalty, alreadyApplied };
       })
       .filter((c) => c.penalty > 0);
-  }, [unitBalances, policy, existingCharges, month, year]);
+  }, [units, payments, shares, existingCharges, policy, month, year]);
 
   const newOnes = candidates.filter((c) => !c.alreadyApplied);
   const totalPenalty = newOnes.reduce((s, c) => s + c.penalty, 0);
@@ -153,7 +195,7 @@ export function LatePenaltyApplier() {
           اعمال جریمه تأخیر ماهانه
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
-          فرمول: مانده بدهی هر واحد × {policy.late_penalty_percent_per_month}٪
+          فرمول: مانده بدهی هر واحد در پایان ماه انتخاب‌شده × {policy.late_penalty_percent_per_month}٪ — جریمه‌های قبلی در محاسبه لحاظ نمی‌شوند.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -209,7 +251,7 @@ export function LatePenaltyApplier() {
                   <tr>
                     <th className="text-right px-3 py-2">واحد</th>
                     <th className="text-right px-3 py-2">مالک</th>
-                    <th className="text-right px-3 py-2">مانده بدهی</th>
+                    <th className="text-right px-3 py-2">بدهی پایان ماه</th>
                     <th className="text-right px-3 py-2">جریمه</th>
                   </tr>
                 </thead>
