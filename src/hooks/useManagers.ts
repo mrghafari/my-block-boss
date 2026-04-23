@@ -110,38 +110,41 @@ export function useCreateManager() {
 
   return useMutation({
     mutationFn: async (manager: ManagerInsert) => {
-      // Check for duplicate: same person already registered as active manager
-      if (manager.unit_id) {
+      // Check duplicate person within the same role
+      if (manager.unit_id && manager.role_id) {
         const { data: existing } = await supabase
           .from("managers")
           .select("id")
           .eq("building_id", currentBuildingId!)
           .eq("unit_id", manager.unit_id)
+          .eq("role_id", manager.role_id)
           .eq("is_active", true)
           .limit(1);
         if (existing && existing.length > 0) {
-          throw new Error("این شخص در حال حاضر به عنوان مدیر فعال ثبت شده است");
+          throw new Error("این شخص در حال حاضر در همین نقش به عنوان مدیر فعال ثبت شده است");
         }
       }
-      if (manager.role_type === "external" && manager.external_name) {
+      if (manager.role_type === "external" && manager.external_name && manager.role_id) {
         const { data: existing } = await supabase
           .from("managers")
           .select("id")
           .eq("building_id", currentBuildingId!)
           .eq("external_name", manager.external_name)
+          .eq("role_id", manager.role_id)
           .eq("is_active", true)
           .limit(1);
         if (existing && existing.length > 0) {
-          throw new Error("این شخص در حال حاضر به عنوان مدیر فعال ثبت شده است");
+          throw new Error("این شخص در حال حاضر در همین نقش به عنوان مدیر فعال ثبت شده است");
         }
       }
 
-      // Deactivate current active manager if new one is active
-      if (manager.is_active !== false) {
+      // Per-role single active: deactivate other active managers in the same role
+      if (manager.is_active !== false && manager.role_id) {
         await supabase
           .from("managers")
-          .update({ is_active: false })
+          .update({ is_active: false, end_date: new Date().toISOString().split("T")[0] })
           .eq("building_id", currentBuildingId!)
+          .eq("role_id", manager.role_id)
           .eq("is_active", true);
       }
 
@@ -170,12 +173,13 @@ export function useUpdateManager() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ManagerInsert> & { id: string }) => {
-      // If activating this manager, deactivate others first
-      if (updates.is_active === true && currentBuildingId) {
+      // If activating, deactivate others in the same role
+      if (updates.is_active === true && currentBuildingId && updates.role_id) {
         await supabase
           .from("managers")
-          .update({ is_active: false })
+          .update({ is_active: false, end_date: new Date().toISOString().split("T")[0] })
           .eq("building_id", currentBuildingId)
+          .eq("role_id", updates.role_id)
           .neq("id", id)
           .eq("is_active", true);
       }
@@ -221,3 +225,64 @@ export function useDeleteManager() {
     },
   });
 }
+
+/** End the tenure of a manager (without picking successor yet). */
+export function useEndManagerTenure() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, end_date }: { id: string; end_date?: string }) => {
+      const today = end_date || new Date().toISOString().split("T")[0];
+      const { error } = await supabase
+        .from("managers")
+        .update({ is_active: false, end_date: today })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
+      toast.success("دوره مدیریت پایان یافت");
+    },
+    onError: (e: any) => toast.error("خطا: " + e.message),
+  });
+}
+
+/** Transfer a role to a successor (existing manager record). */
+export function useTransferManagement() {
+  const queryClient = useQueryClient();
+  const { currentBuildingId } = useBuilding();
+
+  return useMutation({
+    mutationFn: async ({
+      role_id,
+      new_manager_id,
+      effective_date,
+    }: {
+      role_id: string;
+      new_manager_id: string;
+      effective_date?: string;
+    }) => {
+      if (!currentBuildingId) throw new Error("ساختمان انتخاب نشده");
+      const today = effective_date || new Date().toISOString().split("T")[0];
+
+      await supabase
+        .from("managers")
+        .update({ is_active: false, end_date: today })
+        .eq("building_id", currentBuildingId)
+        .eq("role_id", role_id)
+        .eq("is_active", true)
+        .neq("id", new_manager_id);
+
+      const { error } = await supabase
+        .from("managers")
+        .update({ is_active: true, role_id, start_date: today, end_date: null })
+        .eq("id", new_manager_id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
+      toast.success("مدیریت با موفقیت منتقل شد");
+    },
+    onError: (e: any) => toast.error("خطا در انتقال: " + e.message),
+  });
+}
+
