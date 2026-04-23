@@ -220,6 +220,31 @@ export function ManagerFormDialog({ open, onOpenChange, manager }: ManagerFormDi
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
+            <FormField
+              control={form.control}
+              name="role_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>نقش مدیریتی</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="نقش را انتخاب کنید" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {source === "internal" ? (
               <>
                 <FormField
