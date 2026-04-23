@@ -78,6 +78,18 @@ export function PaymentPolicySettings() {
     },
   });
 
+  // Numeric field state for early_pay_days / late_grace_days that allows empty input
+  const [earlyDaysInput, setEarlyDaysInput] = useState<string>("");
+  const [lateDaysInput, setLateDaysInput] = useState<string>("");
+
+  useEffect(() => {
+    if (form) {
+      setEarlyDaysInput(String(form.early_pay_days ?? ""));
+      setLateDaysInput(String(form.late_grace_days ?? ""));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form?.building_id]);
+
   if (!currentBuildingId) {
     return (
       <Card>
@@ -103,18 +115,6 @@ export function PaymentPolicySettings() {
       if (!f) return f;
       return { ...f, [k]: v } as PaymentPolicy;
     });
-
-  // Numeric field state for early_pay_days / late_grace_days that allows empty input
-  const [earlyDaysInput, setEarlyDaysInput] = useState<string>("");
-  const [lateDaysInput, setLateDaysInput] = useState<string>("");
-
-  useEffect(() => {
-    if (form) {
-      setEarlyDaysInput(String(form.early_pay_days ?? ""));
-      setLateDaysInput(String(form.late_grace_days ?? ""));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form?.building_id]);
 
   const handleEarlyDaysChange = (raw: string) => {
     // allow empty
