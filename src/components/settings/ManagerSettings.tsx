@@ -321,8 +321,8 @@ export function ManagerSettings() {
           );
         })}
 
-        {/* Unassigned legacy managers */}
-        {unassignedManagers.length > 0 && (
+        {/* Unassigned active managers */}
+        {unassignedManagers.filter(isActiveManager).length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -331,7 +331,7 @@ export function ManagerSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {unassignedManagers.map((m) => renderManagerCard(m, !isActiveManager(m)))}
+              {unassignedManagers.filter(isActiveManager).map((m) => renderManagerCard(m, false))}
             </CardContent>
           </Card>
         )}
