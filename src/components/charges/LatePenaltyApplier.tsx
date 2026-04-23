@@ -82,11 +82,14 @@ export function LatePenaltyApplier() {
     }
 
     // Sum allocated expense shares per unit up to end of selected jalali month
-    // Use expense.expense_date through joined info if present, fallback to created_at
+    const expenseDateMap = new Map<string, string>();
+    for (const e of expenses as any[]) {
+      if (e.expense_date) expenseDateMap.set(e.id, e.expense_date.split("T")[0]);
+    }
     const expSum = new Map<string, number>();
     for (const s of shares as any[]) {
-      const dateRef: string | undefined = s.expense?.expense_date || s.created_at;
-      if (dateRef && dateRef.split("T")[0] <= cutoffIso) {
+      const dateRef = expenseDateMap.get(s.expense_id) || (s.created_at?.split("T")[0]);
+      if (dateRef && dateRef <= cutoffIso) {
         expSum.set(s.unit_id, (expSum.get(s.unit_id) || 0) + Number(s.allocated_amount || 0));
       }
     }
