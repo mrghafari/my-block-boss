@@ -12,6 +12,7 @@ import { usePaymentPolicy } from "@/hooks/usePaymentPolicy";
 import { useUnits } from "@/hooks/useUnits";
 import { usePayments } from "@/hooks/usePayments";
 import { useExpenseShares } from "@/hooks/useExpenseShares";
+import { useExpenses } from "@/hooks/useExpenses";
 import { useUnitCharges } from "@/hooks/useUnitCharges";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { supabase } from "@/integrations/supabase/client";
