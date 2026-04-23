@@ -123,7 +123,7 @@ export function LatePenaltyApplier() {
         return { unit: u, debt, penalty, alreadyApplied };
       })
       .filter((c) => c.penalty > 0);
-  }, [units, payments, shares, existingCharges, policy, month, year]);
+  }, [units, payments, shares, expenses, existingCharges, policy, month, year]);
 
   const newOnes = candidates.filter((c) => !c.alreadyApplied);
   const totalPenalty = newOnes.reduce((s, c) => s + c.penalty, 0);
