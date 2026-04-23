@@ -12,7 +12,6 @@ import {
   Phone,
   Mail,
   Calendar,
-  History,
   ArrowRightLeft,
   Tag,
   X,
