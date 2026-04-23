@@ -63,7 +63,7 @@ const ResidentAuth = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("resident-auth", {
-        body: { action: "request", phone: phone.trim() },
+        body: { action: "request", phone: normalizedPhone },
       });
 
       if (error) throw error;
