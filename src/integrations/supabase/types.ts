@@ -822,7 +822,7 @@ export type Database = {
           owner_name: string | null
           payment_date: string
           resident_name: string | null
-          unit_id: string
+          unit_id: string | null
           year: number
         }
         Insert: {
@@ -836,7 +836,7 @@ export type Database = {
           owner_name?: string | null
           payment_date?: string
           resident_name?: string | null
-          unit_id: string
+          unit_id?: string | null
           year: number
         }
         Update: {
@@ -850,7 +850,7 @@ export type Database = {
           owner_name?: string | null
           payment_date?: string
           resident_name?: string | null
-          unit_id?: string
+          unit_id?: string | null
           year?: number
         }
         Relationships: [
