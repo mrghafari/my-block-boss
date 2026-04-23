@@ -18,7 +18,11 @@ const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value.replace(/[^0-9]/g, "");
+      // Normalize Persian (۰-۹) and Arabic (٠-٩) digits to English, then strip non-digits
+      const normalized = e.target.value
+        .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+        .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+      const raw = normalized.replace(/[^0-9]/g, "");
       onChange(raw);
     };
 
