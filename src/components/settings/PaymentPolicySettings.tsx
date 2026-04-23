@@ -237,6 +237,19 @@ export function PaymentPolicySettings() {
               />
             </div>
           </div>
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div className="text-sm">
+              <div className="font-medium">اعمال خودکار تخفیف</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                هنگام ثبت پرداخت در بازه مجاز، تخفیف بدون پرسش اعمال شود.
+              </p>
+            </div>
+            <Switch
+              checked={form.early_pay_auto_apply}
+              onCheckedChange={(v) => update("early_pay_auto_apply", v)}
+              disabled={!form.early_pay_enabled}
+            />
+          </div>
         </div>
 
         <Separator />
@@ -297,6 +310,19 @@ export function PaymentPolicySettings() {
                 disabled={!form.late_penalty_enabled}
               />
             </div>
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t">
+            <div className="text-sm">
+              <div className="font-medium">اعمال خودکار جریمه در پایان ماه</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                هنگام ورود مدیر، جریمه ماه‌های گذشته که هنوز ثبت نشده‌اند به‌صورت خودکار و بدون پرسش اعمال می‌شود.
+              </p>
+            </div>
+            <Switch
+              checked={form.late_penalty_auto_apply}
+              onCheckedChange={(v) => update("late_penalty_auto_apply", v)}
+              disabled={!form.late_penalty_enabled}
+            />
           </div>
         </div>
 
