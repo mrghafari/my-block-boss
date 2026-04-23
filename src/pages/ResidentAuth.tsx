@@ -45,7 +45,11 @@ const ResidentAuth = () => {
     [matches],
   );
 
-  const normalizedPhone = phone.replace(/\D/g, "");
+  const toEnDigits = (s: string) =>
+    s.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+
+  const normalizedPhone = toEnDigits(phone).replace(/\D/g, "");
   const isPhoneValid = normalizedPhone.length === 11 && normalizedPhone.startsWith("09");
 
   const handleRequestOtp = async (e: React.FormEvent) => {
