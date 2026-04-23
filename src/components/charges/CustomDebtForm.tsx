@@ -40,8 +40,8 @@ export function CustomDebtForm() {
   const [year, setYear] = useState(currentJYear);
   const [description, setDescription] = useState("");
   const [amountMode, setAmountMode] = useState<AmountMode>("same");
-  const [sharedAmount, setSharedAmount] = useState(0);
-  const [perUnitAmounts, setPerUnitAmounts] = useState<Record<string, number>>({});
+  const [sharedAmount, setSharedAmount] = useState("");
+  const [perUnitAmounts, setPerUnitAmounts] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const sortedUnits = useMemo(
@@ -63,8 +63,8 @@ export function CustomDebtForm() {
 
   const totalPreview = useMemo(() => {
     if (selectedUnitIds.length === 0) return 0;
-    if (amountMode === "same") return Math.round(sharedAmount) * selectedUnitIds.length;
-    return selectedUnitIds.reduce((sum, id) => sum + Math.round(perUnitAmounts[id] || 0), 0);
+    if (amountMode === "same") return (Number(sharedAmount) || 0) * selectedUnitIds.length;
+    return selectedUnitIds.reduce((sum, id) => sum + (Number(perUnitAmounts[id]) || 0), 0);
   }, [amountMode, sharedAmount, perUnitAmounts, selectedUnitIds]);
 
   const handleSubmit = async () => {
@@ -83,8 +83,8 @@ export function CustomDebtForm() {
         const unit = units.find((u) => u.id === unitId);
         if (!unit) return null;
         const amount = amountMode === "same"
-          ? Math.round(sharedAmount)
-          : Math.round(perUnitAmounts[unitId] || 0);
+          ? Math.round(Number(sharedAmount) || 0)
+          : Math.round(Number(perUnitAmounts[unitId]) || 0);
         if (amount <= 0) return null;
         return {
           building_id: currentBuildingId,
@@ -113,7 +113,7 @@ export function CustomDebtForm() {
       toast({ title: "موفق", description: `بدهی برای ${records.length} واحد ثبت شد` });
       // Reset form
       setSelectedUnitIds([]);
-      setSharedAmount(0);
+      setSharedAmount("");
       setPerUnitAmounts({});
       setDescription("");
     } catch (e: any) {
@@ -197,7 +197,7 @@ export function CustomDebtForm() {
             <Label>مبلغ بدهی هر واحد (تومان)</Label>
             <NumericInput
               value={sharedAmount}
-              onChange={(v) => setSharedAmount(v || 0)}
+              onChange={(v) => setSharedAmount(v)}
               placeholder="مبلغ"
             />
           </div>
@@ -238,9 +238,9 @@ export function CustomDebtForm() {
                       {checked && amountMode === "split" && (
                         <div className="w-40" onClick={(e) => e.preventDefault()}>
                           <NumericInput
-                            value={perUnitAmounts[unit.id] || 0}
+                            value={perUnitAmounts[unit.id] || ""}
                             onChange={(v) =>
-                              setPerUnitAmounts((p) => ({ ...p, [unit.id]: v || 0 }))
+                              setPerUnitAmounts((p) => ({ ...p, [unit.id]: v }))
                             }
                             placeholder="مبلغ"
                           />
