@@ -91,19 +91,22 @@ export function BankAccountSettings() {
             <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
               <div className="space-y-2">
                 <Label>شماره شبا (IBAN) *</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground font-mono">IR</span>
+                <div className="flex items-center" dir="ltr">
+                  <span className="text-muted-foreground font-mono px-3 py-2 border border-l-0 border-input rounded-l-md bg-muted">IR</span>
                   <Input
                     value={iban}
-                    onChange={(e) => setIban(e.target.value)}
+                    onChange={(e) => {
+                      const digits = toEnglishDigits(e.target.value).replace(/\D/g, "").slice(0, 24);
+                      setIban(digits);
+                    }}
                     placeholder="۲۴ رقم"
                     dir="ltr"
-                    className="font-mono"
-                    maxLength={32}
+                    className="font-mono rounded-l-none"
+                    inputMode="numeric"
                     required
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">۲۴ رقم بدون پیشوند IR وارد کنید</p>
+                <p className="text-xs text-muted-foreground">۲۴ رقم بدون پیشوند IR وارد کنید ({iban.length.toLocaleString("fa-IR")}/۲۴)</p>
               </div>
 
               <div className="space-y-2">
