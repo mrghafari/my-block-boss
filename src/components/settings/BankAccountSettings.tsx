@@ -63,6 +63,10 @@ export function BankAccountSettings() {
     updateMutation.mutate({ id, is_active: !current });
   };
 
+  const hasPending = accounts?.some((a) => !a.is_approved && !a.is_rejected) ?? false;
+  const hasApproved = accounts?.some((a) => a.is_approved) ?? false;
+  const canAddNew = !hasPending && !hasApproved;
+
   return (
     <div className="space-y-4">
       <Card>
@@ -74,10 +78,10 @@ export function BankAccountSettings() {
                 حساب‌های بانکی ساختمان
               </CardTitle>
               <CardDescription className="mt-1">
-                شماره شبای حساب بانکی ساختمان را برای دریافت واریزی‌ها معرفی کنید. حساب پس از تایید ادمین قابل استفاده خواهد بود.
+                شماره شبای حساب بانکی ساختمان را برای دریافت واریزی‌ها معرفی کنید. تنها یک حساب در هر زمان قابل ثبت است و پس از تایید ادمین قابل استفاده خواهد بود.
               </CardDescription>
             </div>
-            {!showForm && (
+            {!showForm && canAddNew && (
               <Button onClick={() => setShowForm(true)} size="sm">
                 <Plus className="w-4 h-4 ml-1" />
                 افزودن حساب
@@ -87,6 +91,22 @@ export function BankAccountSettings() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {!showForm && hasPending && (
+            <Alert>
+              <Clock className="h-4 w-4" />
+              <AlertDescription>
+                یک حساب در انتظار تایید ادمین است. تا زمان تایید یا رد، امکان ثبت حساب جدید وجود ندارد.
+              </AlertDescription>
+            </Alert>
+          )}
+          {!showForm && hasApproved && (
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription>
+                حساب بانکی تایید شده دارید. برای ثبت حساب جدید، ابتدا حساب فعلی را حذف کنید.
+              </AlertDescription>
+            </Alert>
+          )}
           {showForm && (
             <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
               <div className="space-y-2">
