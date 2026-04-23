@@ -61,7 +61,8 @@ export function useManagers() {
         .from("managers")
         .select(`
           *,
-          unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone)
+          unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone),
+          role:manager_roles(id, name, label, is_system, sort_order)
         `)
         .eq("building_id", currentBuildingId)
         .order("created_at", { ascending: false });
@@ -75,7 +76,7 @@ export function useManagers() {
 
 export function useActiveManager() {
   const { currentBuildingId } = useBuilding();
-  
+
   return useQuery({
     queryKey: ["managers", "active", currentBuildingId],
     queryFn: async () => {
@@ -85,7 +86,8 @@ export function useActiveManager() {
         .from("managers")
         .select(`
           *,
-          unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone)
+          unit:units(id, unit_number, owner_name, resident_name, phone, resident_phone),
+          role:manager_roles(id, name, label, is_system, sort_order)
         `)
         .eq("building_id", currentBuildingId)
         .eq("is_active", true)
@@ -93,7 +95,7 @@ export function useActiveManager() {
         .or(`end_date.is.null,end_date.gte.${today}`)
         .order("start_date", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
       return data as Manager | null;
