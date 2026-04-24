@@ -319,7 +319,7 @@ export function UtilitiesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Icon className="w-5 h-5" style={{ color: ut.color }} />
-                  روند مصرف {ut.label}
+                  روند مصرف {ut.label} (۱۲ ماه اخیر)
                 </CardTitle>
               </CardHeader>
               <CardContent>
