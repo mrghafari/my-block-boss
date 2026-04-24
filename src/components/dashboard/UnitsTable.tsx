@@ -18,7 +18,11 @@ const getFloorLabel = (floor: number | null) => {
   return `طبقه ${floor}`;
 };
 
-export function UnitsTable() {
+interface UnitsTableProps {
+  onViewAll?: () => void;
+}
+
+export function UnitsTable({ onViewAll }: UnitsTableProps = {}) {
   const { data: units = [], isLoading } = useUnits();
 
   if (isLoading) {
@@ -35,7 +39,7 @@ export function UnitsTable() {
     <Card variant="elevated" className="animate-fade-in opacity-0" style={{ animationDelay: "400ms" }}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>واحدهای ساختمان</CardTitle>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={onViewAll}>
           مشاهده همه
         </Button>
       </CardHeader>
