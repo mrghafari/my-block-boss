@@ -1,9 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserCog, Phone, Mail, Calendar, History } from "lucide-react";
+import { Loader2, UserCog, Phone, Mail, Calendar, History, Clock } from "lucide-react";
 import { useManagers, Manager } from "@/hooks/useManagers";
 import { useManagerRoles } from "@/hooks/useManagerRoles";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+
+const tenureDays = (m: Manager) => {
+  const start = new Date(m.start_date);
+  const endStr = m.end_date && m.end_date <= new Date().toISOString().split("T")[0]
+    ? m.end_date
+    : new Date().toISOString().split("T")[0];
+  const end = new Date(endStr);
+  const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, diff) + 1;
+};
 
 const isActiveManager = (manager: Manager) => {
   if (!manager.is_active) return false;
