@@ -16,6 +16,7 @@ export interface BuildingMessage {
   parent_id: string | null;
   is_read: boolean;
   created_at: string;
+  image_url?: string | null;
 }
 
 export function useMessages(buildingId?: string) {
@@ -72,6 +73,7 @@ export function useSendMessage() {
       subject?: string | null;
       content: string;
       parent_id?: string | null;
+      image_url?: string | null;
     }) => {
       const { error } = await supabase.from("building_messages").insert(payload);
       if (error) throw error;

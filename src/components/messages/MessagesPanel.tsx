@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Trash2, MessageSquare, Loader2, CornerUpLeft, Check, CheckCheck, X, Search } from "lucide-react";
+import { Send, Trash2, MessageSquare, Loader2, CornerUpLeft, Check, CheckCheck, X, Search, Image as ImageIcon, Paperclip } from "lucide-react";
 import { useMessages, useSendMessage, useMarkMessageRead, useDeleteMessage, type BuildingMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { format, parseISO, isToday, isYesterday } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import { cn } from "@/lib/utils";
@@ -53,6 +55,11 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
   const [replyTo, setReplyTo] = useState<BuildingMessage | null>(null);
   const [search, setSearch] = useState("");
   const [showSubject, setShowSubject] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Sort ascending (oldest top, newest bottom) — chat style
@@ -94,8 +101,53 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
   // Find parent message helper for reply preview inside a bubble
   const findParent = (id: string | null) => (id ? messages.find((m) => m.id === id) : null);
 
-  const handleSend = () => {
-    if (!content.trim() || !user) return;
+  const handlePickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      toast.error("فقط فایل تصویری مجاز است");
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      toast.error("حجم تصویر باید کمتر از ۵ مگابایت باشد");
+      return;
+    }
+    setImageFile(f);
+    setImagePreview(URL.createObjectURL(f));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user) return null;
+    const ext = imageFile.name.split(".").pop() || "jpg";
+    const path = `${user.id}/${buildingId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("message-images").upload(path, imageFile, {
+      contentType: imageFile.type,
+      upsert: false,
+    });
+    if (error) {
+      toast.error("آپلود تصویر ناموفق بود: " + error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("message-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleSend = async () => {
+    if ((!content.trim() && !imageFile) || !user) return;
+    let image_url: string | null = null;
+    if (imageFile) {
+      setUploading(true);
+      image_url = await uploadImage();
+      setUploading(false);
+      if (!image_url) return;
+    }
     sendMessage.mutate(
       {
         building_id: buildingId,
@@ -105,8 +157,9 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
         recipient_user_id: replyTo ? replyTo.sender_user_id : null,
         unit_id: unitId || null,
         subject: replyTo ? null : (subject.trim() || null),
-        content: content.trim(),
+        content: content.trim() || (image_url ? "📷 تصویر" : ""),
         parent_id: replyTo?.id || null,
+        image_url,
       },
       {
         onSuccess: () => {
@@ -114,6 +167,7 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
           setSubject("");
           setShowSubject(false);
           setReplyTo(null);
+          clearImage();
         },
       }
     );
@@ -240,9 +294,26 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
                         <div className="text-[12px] font-bold mb-0.5">{m.subject}</div>
                       )}
 
-                      <div className="whitespace-pre-wrap break-words leading-relaxed pr-1">
-                        {m.content}
-                      </div>
+                      {m.image_url && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setLightbox(m.image_url!); }}
+                          className="block mb-1 -mx-1 rounded-md overflow-hidden bg-muted/30 hover:opacity-90 transition-opacity"
+                        >
+                          <img
+                            src={m.image_url}
+                            alt="پیوست تصویر"
+                            className="max-h-64 max-w-full object-contain"
+                            loading="lazy"
+                          />
+                        </button>
+                      )}
+
+                      {m.content && m.content !== "📷 تصویر" && (
+                        <div className="whitespace-pre-wrap break-words leading-relaxed pr-1">
+                          {m.content}
+                        </div>
+                      )}
 
                       {/* Footer: time + status + actions */}
                       <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
@@ -330,8 +401,45 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
         </div>
       )}
 
+      {/* Image preview before sending */}
+      {imagePreview && (
+        <div className="bg-card border-t px-3 py-2 flex items-center gap-3">
+          <div className="relative">
+            <img src={imagePreview} alt="پیش‌نمایش" className="h-16 w-16 object-cover rounded-md border" />
+            <button
+              onClick={clearImage}
+              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center shadow"
+              type="button"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex-1 text-xs text-muted-foreground">
+            <div className="font-semibold text-foreground">{imageFile?.name}</div>
+            <div>{((imageFile?.size || 0) / 1024).toFixed(0)} KB</div>
+          </div>
+        </div>
+      )}
+
       {/* Composer */}
       <div className="bg-card border-t p-2 flex items-end gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePickImage}
+        />
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-9 w-9 rounded-full shrink-0"
+          onClick={() => fileInputRef.current?.click()}
+          title="ارسال تصویر"
+          disabled={uploading || sendMessage.isPending}
+        >
+          <ImageIcon className="w-4 h-4" />
+        </Button>
         {!residentMode && !replyTo && (
           <Button
             size="icon"
@@ -353,13 +461,29 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
         />
         <Button
           onClick={handleSend}
-          disabled={!content.trim() || sendMessage.isPending}
+          disabled={(!content.trim() && !imageFile) || sendMessage.isPending || uploading}
           size="icon"
           className="h-10 w-10 rounded-full shrink-0"
         >
-          {sendMessage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {(sendMessage.isPending || uploading) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
       </div>
+
+      {/* Lightbox for viewing images full-size */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setLightbox(null)}
+        >
+          <img src={lightbox} alt="نمایش کامل" className="max-h-full max-w-full object-contain rounded-lg shadow-2xl" />
+          <button
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2"
+            onClick={(e) => { e.stopPropagation(); setLightbox(null); }}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
