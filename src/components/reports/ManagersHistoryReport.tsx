@@ -1,9 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, UserCog, Phone, Mail, Calendar, History } from "lucide-react";
+import { Loader2, UserCog, Phone, Mail, Calendar, History, Clock } from "lucide-react";
 import { useManagers, Manager } from "@/hooks/useManagers";
 import { useManagerRoles } from "@/hooks/useManagerRoles";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+
+const tenureDays = (m: Manager) => {
+  const start = new Date(m.start_date);
+  const endStr = m.end_date && m.end_date <= new Date().toISOString().split("T")[0]
+    ? m.end_date
+    : new Date().toISOString().split("T")[0];
+  const end = new Date(endStr);
+  const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, diff) + 1;
+};
 
 const isActiveManager = (manager: Manager) => {
   if (!manager.is_active) return false;
@@ -91,6 +101,13 @@ function ManagerRow({ manager, isPast }: { manager: Manager; isPast: boolean }) 
                 : !isPast
                 ? " تا کنون"
                 : ""}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground md:col-span-3">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>
+              مدت تصدی: {tenureDays(manager).toLocaleString("fa-IR")} روز
+              {!isPast && !manager.end_date ? " (در حال ادامه)" : ""}
             </span>
           </div>
         </div>
