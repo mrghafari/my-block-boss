@@ -325,6 +325,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-bold">{venueMap[r.venue_id]?.name || "—"}</span>
                         {statusBadge(r.status)}
+                        {r.is_exclusive && <Badge variant="outline" className="gap-1 text-[10px] border-warning text-warning"><Lock className="w-3 h-3" /> قرق کامل</Badge>}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {format(parseISO(r.reservation_date), "d MMMM yyyy", { locale: faIR })} • {r.start_time.slice(0,5)} تا {r.end_time.slice(0,5)} • {r.requester_name}
