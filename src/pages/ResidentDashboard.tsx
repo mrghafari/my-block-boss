@@ -11,6 +11,7 @@ import { ResidentPolls } from "@/components/resident/ResidentPolls";
 import { ResidentDocuments } from "@/components/resident/ResidentDocuments";
 import { ResidentContacts } from "@/components/resident/ResidentContacts";
 import { ManagersHistoryReport } from "@/components/reports/ManagersHistoryReport";
+import { ReservationsList } from "@/components/announcements/ReservationsList";
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("finance");
@@ -76,6 +77,15 @@ const ResidentDashboard = () => {
         return <ResidentDocuments buildingId={currentBuildingId} />;
       case "contacts":
         return <ResidentContacts buildingId={currentBuildingId} />;
+      case "reservations":
+        return (
+          <ReservationsList
+            residentMode
+            buildingId={currentBuildingId}
+            unitId={currentUnitId}
+            requesterName={personName}
+          />
+        );
       case "managers":
         return <ManagersHistoryReport buildingId={currentBuildingId} />;
       default:
