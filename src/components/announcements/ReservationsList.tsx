@@ -421,10 +421,32 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <label className="text-sm font-medium mb-1 block">توضیحات</label>
               <Textarea value={reqDesc} onChange={e => setReqDesc(e.target.value)} placeholder="مناسبت، تعداد مهمان و..." />
             </div>
+            <label className="flex items-start gap-2 p-3 rounded-lg border border-warning/40 bg-warning/5 cursor-pointer">
+              <Checkbox checked={reqExclusive} onCheckedChange={(c) => setReqExclusive(!!c)} className="mt-0.5" />
+              <div>
+                <div className="text-sm font-medium flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> قرق کامل مکان (نیاز به تایید مدیر)</div>
+                <div className="text-xs text-muted-foreground mt-0.5">کل روز مکان به نام شما رزرو می‌شود و دیگران نمی‌توانند رزرو کنند. مثلاً قرق استخر برای خانواده.</div>
+              </div>
+            </label>
+            {overlapInfo && (
+              <div className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm">
+                <div className="flex items-center gap-1.5 font-medium text-destructive mb-1">
+                  <AlertTriangle className="w-4 h-4" /> تداخل زمانی با {overlapInfo.length} رزرو موجود
+                </div>
+                <ul className="text-xs text-muted-foreground space-y-0.5 mr-5 list-disc">
+                  {overlapInfo.slice(0, 3).map(c => (
+                    <li key={c.id}>
+                      {c.requester_name} • {c.start_time.slice(0,5)}-{c.end_time.slice(0,5)}
+                      {c.is_exclusive && " (قرق کامل)"} • {c.status === "approved" ? "تایید شده" : "در انتظار"}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRequestDialog(false)}>انصراف</Button>
-            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate}>
+            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo}>
               {createReservation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               ثبت درخواست
             </Button>
