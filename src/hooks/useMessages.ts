@@ -16,6 +16,7 @@ export interface BuildingMessage {
   parent_id: string | null;
   is_read: boolean;
   created_at: string;
+  image_url?: string | null;
 }
 
 export function useMessages(buildingId?: string) {
