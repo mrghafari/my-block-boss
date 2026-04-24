@@ -55,6 +55,11 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
   const [replyTo, setReplyTo] = useState<BuildingMessage | null>(null);
   const [search, setSearch] = useState("");
   const [showSubject, setShowSubject] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Sort ascending (oldest top, newest bottom) — chat style
