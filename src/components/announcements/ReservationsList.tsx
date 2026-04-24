@@ -9,15 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, MapPin, Check, X, Clock, Calendar as CalIcon, ChevronLeft, ChevronRight, Loader2, Lock, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, MapPin, Check, X, Clock, Calendar as CalIcon, ChevronLeft, ChevronRight, Loader2, Lock, AlertTriangle, UserCog } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useReservationVenues, useCreateReservationVenue, useUpdateReservationVenue, useDeleteReservationVenue, useReservations, useCreateReservation, useUpdateReservationStatus, useDeleteReservation, type Reservation } from "@/hooks/useReservations";
+import { useUnits } from "@/hooks/useUnits";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { useResidentUnit } from "@/hooks/useResidentUnit";
 import { useAuth } from "@/hooks/useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addMonths, subMonths, isSameDay, isToday, parseISO } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReservationsListProps {
   /** when true, render in resident mode (request only, no venue management) */
@@ -51,6 +53,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
 
   const { data: venues = [] } = useReservationVenues(bId || undefined);
   const { data: reservations = [], isLoading } = useReservations(bId || undefined);
+  const { data: units = [] } = useUnits();
   const createVenue = useCreateReservationVenue();
   const updateVenue = useUpdateReservationVenue();
   const deleteVenue = useDeleteReservationVenue();
@@ -74,6 +77,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const [reqEnd, setReqEnd] = useState("22:00");
   const [reqDesc, setReqDesc] = useState("");
   const [reqExclusive, setReqExclusive] = useState(false);
+  const [reqOnBehalfUnitId, setReqOnBehalfUnitId] = useState<string>("");
 
   // Approval
   const [reviewTarget, setReviewTarget] = useState<Reservation | null>(null);
@@ -137,16 +141,17 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     return conflicts.length > 0 ? conflicts : null;
   }, [reqVenue, reqDate, reqStart, reqEnd, reqExclusive, reservations, venueMap]);
 
-  const handleCreateRequest = () => {
+  const handleCreateRequest = async () => {
     if (!bId || !reqVenue || !reqDate || !reqName.trim() || !reqStart || !reqEnd) return;
     if (reqStart >= reqEnd) return;
     if (overlapInfo) return;
     const gregDate = reqDate.toISOString().split("T")[0];
+    const targetUnitId = !residentMode && reqOnBehalfUnitId ? reqOnBehalfUnitId : (unitId || null);
     createReservation.mutate(
       {
         building_id: bId,
         venue_id: reqVenue,
-        unit_id: unitId || null,
+        unit_id: targetUnitId,
         requester_user_id: user?.id || null,
         requester_name: reqName.trim(),
         reservation_date: gregDate,
@@ -155,7 +160,33 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
         description: reqDesc.trim() || null,
         is_exclusive: reqExclusive,
       },
-      { onSuccess: () => { setRequestDialog(false); setReqDesc(""); setReqExclusive(false); } }
+      {
+        onSuccess: async (_data: any, _vars, _ctx) => {
+          // Auto-approve when manager creates on behalf
+          if (!residentMode) {
+            // best-effort: fetch latest reservation by these fields and approve
+            const { data: latest } = await supabase
+              .from("reservations" as any)
+              .select("id")
+              .eq("building_id", bId)
+              .eq("venue_id", reqVenue)
+              .eq("reservation_date", gregDate)
+              .eq("start_time", reqStart)
+              .eq("end_time", reqEnd)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            const latestId = (latest as any)?.id as string | undefined;
+            if (latestId) {
+              updateStatus.mutate({ id: latestId, status: "approved", manager_note: "ثبت توسط مدیر" });
+            }
+          }
+          setRequestDialog(false);
+          setReqDesc("");
+          setReqExclusive(false);
+          setReqOnBehalfUnitId("");
+        },
+      }
     );
   };
 
@@ -194,9 +225,15 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
-            <Plus className="w-4 h-4" /> درخواست رزرو
-          </Button>
+          {residentMode ? (
+            <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
+              <Plus className="w-4 h-4" /> درخواست رزرو
+            </Button>
+          ) : (
+            <Button onClick={() => setRequestDialog(true)} className="gap-2 bg-primary" disabled={venues.length === 0}>
+              <UserCog className="w-4 h-4" /> رزرو به نیابت از واحد
+            </Button>
+          )}
           {!residentMode && (
             <Button variant="outline" onClick={() => setVenueDialog(true)} className="gap-2">
               <MapPin className="w-4 h-4" /> افزودن مکان
@@ -329,6 +366,9 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {format(parseISO(r.reservation_date), "d MMMM yyyy", { locale: faIR })} • {r.start_time.slice(0,5)} تا {r.end_time.slice(0,5)} • {r.requester_name}
+                        {r.unit_id && units.find(u => u.id === r.unit_id) && (
+                          <span className="text-primary"> • واحد {units.find(u => u.id === r.unit_id)?.unit_number}</span>
+                        )}
                       </div>
                       {r.description && <div className="text-xs text-muted-foreground mt-1">{r.description}</div>}
                       {r.manager_note && <div className="text-xs mt-1 p-2 rounded bg-muted">یادداشت مدیر: {r.manager_note}</div>}
@@ -389,17 +429,49 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
       {/* Request Dialog */}
       <Dialog open={requestDialog} onOpenChange={setRequestDialog}>
         <DialogContent>
-          <DialogHeader><DialogTitle>درخواست رزرو جدید</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {!residentMode && <UserCog className="w-5 h-5 text-primary" />}
+              {residentMode ? "درخواست رزرو جدید" : "ثبت رزرو به نیابت از واحد"}
+            </DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
+            {!residentMode && (
+              <div className="p-2 rounded bg-primary/5 border border-primary/20 text-xs text-muted-foreground">
+                این رزرو با عنوان مدیر ثبت و به‌صورت خودکار تایید می‌شود.
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">مکان</label>
               <Select value={reqVenue} onValueChange={setReqVenue}>
                 <SelectTrigger><SelectValue placeholder="انتخاب مکان" /></SelectTrigger>
                 <SelectContent>
-                  {venues.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                  {venues.map(v => <SelectItem key={v.id} value={v.id}>{v.name}{v.exclusive ? " (انحصاری)" : ""}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+            {!residentMode && (
+              <div>
+                <label className="text-sm font-medium mb-1 block">واحد متقاضی (به نیابت از)</label>
+                <Select
+                  value={reqOnBehalfUnitId}
+                  onValueChange={(v) => {
+                    setReqOnBehalfUnitId(v);
+                    const u = units.find(x => x.id === v);
+                    if (u) setReqName(u.resident_name || u.owner_name || `واحد ${u.unit_number}`);
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="انتخاب واحد (اختیاری)" /></SelectTrigger>
+                  <SelectContent>
+                    {units.map(u => (
+                      <SelectItem key={u.id} value={u.id}>
+                        واحد {u.unit_number} — {u.resident_name || u.owner_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">نام درخواست‌کننده</label>
               <Input value={reqName} onChange={e => setReqName(e.target.value)} placeholder="نام شما" />
@@ -449,7 +521,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             <Button variant="outline" onClick={() => setRequestDialog(false)}>انصراف</Button>
             <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo}>
               {createReservation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-              ثبت درخواست
+              {residentMode ? "ثبت درخواست" : "ثبت و تایید رزرو"}
             </Button>
           </DialogFooter>
         </DialogContent>
