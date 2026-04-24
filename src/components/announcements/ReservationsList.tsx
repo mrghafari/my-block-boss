@@ -118,6 +118,21 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     );
   };
 
+  // Detect any approved/pending قرق (full-day exclusive) for the selected venue+date
+  const exclusiveLockOnDate = useMemo(() => {
+    if (!reqVenue || !reqDate) return null;
+    const dateStr = reqDate.toISOString().split("T")[0];
+    return (
+      reservations.find(
+        (r) =>
+          r.venue_id === reqVenue &&
+          r.reservation_date === dateStr &&
+          r.status !== "rejected" &&
+          r.is_exclusive
+      ) || null
+    );
+  }, [reqVenue, reqDate, reservations]);
+
   // Detect overlap with existing approved/pending reservations
   const overlapInfo = useMemo(() => {
     if (!reqVenue || !reqDate || !reqStart || !reqEnd) return null;
@@ -130,7 +145,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
       r.status !== "rejected"
     );
     const conflicts = sameDay.filter(r => {
-      // Existing exclusive booking blocks everything that day
+      // Existing exclusive booking blocks everything that day (any venue, any time)
       if (r.is_exclusive) return true;
       // New request is exclusive — blocks any other booking
       if (reqExclusive) return true;
