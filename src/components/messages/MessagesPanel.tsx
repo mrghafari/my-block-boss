@@ -101,8 +101,53 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
   // Find parent message helper for reply preview inside a bubble
   const findParent = (id: string | null) => (id ? messages.find((m) => m.id === id) : null);
 
-  const handleSend = () => {
-    if (!content.trim() || !user) return;
+  const handlePickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      toast.error("فقط فایل تصویری مجاز است");
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      toast.error("حجم تصویر باید کمتر از ۵ مگابایت باشد");
+      return;
+    }
+    setImageFile(f);
+    setImagePreview(URL.createObjectURL(f));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile || !user) return null;
+    const ext = imageFile.name.split(".").pop() || "jpg";
+    const path = `${user.id}/${buildingId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("message-images").upload(path, imageFile, {
+      contentType: imageFile.type,
+      upsert: false,
+    });
+    if (error) {
+      toast.error("آپلود تصویر ناموفق بود: " + error.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("message-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleSend = async () => {
+    if ((!content.trim() && !imageFile) || !user) return;
+    let image_url: string | null = null;
+    if (imageFile) {
+      setUploading(true);
+      image_url = await uploadImage();
+      setUploading(false);
+      if (!image_url) return;
+    }
     sendMessage.mutate(
       {
         building_id: buildingId,
@@ -112,8 +157,9 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
         recipient_user_id: replyTo ? replyTo.sender_user_id : null,
         unit_id: unitId || null,
         subject: replyTo ? null : (subject.trim() || null),
-        content: content.trim(),
+        content: content.trim() || (image_url ? "📷 تصویر" : ""),
         parent_id: replyTo?.id || null,
+        image_url,
       },
       {
         onSuccess: () => {
@@ -121,6 +167,7 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
           setSubject("");
           setShowSubject(false);
           setReplyTo(null);
+          clearImage();
         },
       }
     );
