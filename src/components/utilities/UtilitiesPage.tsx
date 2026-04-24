@@ -424,6 +424,68 @@ export function UtilitiesPage() {
         </CardContent>
       </Card>
 
+      {/* Fullscreen Chart Dialog */}
+      <Dialog open={!!zoomedType} onOpenChange={(o) => !o && setZoomedType(null)}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[92vh] flex flex-col p-0 gap-0">
+          {(() => {
+            const ut = utilityTypes.find(u => u.id === zoomedType);
+            if (!ut) return null;
+            const series = fullSeriesByType[ut.id] || [];
+            const Icon = ut.lucideIcon;
+            const totalQty = series.reduce((s, r) => s + r.quantity, 0);
+            const totalAmt = series.reduce((s, r) => s + r.amount, 0);
+            return (
+              <>
+                <DialogHeader className="px-6 py-4 border-b">
+                  <DialogTitle className="flex items-center gap-2 text-lg">
+                    <Icon className="w-6 h-6" style={{ color: ut.color }} />
+                    تاریخچه کامل مصرف {ut.label} ({series.length.toLocaleString("fa-IR")} رکورد)
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-auto p-6 space-y-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <Card className="p-3"><div className="text-xs text-muted-foreground">کل مصرف</div><div className="text-lg font-bold">{formatAmount(totalQty)} {ut.unit}</div></Card>
+                    <Card className="p-3"><div className="text-xs text-muted-foreground">کل مبلغ</div><div className="text-lg font-bold">{formatAmount(totalAmt)} تومان</div></Card>
+                    <Card className="p-3"><div className="text-xs text-muted-foreground">میانگین قیمت واحد</div><div className="text-lg font-bold">{formatAmount(totalQty > 0 ? totalAmt / totalQty : 0)} تومان</div></Card>
+                  </div>
+                  {series.length === 0 ? (
+                    <div className="h-96 flex items-center justify-center text-muted-foreground">داده‌ای برای نمایش وجود ندارد</div>
+                  ) : (
+                    <div className="h-[60vh]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={series}>
+                          <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={70} interval="preserveStartEnd" />
+                          <YAxis
+                            tick={{ fontSize: 11 }}
+                            label={{
+                              value: ut.unit,
+                              angle: -90,
+                              position: "insideLeft",
+                              style: { textAnchor: "middle", fontSize: 11, fill: "hsl(var(--muted-foreground))" },
+                            }}
+                          />
+                          <Tooltip
+                            contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                            labelFormatter={(label) => `تاریخ: ${label}`}
+                            formatter={(value: number, name: string) => {
+                              if (name === "quantity") return [formatAmount(value) + ` ${ut.unit}`, "مصرف"];
+                              if (name === "amount") return [formatAmount(value) + " تومان", "مبلغ"];
+                              return [formatAmount(value), name];
+                            }}
+                          />
+                          <Line type="monotone" dataKey="quantity" stroke={ut.color} strokeWidth={2} dot={{ r: 2 }} name="quantity" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Dialog */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
         <DialogContent>
