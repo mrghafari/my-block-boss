@@ -6,11 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useUtilityReadings, useCreateUtilityReading, useDeleteUtilityReading } from "@/hooks/useUtilityReadings";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useUtilityReadings, useCreateUtilityReading, useDeleteUtilityReading, useUpdateUtilityReading, type UtilityReading } from "@/hooks/useUtilityReadings";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { formatJalaliDate } from "@/lib/jalaliDate";
-import { Plus, Trash2, Droplets, Zap, Flame, TrendingUp, Loader2, Gauge } from "lucide-react";
+import { Plus, Trash2, Pencil, Droplets, Zap, Flame, TrendingUp, Loader2, Gauge } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const utilityTypes = [
@@ -27,11 +28,38 @@ export function UtilitiesPage() {
   const { data: readings = [], isLoading } = useUtilityReadings();
   const { data: expenses = [] } = useExpenses();
   const createReading = useCreateUtilityReading();
+  const updateReading = useUpdateUtilityReading();
   const deleteReading = useDeleteUtilityReading();
 
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<UtilityReading | null>(null);
+  const [editQty, setEditQty] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+
+  const openEdit = (r: UtilityReading) => {
+    setEditTarget(r);
+    setEditQty(String(r.quantity));
+    setEditAmount(String(r.amount));
+    setEditDate(r.reading_date);
+    setEditDesc(r.description || "");
+  };
+
+  const handleEditSave = () => {
+    if (!editTarget) return;
+    updateReading.mutate({
+      id: editTarget.id,
+      updates: {
+        quantity: Number(editQty || "0"),
+        amount: Number(editAmount || "0"),
+        reading_date: editDate,
+        description: editDesc || null,
+      },
+    }, { onSuccess: () => setEditTarget(null) });
+  };
 
   // Form state
   const [formType, setFormType] = useState("water");
@@ -349,9 +377,14 @@ export function UtilitiesPage() {
                       <TableCell className="text-xs">{unitPrice > 0 ? `${formatAmount(unitPrice)} ت` : "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{r.description || "-"}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(r)}>
+                            <Pencil className="w-4 h-4 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -361,6 +394,42 @@ export function UtilitiesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ویرایش قرائت {utilityTypes.find(u => u.id === editTarget?.utility_type)?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium mb-1 block">تاریخ قرائت</label>
+              <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                مصرف ({utilityTypes.find(u => u.id === editTarget?.utility_type)?.unit})
+              </label>
+              <NumericInput value={editQty} onChange={setEditQty} placeholder="مقدار مصرف" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">مبلغ قبض (تومان)</label>
+              <NumericInput value={editAmount} onChange={setEditAmount} placeholder="مبلغ" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium mb-1 block">توضیحات</label>
+              <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="توضیحات" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>انصراف</Button>
+            <Button onClick={handleEditSave} disabled={updateReading.isPending}>
+              {updateReading.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+              ذخیره
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
