@@ -377,9 +377,14 @@ export function UtilitiesPage() {
                       <TableCell className="text-xs">{unitPrice > 0 ? `${formatAmount(unitPrice)} ت` : "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{r.description || "-"}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(r)}>
+                            <Pencil className="w-4 h-4 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
