@@ -87,6 +87,10 @@ export default function Admin() {
             <AdminStatsCards stats={stats} isLoading={statsLoading} />
           </TabsContent>
 
+          <TabsContent value="tickets">
+            <TicketsPage superAdminMode />
+          </TabsContent>
+
           <TabsContent value="settings">
             <AdminPlatformSettings />
           </TabsContent>
