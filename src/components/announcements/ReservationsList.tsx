@@ -31,6 +31,12 @@ interface ReservationsListProps {
 
 const weekDays = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 
+const normalizeTime = (v: string) => {
+  return v
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+};
+
 const statusBadge = (s: string) => {
   if (s === "approved") return <Badge className="bg-success text-success-foreground">تایید شده</Badge>;
   if (s === "rejected") return <Badge variant="destructive">رد شده</Badge>;
