@@ -219,9 +219,19 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {venues.map(v => (
                 <div key={v.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <div className="font-medium">{v.name}</div>
-                    {v.description && <div className="text-xs text-muted-foreground mt-0.5">{v.description}</div>}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{v.name}</span>
+                      {v.exclusive && <Badge variant="secondary" className="gap-1 text-[10px]"><Lock className="w-3 h-3" /> انحصاری</Badge>}
+                    </div>
+                    {v.description && <div className="text-xs text-muted-foreground mt-0.5 truncate">{v.description}</div>}
+                    <label className="flex items-center gap-2 mt-2 text-xs cursor-pointer">
+                      <Checkbox
+                        checked={v.exclusive}
+                        onCheckedChange={(c) => updateVenue.mutate({ id: v.id, exclusive: !!c })}
+                      />
+                      <span className="text-muted-foreground">عدم اجازه تداخل زمانی (مثل لابی)</span>
+                    </label>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setDeleteVenueId(v.id)}>
                     <Trash2 className="w-4 h-4 text-destructive" />
