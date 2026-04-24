@@ -126,7 +126,7 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
               const unread = isUnread(m);
               const mine = m.sender_user_id === user?.id;
               return (
-                <div key={m.id} className={cn("flex w-full", mine ? "justify-start" : "justify-end")}>
+                <div key={m.id} className={cn("flex w-full", mine ? "justify-end" : "justify-start")}>
                   <Card
                     className={cn(
                       "transition-all hover:shadow-md cursor-pointer max-w-[80%]",
