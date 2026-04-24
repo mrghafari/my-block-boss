@@ -83,6 +83,9 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const [reviewTarget, setReviewTarget] = useState<Reservation | null>(null);
   const [reviewNote, setReviewNote] = useState("");
 
+  // Day timeline detail
+  const [dayDetail, setDayDetail] = useState<Date | null>(null);
+
   // Visual calendar
   const [selectedVenueFilter, setSelectedVenueFilter] = useState<string>("all");
   const [viewDate, setViewDate] = useState(new Date());
