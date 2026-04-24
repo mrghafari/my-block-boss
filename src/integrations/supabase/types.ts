@@ -995,6 +995,101 @@ export type Database = {
           },
         ]
       }
+      reservation_venues: {
+        Row: {
+          building_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          building_id: string
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          manager_note: string | null
+          requester_name: string
+          requester_user_id: string | null
+          reservation_date: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          unit_id: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          manager_note?: string | null
+          requester_name: string
+          requester_user_id?: string | null
+          reservation_date: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          manager_note?: string | null
+          requester_name?: string
+          requester_user_id?: string | null
+          reservation_date?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "reservation_venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_charges: {
         Row: {
           amount: number
@@ -1274,6 +1369,7 @@ export type Database = {
         | "security"
         | "other"
       fund_type: "charge" | "extra_charge"
+      reservation_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1422,6 +1518,7 @@ export const Constants = {
         "other",
       ],
       fund_type: ["charge", "extra_charge"],
+      reservation_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
