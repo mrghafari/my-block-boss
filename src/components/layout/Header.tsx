@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Bell, Search, User, LogOut } from "lucide-react";
+import { Search, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuildingSelector } from "./BuildingSelector";
 import { SearchCommand } from "./SearchCommand";
+import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
+import { useBuilding } from "@/contexts/BuildingContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,

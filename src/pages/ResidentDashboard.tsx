@@ -120,6 +120,9 @@ const ResidentDashboard = () => {
         onSignOut={handleSignOut}
       />
       <main className="mr-64 transition-all duration-300">
+        <div className="flex items-center justify-end p-4 border-b">
+          <NotificationBell buildingId={currentBuildingId} isManager={false} onNavigate={setActiveTab} />
+        </div>
         <div className="p-6">
           {renderContent()}
         </div>
