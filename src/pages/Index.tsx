@@ -192,6 +192,8 @@ const Index = () => {
         return <UtilitiesPage />;
       case "phonebook":
         return <PhoneBookPage />;
+      case "tickets":
+        return <TicketsPage />;
       default:
         return <Dashboard onTabChange={setActiveTab} />;
     }
