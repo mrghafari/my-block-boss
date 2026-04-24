@@ -395,6 +395,42 @@ export function UtilitiesPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ویرایش قرائت {utilityTypes.find(u => u.id === editTarget?.utility_type)?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="text-sm font-medium mb-1 block">تاریخ قرائت</label>
+              <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                مصرف ({utilityTypes.find(u => u.id === editTarget?.utility_type)?.unit})
+              </label>
+              <NumericInput value={editQty} onChange={setEditQty} placeholder="مقدار مصرف" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">مبلغ قبض (تومان)</label>
+              <NumericInput value={editAmount} onChange={setEditAmount} placeholder="مبلغ" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium mb-1 block">توضیحات</label>
+              <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="توضیحات" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>انصراف</Button>
+            <Button onClick={handleEditSave} disabled={updateReading.isPending}>
+              {updateReading.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+              ذخیره
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
