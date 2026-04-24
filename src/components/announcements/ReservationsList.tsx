@@ -225,9 +225,15 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
-            <Plus className="w-4 h-4" /> درخواست رزرو
-          </Button>
+          {residentMode ? (
+            <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
+              <Plus className="w-4 h-4" /> درخواست رزرو
+            </Button>
+          ) : (
+            <Button onClick={() => setRequestDialog(true)} className="gap-2 bg-primary" disabled={venues.length === 0}>
+              <UserCog className="w-4 h-4" /> رزرو به نیابت از واحد
+            </Button>
+          )}
           {!residentMode && (
             <Button variant="outline" onClick={() => setVenueDialog(true)} className="gap-2">
               <MapPin className="w-4 h-4" /> افزودن مکان
