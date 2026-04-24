@@ -153,20 +153,18 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
                         </div>
                       </div>
                       <div className="flex gap-1">
-                        {!mine && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setReplyTo(m);
-                            }}
-                            title="پاسخ"
-                          >
-                            <CornerUpLeft className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReplyTo(m);
+                          }}
+                          title="پاسخ"
+                        >
+                          <CornerUpLeft className="w-3.5 h-3.5" />
+                        </Button>
                         {(mine || !residentMode) && (
                           <Button
                             size="icon"
