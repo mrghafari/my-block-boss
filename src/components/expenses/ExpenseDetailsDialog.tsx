@@ -246,8 +246,6 @@ export function ExpenseDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
         <DialogHeader className="text-right sm:text-right flex flex-row items-center justify-between">
           <DialogTitle className="text-xl">جزئیات تخصیص هزینه</DialogTitle>
