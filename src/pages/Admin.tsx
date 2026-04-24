@@ -1,18 +1,22 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin, useAdminStats } from "@/hooks/useAdmin";
+import { useUnreadTicketsCount } from "@/hooks/useSupportTickets";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark, LifeBuoy } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStats";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminPlatformSettings } from "@/components/admin/AdminPlatformSettings";
 import { AdminBankAccounts } from "@/components/admin/AdminBankAccounts";
+import { TicketsPage } from "@/components/tickets/TicketsPage";
 
 export default function Admin() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { data: isSuperAdmin, isPending: rolePending } = useIsSuperAdmin(user?.id);
   const { data: stats, isLoading: statsLoading } = useAdminStats();
+  const { data: ticketUnread = 0 } = useUnreadTicketsCount({ isSuperAdmin: true });
 
   if (authLoading || rolePending) {
     return (
@@ -56,6 +60,15 @@ export default function Admin() {
               <BarChart3 className="h-4 w-4" />
               آمار کلی
             </TabsTrigger>
+            <TabsTrigger value="tickets" className="gap-2 relative">
+              <LifeBuoy className="h-4 w-4" />
+              تیکت‌ها
+              {ticketUnread > 0 && (
+                <Badge className="h-4 min-w-[16px] px-1 text-[9px] bg-destructive text-destructive-foreground mr-1">
+                  {ticketUnread}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               تنظیمات
@@ -72,6 +85,10 @@ export default function Admin() {
 
           <TabsContent value="stats">
             <AdminStatsCards stats={stats} isLoading={statsLoading} />
+          </TabsContent>
+
+          <TabsContent value="tickets">
+            <TicketsPage superAdminMode />
           </TabsContent>
 
           <TabsContent value="settings">
