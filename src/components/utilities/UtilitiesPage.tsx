@@ -312,7 +312,15 @@ export function UtilitiesPage() {
                       <LineChart data={data}>
                         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                         <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} />
+                        <YAxis
+                          tick={{ fontSize: 11 }}
+                          label={{
+                            value: ut.unit,
+                            angle: -90,
+                            position: "insideLeft",
+                            style: { textAnchor: "middle", fontSize: 11, fill: "hsl(var(--muted-foreground))" },
+                          }}
+                        />
                         <Tooltip
                           contentStyle={{ borderRadius: 8, fontSize: 12 }}
                           formatter={(value: number, name: string) => {
