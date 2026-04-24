@@ -34,6 +34,32 @@ export function UtilitiesPage() {
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<UtilityReading | null>(null);
+  const [editQty, setEditQty] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+
+  const openEdit = (r: UtilityReading) => {
+    setEditTarget(r);
+    setEditQty(String(r.quantity));
+    setEditAmount(String(r.amount));
+    setEditDate(r.reading_date);
+    setEditDesc(r.description || "");
+  };
+
+  const handleEditSave = () => {
+    if (!editTarget) return;
+    updateReading.mutate({
+      id: editTarget.id,
+      updates: {
+        quantity: Number(editQty || "0"),
+        amount: Number(editAmount || "0"),
+        reading_date: editDate,
+        description: editDesc || null,
+      },
+    }, { onSuccess: () => setEditTarget(null) });
+  };
 
   // Form state
   const [formType, setFormType] = useState("water");
