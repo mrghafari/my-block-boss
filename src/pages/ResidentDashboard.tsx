@@ -77,6 +77,15 @@ const ResidentDashboard = () => {
         return <ResidentDocuments buildingId={currentBuildingId} />;
       case "contacts":
         return <ResidentContacts buildingId={currentBuildingId} />;
+      case "reservations":
+        return (
+          <ReservationsList
+            residentMode
+            buildingId={currentBuildingId}
+            unitId={currentUnitId}
+            requesterName={personName}
+          />
+        );
       case "managers":
         return <ManagersHistoryReport buildingId={currentBuildingId} />;
       default:
