@@ -144,7 +144,7 @@ export function UtilitiesPage() {
     });
   }, [readings, expenseByUtility]);
 
-  // Per-utility chart data (sorted by date asc, by month)
+  // Per-utility chart data: monthly aggregated for small charts (last 12 months)
   const chartDataByType = useMemo(() => {
     const result: Record<string, { month: string; quantity: number; amount: number }[]> = {};
     utilityTypes.forEach(ut => {
@@ -160,10 +160,31 @@ export function UtilitiesPage() {
         });
       result[ut.id] = Object.entries(monthMap)
         .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-12)
         .map(([month, v]) => ({ month, ...v }));
     });
     return result;
   }, [readings]);
+
+  // Full record series per utility (every reading, sorted by date asc) for fullscreen view
+  const fullSeriesByType = useMemo(() => {
+    const result: Record<string, { date: string; quantity: number; amount: number; description: string | null }[]> = {};
+    utilityTypes.forEach(ut => {
+      result[ut.id] = readings
+        .filter(r => r.utility_type === ut.id)
+        .slice()
+        .sort((a, b) => a.reading_date.localeCompare(b.reading_date))
+        .map(r => ({
+          date: formatJalaliDate(r.reading_date),
+          quantity: Number(r.quantity),
+          amount: Number(r.amount),
+          description: r.description,
+        }));
+    });
+    return result;
+  }, [readings]);
+
+  const [zoomedType, setZoomedType] = useState<string | null>(null);
 
   if (isLoading) {
     return (
