@@ -28,6 +28,7 @@ export function UtilitiesPage() {
   const { data: readings = [], isLoading } = useUtilityReadings();
   const { data: expenses = [] } = useExpenses();
   const createReading = useCreateUtilityReading();
+  const updateReading = useUpdateUtilityReading();
   const deleteReading = useDeleteUtilityReading();
 
   const [showForm, setShowForm] = useState(false);
