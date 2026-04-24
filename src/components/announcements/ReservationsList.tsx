@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, addMonths, subMonths, isSameDay, isToday, parseISO } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReservationsListProps {
   /** when true, render in resident mode (request only, no venue management) */
