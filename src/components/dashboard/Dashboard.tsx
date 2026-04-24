@@ -84,8 +84,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Units Table - Takes 2 columns */}
         <div className="lg:col-span-2 space-y-6">
-          <UnitsTable />
-          <RecentPayments />
+          <UnitsTable onViewAll={() => onTabChange?.("units")} />
+          <RecentPayments onViewAll={() => onTabChange?.("payments")} />
         </div>
 
         {/* Right Side - Quick Actions + Fund Balance */}
