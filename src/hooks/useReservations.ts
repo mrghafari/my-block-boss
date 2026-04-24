@@ -9,6 +9,7 @@ export interface ReservationVenue {
   name: string;
   description: string | null;
   is_active: boolean;
+  exclusive: boolean;
   created_at: string;
 }
 
@@ -27,6 +28,7 @@ export interface Reservation {
   manager_note: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  is_exclusive: boolean;
   created_at: string;
 }
 
@@ -60,6 +62,22 @@ export function useCreateReservationVenue() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reservation_venues"] });
       toast({ title: "موفق", description: "مکان اضافه شد" });
+    },
+    onError: (e: any) => toast({ title: "خطا", description: e.message, variant: "destructive" }),
+  });
+}
+
+export function useUpdateReservationVenue() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ id, ...patch }: Partial<ReservationVenue> & { id: string }) => {
+      const { error } = await supabase.from("reservation_venues" as any).update(patch as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["reservation_venues"] });
+      toast({ title: "موفق", description: "تغییرات ذخیره شد" });
     },
     onError: (e: any) => toast({ title: "خطا", description: e.message, variant: "destructive" }),
   });

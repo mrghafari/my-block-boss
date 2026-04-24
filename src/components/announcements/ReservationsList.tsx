@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { JalaliDatePicker } from "@/components/ui/jalali-date-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, MapPin, Check, X, Clock, Calendar as CalIcon, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useReservationVenues, useCreateReservationVenue, useDeleteReservationVenue, useReservations, useCreateReservation, useUpdateReservationStatus, useDeleteReservation, type Reservation } from "@/hooks/useReservations";
+import { Plus, Trash2, MapPin, Check, X, Clock, Calendar as CalIcon, ChevronLeft, ChevronRight, Loader2, Lock, AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useReservationVenues, useCreateReservationVenue, useUpdateReservationVenue, useDeleteReservationVenue, useReservations, useCreateReservation, useUpdateReservationStatus, useDeleteReservation, type Reservation } from "@/hooks/useReservations";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { useResidentUnit } from "@/hooks/useResidentUnit";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const { data: venues = [] } = useReservationVenues(bId || undefined);
   const { data: reservations = [], isLoading } = useReservations(bId || undefined);
   const createVenue = useCreateReservationVenue();
+  const updateVenue = useUpdateReservationVenue();
   const deleteVenue = useDeleteReservationVenue();
   const createReservation = useCreateReservation();
   const updateStatus = useUpdateReservationStatus();
@@ -60,6 +62,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const [venueDialog, setVenueDialog] = useState(false);
   const [venueName, setVenueName] = useState("");
   const [venueDesc, setVenueDesc] = useState("");
+  const [venueExclusive, setVenueExclusive] = useState(false);
   const [deleteVenueId, setDeleteVenueId] = useState<string | null>(null);
 
   // Request form
@@ -70,6 +73,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const [reqStart, setReqStart] = useState("18:00");
   const [reqEnd, setReqEnd] = useState("22:00");
   const [reqDesc, setReqDesc] = useState("");
+  const [reqExclusive, setReqExclusive] = useState(false);
 
   // Approval
   const [reviewTarget, setReviewTarget] = useState<Reservation | null>(null);
@@ -105,16 +109,38 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   const handleCreateVenue = () => {
     if (!venueName.trim() || !bId) return;
     createVenue.mutate(
-      { building_id: bId, name: venueName.trim(), description: venueDesc.trim() || null, is_active: true },
-      { onSuccess: () => { setVenueDialog(false); setVenueName(""); setVenueDesc(""); } }
+      { building_id: bId, name: venueName.trim(), description: venueDesc.trim() || null, is_active: true, exclusive: venueExclusive },
+      { onSuccess: () => { setVenueDialog(false); setVenueName(""); setVenueDesc(""); setVenueExclusive(false); } }
     );
   };
+
+  // Detect overlap with existing approved/pending reservations
+  const overlapInfo = useMemo(() => {
+    if (!reqVenue || !reqDate || !reqStart || !reqEnd) return null;
+    const venue = venueMap[reqVenue];
+    if (!venue) return null;
+    const dateStr = reqDate.toISOString().split("T")[0];
+    const sameDay = reservations.filter(r =>
+      r.venue_id === reqVenue &&
+      r.reservation_date === dateStr &&
+      r.status !== "rejected"
+    );
+    const conflicts = sameDay.filter(r => {
+      // Existing exclusive booking blocks everything that day
+      if (r.is_exclusive) return true;
+      // New request is exclusive — blocks any other booking
+      if (reqExclusive) return true;
+      // Time-overlap check (only for exclusive venues)
+      if (!venue.exclusive) return false;
+      return reqStart < r.end_time.slice(0, 5) && reqEnd > r.start_time.slice(0, 5);
+    });
+    return conflicts.length > 0 ? conflicts : null;
+  }, [reqVenue, reqDate, reqStart, reqEnd, reqExclusive, reservations, venueMap]);
 
   const handleCreateRequest = () => {
     if (!bId || !reqVenue || !reqDate || !reqName.trim() || !reqStart || !reqEnd) return;
     if (reqStart >= reqEnd) return;
-    const dateStr = format(reqDate, "yyyy-MM-dd");
-    // Use Gregorian date for storage
+    if (overlapInfo) return;
     const gregDate = reqDate.toISOString().split("T")[0];
     createReservation.mutate(
       {
@@ -127,8 +153,9 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
         start_time: reqStart,
         end_time: reqEnd,
         description: reqDesc.trim() || null,
+        is_exclusive: reqExclusive,
       },
-      { onSuccess: () => { setRequestDialog(false); setReqDesc(""); } }
+      { onSuccess: () => { setRequestDialog(false); setReqDesc(""); setReqExclusive(false); } }
     );
   };
 
@@ -192,9 +219,19 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {venues.map(v => (
                 <div key={v.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <div className="font-medium">{v.name}</div>
-                    {v.description && <div className="text-xs text-muted-foreground mt-0.5">{v.description}</div>}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{v.name}</span>
+                      {v.exclusive && <Badge variant="secondary" className="gap-1 text-[10px]"><Lock className="w-3 h-3" /> انحصاری</Badge>}
+                    </div>
+                    {v.description && <div className="text-xs text-muted-foreground mt-0.5 truncate">{v.description}</div>}
+                    <label className="flex items-center gap-2 mt-2 text-xs cursor-pointer">
+                      <Checkbox
+                        checked={v.exclusive}
+                        onCheckedChange={(c) => updateVenue.mutate({ id: v.id, exclusive: !!c })}
+                      />
+                      <span className="text-muted-foreground">عدم اجازه تداخل زمانی (مثل لابی)</span>
+                    </label>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setDeleteVenueId(v.id)}>
                     <Trash2 className="w-4 h-4 text-destructive" />
@@ -288,6 +325,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-bold">{venueMap[r.venue_id]?.name || "—"}</span>
                         {statusBadge(r.status)}
+                        {r.is_exclusive && <Badge variant="outline" className="gap-1 text-[10px] border-warning text-warning"><Lock className="w-3 h-3" /> قرق کامل</Badge>}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {format(parseISO(r.reservation_date), "d MMMM yyyy", { locale: faIR })} • {r.start_time.slice(0,5)} تا {r.end_time.slice(0,5)} • {r.requester_name}
@@ -330,6 +368,13 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <label className="text-sm font-medium mb-1 block">توضیحات (اختیاری)</label>
               <Textarea value={venueDesc} onChange={e => setVenueDesc(e.target.value)} placeholder="ظرفیت، شرایط استفاده و..." />
             </div>
+            <label className="flex items-start gap-2 p-3 rounded-lg border bg-muted/30 cursor-pointer">
+              <Checkbox checked={venueExclusive} onCheckedChange={(c) => setVenueExclusive(!!c)} className="mt-0.5" />
+              <div>
+                <div className="text-sm font-medium flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> مکان انحصاری (عدم تداخل زمانی)</div>
+                <div className="text-xs text-muted-foreground mt-0.5">برای مکان‌هایی مثل لابی که فقط یک نفر در یک بازه می‌تواند رزرو کند. برای استخر یا روف گاردن خاموش بگذارید.</div>
+              </div>
+            </label>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVenueDialog(false)}>انصراف</Button>
@@ -377,10 +422,32 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <label className="text-sm font-medium mb-1 block">توضیحات</label>
               <Textarea value={reqDesc} onChange={e => setReqDesc(e.target.value)} placeholder="مناسبت، تعداد مهمان و..." />
             </div>
+            <label className="flex items-start gap-2 p-3 rounded-lg border border-warning/40 bg-warning/5 cursor-pointer">
+              <Checkbox checked={reqExclusive} onCheckedChange={(c) => setReqExclusive(!!c)} className="mt-0.5" />
+              <div>
+                <div className="text-sm font-medium flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> قرق کامل مکان (نیاز به تایید مدیر)</div>
+                <div className="text-xs text-muted-foreground mt-0.5">کل روز مکان به نام شما رزرو می‌شود و دیگران نمی‌توانند رزرو کنند. مثلاً قرق استخر برای خانواده.</div>
+              </div>
+            </label>
+            {overlapInfo && (
+              <div className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm">
+                <div className="flex items-center gap-1.5 font-medium text-destructive mb-1">
+                  <AlertTriangle className="w-4 h-4" /> تداخل زمانی با {overlapInfo.length} رزرو موجود
+                </div>
+                <ul className="text-xs text-muted-foreground space-y-0.5 mr-5 list-disc">
+                  {overlapInfo.slice(0, 3).map(c => (
+                    <li key={c.id}>
+                      {c.requester_name} • {c.start_time.slice(0,5)}-{c.end_time.slice(0,5)}
+                      {c.is_exclusive && " (قرق کامل)"} • {c.status === "approved" ? "تایید شده" : "در انتظار"}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRequestDialog(false)}>انصراف</Button>
-            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate}>
+            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo}>
               {createReservation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               ثبت درخواست
             </Button>
@@ -399,6 +466,11 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <div><span className="text-muted-foreground">تاریخ: </span>{format(parseISO(reviewTarget.reservation_date), "d MMMM yyyy", { locale: faIR })}</div>
               <div><span className="text-muted-foreground">ساعت: </span>{reviewTarget.start_time.slice(0,5)} - {reviewTarget.end_time.slice(0,5)}</div>
               <div><span className="text-muted-foreground">وضعیت: </span>{statusBadge(reviewTarget.status)}</div>
+              {reviewTarget.is_exclusive && (
+                <div className="p-2 rounded border border-warning/40 bg-warning/5 text-xs flex items-center gap-1.5 text-warning-foreground">
+                  <Lock className="w-3.5 h-3.5 text-warning" /> این درخواست برای قرق کامل مکان در طول روز است.
+                </div>
+              )}
               {reviewTarget.description && <div><span className="text-muted-foreground">توضیحات: </span>{reviewTarget.description}</div>}
               {reviewTarget.manager_note && <div className="p-2 rounded bg-muted text-xs">یادداشت مدیر: {reviewTarget.manager_note}</div>}
               {!residentMode && reviewTarget.status === "pending" && (

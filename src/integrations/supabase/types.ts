@@ -1080,6 +1080,7 @@ export type Database = {
           building_id: string
           created_at: string
           description: string | null
+          exclusive: boolean
           id: string
           is_active: boolean
           name: string
@@ -1089,6 +1090,7 @@ export type Database = {
           building_id: string
           created_at?: string
           description?: string | null
+          exclusive?: boolean
           id?: string
           is_active?: boolean
           name: string
@@ -1098,6 +1100,7 @@ export type Database = {
           building_id?: string
           created_at?: string
           description?: string | null
+          exclusive?: boolean
           id?: string
           is_active?: boolean
           name?: string
@@ -1112,6 +1115,7 @@ export type Database = {
           description: string | null
           end_time: string
           id: string
+          is_exclusive: boolean
           manager_note: string | null
           requester_name: string
           requester_user_id: string | null
@@ -1130,6 +1134,7 @@ export type Database = {
           description?: string | null
           end_time: string
           id?: string
+          is_exclusive?: boolean
           manager_note?: string | null
           requester_name: string
           requester_user_id?: string | null
@@ -1148,6 +1153,7 @@ export type Database = {
           description?: string | null
           end_time?: string
           id?: string
+          is_exclusive?: boolean
           manager_note?: string | null
           requester_name?: string
           requester_user_id?: string | null
