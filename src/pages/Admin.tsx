@@ -1,13 +1,16 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin, useAdminStats } from "@/hooks/useAdmin";
+import { useUnreadTicketsCount } from "@/hooks/useSupportTickets";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark, LifeBuoy } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStats";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
 import { AdminPlatformSettings } from "@/components/admin/AdminPlatformSettings";
 import { AdminBankAccounts } from "@/components/admin/AdminBankAccounts";
+import { TicketsPage } from "@/components/tickets/TicketsPage";
 
 export default function Admin() {
   const { user, loading: authLoading, signOut } = useAuth();
