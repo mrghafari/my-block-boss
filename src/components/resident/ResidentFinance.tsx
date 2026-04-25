@@ -389,7 +389,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openPay()}
+                        onClick={() => openPay([c.id])}
                       >
                         <CreditCard className="w-3 h-3 ml-1" />
                         پرداخت
