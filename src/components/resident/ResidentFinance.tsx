@@ -128,7 +128,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-medium">مجموع پرداختی‌ها</CardTitle>
