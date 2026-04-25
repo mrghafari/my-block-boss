@@ -23,6 +23,8 @@ interface Props {
   defaultDescription?: string;
   ownerName?: string | null;
   residentName?: string | null;
+  /** شناسه ردیف‌های unit_charges که پس از پرداخت موفق باید حذف شوند */
+  chargeIdsToClear?: string[];
 }
 
 type Step = "form" | "gateway" | "success";
