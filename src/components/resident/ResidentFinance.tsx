@@ -160,11 +160,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
           </CardContent>
         </Card>
         <Card
-          onClick={() => openPay(null)}
+          onClick={() => openPay()}
           className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 active:scale-[0.98]"
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPay(null); } }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPay(); } }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-medium">مانده حساب</CardTitle>
@@ -308,11 +308,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openPay({
-                          amount: Math.round(Number(c.amount)),
-                          fundType: c.fund_type as "charge" | "extra_charge",
-                          description: `پرداخت بدهی ${c.fund_type === "charge" ? "شارژ" : "فوق‌شارژ"} ${c.year}/${c.month}`,
-                        })}
+                        onClick={() => openPay()}
                       >
                         <CreditCard className="w-3 h-3 ml-1" />
                         پرداخت
