@@ -151,11 +151,21 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-medium">بدهی شارژ</CardTitle>
+            <CardTitle className="text-xs font-medium">بدهی شارژ (ساکن)</CardTitle>
             <CreditCard className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold text-orange-600">{formatNumber(totalCharges)}</div>
+            <div className="text-lg font-bold text-orange-600">{formatNumber(chargeDebt)}</div>
+            <p className="text-xs text-muted-foreground">تومان</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-medium">بدهی فوق‌شارژ (مالک)</CardTitle>
+            <CreditCard className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-purple-600">{formatNumber(extraDebt)}</div>
             <p className="text-xs text-muted-foreground">تومان</p>
           </CardContent>
         </Card>
