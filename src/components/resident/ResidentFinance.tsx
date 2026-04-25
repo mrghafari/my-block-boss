@@ -256,89 +256,114 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
         chargeIdsToClear={payChargeIds}
       />
 
-      {/* Recent Payments */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+      {/* Tabbed Tables */}
+      <Tabs defaultValue="debts" dir="rtl">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="debts" className="gap-2">
+            <CreditCard className="w-4 h-4 text-orange-500" />
+            بدهی شارژ ماهانه
+            {charges.length > 0 && (
+              <Badge variant="secondary" className="text-xs">{charges.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
             <ArrowUpCircle className="w-4 h-4 text-emerald-500" />
             پرداختی‌ها
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">پرداختی ثبت نشده است</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">تاریخ</TableHead>
-                  <TableHead className="text-right">توضیحات</TableHead>
-                  <TableHead className="text-right">نوع</TableHead>
-                  <TableHead className="text-right">مبلغ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-xs">{formatJalaliDate(p.payment_date)}</TableCell>
-                    <TableCell className="text-xs">{p.description || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {p.fund_type === "charge" ? "شارژ" : "فوق‌شارژ"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-semibold text-emerald-600">{formatNumber(Number(p.amount))} تومان</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Allocated Expenses */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+            {payments.length > 0 && (
+              <Badge variant="secondary" className="text-xs">{payments.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="expenses" className="gap-2">
             <ArrowDownCircle className="w-4 h-4 text-red-500" />
             هزینه‌های تسهیم‌شده
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {expenseShares.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">هزینه‌ای تسهیم نشده است</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">تاریخ</TableHead>
-                  <TableHead className="text-right">عنوان</TableHead>
-                  <TableHead className="text-right">نوع</TableHead>
-                  <TableHead className="text-right">سهم شما</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenseShares.map((e) => {
-                  const expense = e.expenses as any;
-                  const fundType = expense?.fund_type ?? "charge";
-                  return (
-                    <TableRow key={e.id}>
-                      <TableCell className="text-xs">{expense ? formatJalaliDate(expense.expense_date) : "-"}</TableCell>
-                      <TableCell className="text-xs">{expense?.title || "-"}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {fundType === "charge" ? "شارژ" : "فوق‌شارژ"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-semibold text-red-600">{formatNumber(Number(e.allocated_amount))} تومان</TableCell>
+            {expenseShares.length > 0 && (
+              <Badge variant="secondary" className="text-xs">{expenseShares.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Payments Tab */}
+        <TabsContent value="payments">
+          <Card>
+            <CardContent className="pt-6">
+              {payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">پرداختی ثبت نشده است</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">تاریخ</TableHead>
+                      <TableHead className="text-right">توضیحات</TableHead>
+                      <TableHead className="text-right">نوع</TableHead>
+                      <TableHead className="text-left">مبلغ</TableHead>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="text-xs whitespace-nowrap">{formatJalaliDate(p.payment_date)}</TableCell>
+                        <TableCell className="text-xs">{p.description || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {p.fund_type === "charge" ? "شارژ" : "فوق‌شارژ"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-semibold text-emerald-600 text-left whitespace-nowrap">
+                          {formatNumber(Number(p.amount))} تومان
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Allocated Expenses Tab */}
+        <TabsContent value="expenses">
+          <Card>
+            <CardContent className="pt-6">
+              {expenseShares.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">هزینه‌ای تسهیم نشده است</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">تاریخ</TableHead>
+                      <TableHead className="text-right">عنوان</TableHead>
+                      <TableHead className="text-right">نوع</TableHead>
+                      <TableHead className="text-left">سهم شما</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expenseShares.map((e) => {
+                      const expense = e.expenses as any;
+                      const fundType = expense?.fund_type ?? "charge";
+                      return (
+                        <TableRow key={e.id}>
+                          <TableCell className="text-xs whitespace-nowrap">{expense ? formatJalaliDate(expense.expense_date) : "-"}</TableCell>
+                          <TableCell className="text-xs">{expense?.title || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {fundType === "charge" ? "شارژ" : "فوق‌شارژ"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold text-red-600 text-left whitespace-nowrap">
+                            {formatNumber(Number(e.allocated_amount))} تومان
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Charge Debts Tab */}
+        <TabsContent value="debts">
 
       {/* Charge Debts */}
       <Card>
