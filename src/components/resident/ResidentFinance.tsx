@@ -233,12 +233,13 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
 
       <PaymentDialog
         open={payOpen}
-        onOpenChange={setPayOpen}
+        onOpenChange={(o) => { setPayOpen(o); if (!o) setBulkMode(null); }}
         buildingId={buildingId}
         unitId={unitId}
-        chargeDebt={chargeDebt}
-        extraDebt={extraDebt}
+        chargeDebt={bulkMode ? bulkMode.charge : chargeDebt}
+        extraDebt={bulkMode ? bulkMode.extra : extraDebt}
         defaultRole={viewerRole}
+        defaultDescription={bulkMode ? "پرداخت تجمیعی بدهی‌های انتخاب‌شده" : undefined}
         ownerName={unitInfo?.owner_name}
         residentName={unitInfo?.resident_name}
       />
