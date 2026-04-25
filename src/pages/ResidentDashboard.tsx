@@ -14,6 +14,7 @@ import { ManagersHistoryReport } from "@/components/reports/ManagersHistoryRepor
 import { ReservationsList } from "@/components/announcements/ReservationsList";
 import { MessagesPanel } from "@/components/messages/MessagesPanel";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { MeetingMinutesPage } from "@/components/meetings/MeetingMinutesPage";
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("finance");
@@ -103,6 +104,8 @@ const ResidentDashboard = () => {
         );
       case "managers":
         return <ManagersHistoryReport buildingId={currentBuildingId} />;
+      case "meetings":
+        return <MeetingMinutesPage buildingId={currentBuildingId} canEdit={false} />;
       default:
         return <ResidentFinance buildingId={currentBuildingId} unitId={currentUnitId} />;
     }
