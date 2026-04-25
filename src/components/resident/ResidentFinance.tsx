@@ -118,7 +118,43 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const chargeDebt = Math.max(0, chargeOwed - chargePaid);
   const extraDebt = Math.max(0, extraOwed - extraPaid);
 
-  const openPay = () => setPayOpen(true);
+  const openPay = () => {
+    setBulkMode(null);
+    setPayOpen(true);
+  };
+
+  // محاسبه تجمیعی موارد انتخاب‌شده با همان الگوریتم تفکیک fund_type
+  const selectedTotals = useMemo(() => {
+    let charge = 0;
+    let extra = 0;
+    charges.forEach((c) => {
+      if (!selectedChargeIds.has(c.id)) return;
+      const amt = Number(c.amount);
+      if (c.fund_type === "extra_charge") extra += amt;
+      else charge += amt;
+    });
+    return { charge: Math.round(charge), extra: Math.round(extra) };
+  }, [charges, selectedChargeIds]);
+
+  const openBulkPay = () => {
+    if (selectedTotals.charge === 0 && selectedTotals.extra === 0) return;
+    setBulkMode({ charge: selectedTotals.charge, extra: selectedTotals.extra });
+    setPayOpen(true);
+  };
+
+  const toggleChargeSelect = (id: string) => {
+    setSelectedChargeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedChargeIds.size === charges.length) setSelectedChargeIds(new Set());
+    else setSelectedChargeIds(new Set(charges.map((c) => c.id)));
+  };
 
   if (isLoading) {
     return (
