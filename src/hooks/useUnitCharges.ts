@@ -88,6 +88,10 @@ export function useApplyCharges() {
 
         const vacantDiscount = fundType === "charge" ? vacantChargeDiscount : vacantExtraDiscount;
         const mgrDiscount = fundType === "charge" ? managerChargeDiscount : managerExtraDiscount;
+        const fundDescription =
+          fundType === "charge"
+            ? chargeDescription || description || null
+            : extraChargeDescription || description || null;
 
         // Calculate each unit's amount
         units.forEach((unit) => {
@@ -111,7 +115,7 @@ export function useApplyCharges() {
               fund_type: fundType,
               month,
               year,
-              description: description || null,
+              description: fundDescription,
               owner_name: unit.owner_name || null,
               resident_name: unit.resident_name || null,
             });
