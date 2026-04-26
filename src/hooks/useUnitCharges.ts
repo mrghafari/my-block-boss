@@ -58,6 +58,8 @@ export function useApplyCharges() {
       month: number;
       year: number;
       description?: string;
+      chargeDescription?: string;
+      extraChargeDescription?: string;
     }) => {
       if (!currentBuildingId || units.length === 0) {
         throw new Error("ساختمان یا واحدی یافت نشد");
