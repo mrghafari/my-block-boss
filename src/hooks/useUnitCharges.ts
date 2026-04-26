@@ -52,6 +52,8 @@ export function useApplyCharges() {
       month,
       year,
       description,
+      chargeDescription,
+      extraChargeDescription,
     }: {
       chargeAmount: number;
       extraChargeAmount: number;
