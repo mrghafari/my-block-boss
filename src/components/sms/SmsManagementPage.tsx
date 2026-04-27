@@ -65,6 +65,47 @@ export function SmsManagementPage() {
     );
   }
 
+  const { currentBuildingId } = useBuilding();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  const [selectedPackage, setSelectedPackage] = useState<number>(SMS_PACKAGES[1].count);
+  const [managerNote, setManagerNote] = useState("");
+
+  const { data: requests = [] } = useQuery({
+    queryKey: ["sms_credit_requests", currentBuildingId],
+    queryFn: async () => {
+      if (!currentBuildingId) return [];
+      const { data, error } = await (supabase as any)
+        .from("sms_credit_requests")
+        .select("*")
+        .eq("building_id", currentBuildingId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!currentBuildingId,
+  });
+
+  const submitRequest = useMutation({
+    mutationFn: async () => {
+      if (!currentBuildingId || !user) throw new Error("ساختمان یا کاربر نامشخص");
+      const { error } = await (supabase as any).from("sms_credit_requests").insert({
+        building_id: currentBuildingId,
+        requested_by: user.id,
+        package_count: selectedPackage,
+        manager_note: managerNote || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sms_credit_requests", currentBuildingId] });
+      setManagerNote("");
+      toast({ title: "درخواست ثبت شد", description: "ادمین به‌زودی بررسی خواهد کرد" });
+    },
+    onError: (e: Error) => toast({ title: "خطا", description: e.message, variant: "destructive" }),
+  });
+
   const patch = (p: Partial<NonNullable<typeof settings>>) => setLocal({ ...(s as any), ...p });
 
   return (
@@ -73,14 +114,15 @@ export function SmsManagementPage() {
         <MessageSquare className="w-7 h-7 text-primary" />
         <div>
           <h1 className="text-2xl font-bold">مدیریت پیامک</h1>
-          <p className="text-muted-foreground text-sm">زمان‌بندی خودکار، گیرندگان رویدادها و تاریخچه ارسال‌ها</p>
+          <p className="text-muted-foreground text-sm">زمان‌بندی خودکار، گیرندگان رویدادها، تاریخچه و خرید بسته پیامک</p>
         </div>
       </div>
 
       <Tabs defaultValue="schedule" dir="rtl">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="schedule"><Clock className="w-4 h-4 ml-1" /> زمان‌بندی خودکار</TabsTrigger>
           <TabsTrigger value="recipients"><Users className="w-4 h-4 ml-1" /> گیرندگان و رویدادها</TabsTrigger>
+          <TabsTrigger value="credits"><ShoppingCart className="w-4 h-4 ml-1" /> خرید اعتبار</TabsTrigger>
           <TabsTrigger value="logs"><History className="w-4 h-4 ml-1" /> تاریخچه</TabsTrigger>
         </TabsList>
 
