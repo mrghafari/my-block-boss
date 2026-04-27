@@ -307,6 +307,9 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("kavenegar")}>
+                <Send className="h-4 w-4" /> تست ارسال
+              </Button>
             </div>
           )}
         </div>
