@@ -378,6 +378,9 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("melipayamak")}>
+                <Send className="h-4 w-4" /> تست ارسال
+              </Button>
             </div>
           )}
         </div>
@@ -446,13 +449,10 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("faraz")}>
+                <Send className="h-4 w-4" /> تست ارسال
+              </Button>
             </div>
-          )}
-        </div>
-
-        <Separator />
-
-        {/* Templates */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
