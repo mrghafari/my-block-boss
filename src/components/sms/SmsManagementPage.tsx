@@ -53,22 +53,11 @@ export function SmsManagementPage() {
   const { data: settings, isLoading } = useSmsSettings();
   const updateSettings = useUpdateSmsSettings();
   const { data: logs = [] } = useSmsLogs(200);
-
-  const [local, setLocal] = useState<typeof settings>(undefined);
-  const s = local ?? settings ?? null;
-
-  if (isLoading || !s) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const { currentBuildingId } = useBuilding();
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  const [local, setLocal] = useState<typeof settings>(undefined);
   const [selectedPackage, setSelectedPackage] = useState<number>(SMS_PACKAGES[1].count);
   const [managerNote, setManagerNote] = useState("");
 
@@ -105,6 +94,16 @@ export function SmsManagementPage() {
     },
     onError: (e: Error) => toast({ title: "خطا", description: e.message, variant: "destructive" }),
   });
+
+  const s = local ?? settings ?? null;
+
+  if (isLoading || !s) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const patch = (p: Partial<NonNullable<typeof settings>>) => setLocal({ ...(s as any), ...p });
 
