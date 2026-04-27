@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MessageSquare, Clock, Users, History, Loader2, Save } from "lucide-react";
+import { MessageSquare, Clock, Users, History, Loader2, Save, ShoppingCart, Send } from "lucide-react";
 import {
   useSmsSettings,
   useUpdateSmsSettings,
@@ -16,6 +17,23 @@ import {
   type SmsRecipientMode,
 } from "@/hooks/useSms";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useBuilding } from "@/contexts/BuildingContext";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+
+const SMS_PACKAGES = [
+  { count: 1000, price: 150000 },
+  { count: 5000, price: 700000 },
+  { count: 10000, price: 1300000 },
+  { count: 25000, price: 3000000 },
+  { count: 50000, price: 5500000 },
+];
+
+function formatToman(n: number) {
+  return new Intl.NumberFormat("fa-IR").format(n) + " تومان";
+}
 
 const TEMPLATE_LABELS: Record<string, string> = {
   debt_report: "گزارش بدهی",
