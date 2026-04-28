@@ -23,14 +23,6 @@ import { useBuilding } from "@/contexts/BuildingContext";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
-const SMS_PACKAGES = [
-  { count: 1000, price: 150000 },
-  { count: 5000, price: 700000 },
-  { count: 10000, price: 1300000 },
-  { count: 25000, price: 3000000 },
-  { count: 50000, price: 5500000 },
-];
-
 function formatToman(n: number) {
   return new Intl.NumberFormat("fa-IR").format(n) + " تومان";
 }
