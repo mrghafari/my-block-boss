@@ -49,8 +49,21 @@ export function SmsManagementPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  const { data: packages = [] } = useQuery({
+    queryKey: ["sms_packages_active"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("sms_packages")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [local, setLocal] = useState<typeof settings>(undefined);
-  const [selectedPackage, setSelectedPackage] = useState<number>(SMS_PACKAGES[1].count);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [managerNote, setManagerNote] = useState("");
 
   const { data: requests = [] } = useQuery({
