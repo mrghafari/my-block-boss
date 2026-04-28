@@ -494,7 +494,17 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             )}
             <div>
               <label className="text-sm font-medium mb-1 block">نام درخواست‌کننده</label>
-              <Input value={reqName} onChange={e => setReqName(e.target.value)} placeholder="نام شما" />
+              <Input
+                value={reqName}
+                onChange={e => setReqName(e.target.value)}
+                placeholder="نام شما"
+                readOnly={residentMode}
+                disabled={residentMode}
+                className={residentMode ? "bg-muted cursor-not-allowed" : ""}
+              />
+              {residentMode && (
+                <p className="text-xs text-muted-foreground mt-1">نام شما به‌صورت خودکار از حساب کاربری شما ثبت می‌شود</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">تاریخ رزرو</label>
