@@ -84,10 +84,12 @@ export function SmsManagementPage() {
   const submitRequest = useMutation({
     mutationFn: async () => {
       if (!currentBuildingId || !user) throw new Error("ساختمان یا کاربر نامشخص");
+      const pkg = packages.find((p: any) => p.id === selectedPackageId);
+      if (!pkg) throw new Error("لطفاً یک بسته انتخاب کنید");
       const { error } = await (supabase as any).from("sms_credit_requests").insert({
         building_id: currentBuildingId,
         requested_by: user.id,
-        package_count: selectedPackage,
+        package_count: pkg.package_count,
         manager_note: managerNote || null,
       });
       if (error) throw error;
