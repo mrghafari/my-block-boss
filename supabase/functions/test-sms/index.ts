@@ -30,22 +30,41 @@ async function sendKavenegar(apiKey: string, sender: string, receptor: string, m
 }
 
 async function sendSmsIr(apiKey: string, lineNumber: string, receptor: string, message: string) {
+  if (!lineNumber) throw new Error("شماره خط (Line Number) sms.ir وارد نشده است");
+  // Normalize line number (digits only)
+  const cleanLine = String(lineNumber).replace(/\D/g, "");
+  const cleanPhone = String(receptor).replace(/\D/g, "");
+
   const res = await fetch("https://api.sms.ir/v1/send/bulk", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      "Accept": "text/plain",
       "x-api-key": apiKey,
     },
     body: JSON.stringify({
-      lineNumber,
+      lineNumber: Number(cleanLine),
       messageText: message,
-      mobiles: [receptor],
+      mobiles: [cleanPhone],
     }),
   });
-  const data = await res.json();
-  if (!res.ok || data?.status !== 1) {
-    throw new Error(data?.message || `HTTP ${res.status}`);
+
+  let data: any = null;
+  let rawText = "";
+  try {
+    rawText = await res.text();
+    data = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    // not JSON
+  }
+
+  // sms.ir success: status === 1
+  if (!res.ok || !data || data.status !== 1) {
+    const errMsg = data?.message
+      || data?.Message
+      || rawText
+      || `HTTP ${res.status} ${res.statusText}`;
+    throw new Error(`SMS.ir: ${errMsg}`);
   }
   return data?.data?.packId?.toString() ?? null;
 }

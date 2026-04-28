@@ -38,22 +38,36 @@ async function sendKavenegar(apiKey: string, sender: string, receptor: string, m
 }
 
 async function sendSmsIr(apiKey: string, sender: string, receptor: string, message: string) {
+  if (!sender) throw new Error("SMS.ir line number not configured");
+  const cleanLine = String(sender).replace(/\D/g, "");
+  const cleanPhone = String(receptor).replace(/\D/g, "");
+
   const res = await fetch("https://api.sms.ir/v1/send/bulk", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      "Accept": "text/plain",
       "x-api-key": apiKey,
     },
     body: JSON.stringify({
-      lineNumber: sender,
+      lineNumber: Number(cleanLine),
       messageText: message,
-      mobiles: [receptor],
+      mobiles: [cleanPhone],
     }),
   });
-  const data = await res.json();
-  if (!res.ok || data?.status !== 1) {
-    throw new Error(`SMS.ir: ${data?.message || res.statusText}`);
+
+  let data: any = null;
+  let rawText = "";
+  try {
+    rawText = await res.text();
+    data = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    // ignore
+  }
+
+  if (!res.ok || !data || data.status !== 1) {
+    const errMsg = data?.message || data?.Message || rawText || `HTTP ${res.status}`;
+    throw new Error(`SMS.ir: ${errMsg}`);
   }
   return data?.data?.packId?.toString() ?? null;
 }
