@@ -256,9 +256,9 @@ export function SmsManagementPage() {
                 />
               </div>
 
-              <Button onClick={() => submitRequest.mutate()} disabled={submitRequest.isPending}>
+              <Button onClick={() => submitRequest.mutate()} disabled={submitRequest.isPending || !selectedPackageId}>
                 <Send className="w-4 h-4 ml-1" />
-                {submitRequest.isPending ? "در حال ارسال..." : "ثبت درخواست خرید"}
+                {submitRequest.isPending ? "در حال انتقال به درگاه..." : "پرداخت و خرید آنلاین"}
               </Button>
             </CardContent>
           </Card>
