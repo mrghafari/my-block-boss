@@ -16,6 +16,7 @@ interface TestSmsRequest {
   line_number?: string;
   username?: string;
   password?: string;
+  api_url?: string;
 }
 
 async function sendKavenegar(apiKey: string, sender: string, receptor: string, message: string) {
