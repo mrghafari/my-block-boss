@@ -19,10 +19,12 @@ interface TestSmsRequest {
   api_url?: string;
 }
 
-async function sendKavenegar(apiKey: string, sender: string, receptor: string, message: string) {
-  const url = `https://api.kavenegar.com/v1/${apiKey}/sms/send.json`;
+async function sendKavenegar(apiKey: string, sender: string, receptor: string, message: string, customUrl?: string) {
+  const baseUrl = (customUrl && customUrl.trim())
+    ? customUrl.replace("{API_KEY}", apiKey)
+    : `https://api.kavenegar.com/v1/${apiKey}/sms/send.json`;
   const params = new URLSearchParams({ receptor, sender, message });
-  const res = await fetch(`${url}?${params}`);
+  const res = await fetch(`${baseUrl}?${params}`);
   const data = await res.json();
   if (!res.ok || data?.return?.status !== 200) {
     throw new Error(data?.return?.message || `HTTP ${res.status}`);
@@ -30,13 +32,13 @@ async function sendKavenegar(apiKey: string, sender: string, receptor: string, m
   return data?.entries?.[0]?.messageid?.toString() ?? null;
 }
 
-async function sendSmsIr(apiKey: string, lineNumber: string, receptor: string, message: string) {
+async function sendSmsIr(apiKey: string, lineNumber: string, receptor: string, message: string, customUrl?: string) {
   if (!lineNumber) throw new Error("شماره خط (Line Number) sms.ir وارد نشده است");
-  // Normalize line number (digits only)
   const cleanLine = String(lineNumber).replace(/\D/g, "");
   const cleanPhone = String(receptor).replace(/\D/g, "");
+  const url = (customUrl && customUrl.trim()) ? customUrl.trim() : "https://api.sms.ir/v1/send/bulk";
 
-  const res = await fetch("https://api.sms.ir/v1/send/bulk", {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -59,7 +61,6 @@ async function sendSmsIr(apiKey: string, lineNumber: string, receptor: string, m
     // not JSON
   }
 
-  // sms.ir success: status === 1
   if (!res.ok || !data || data.status !== 1) {
     const errMsg = data?.message
       || data?.Message
@@ -70,8 +71,9 @@ async function sendSmsIr(apiKey: string, lineNumber: string, receptor: string, m
   return data?.data?.packId?.toString() ?? null;
 }
 
-async function sendMelipayamak(username: string, password: string, sender: string, receptor: string, message: string) {
-  const res = await fetch("https://rest.payamak-panel.com/api/SendSMS/SendSMS", {
+async function sendMelipayamak(username: string, password: string, sender: string, receptor: string, message: string, customUrl?: string) {
+  const url = (customUrl && customUrl.trim()) ? customUrl.trim() : "https://rest.payamak-panel.com/api/SendSMS/SendSMS";
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -90,9 +92,9 @@ async function sendMelipayamak(username: string, password: string, sender: strin
   return data?.Value?.toString() ?? null;
 }
 
-async function sendFaraz(username: string, password: string, sender: string, receptor: string, message: string) {
-  // Faraz SMS uses similar SOAP/REST patterns; using their REST endpoint
-  const res = await fetch("https://ippanel.com/api/select", {
+async function sendFaraz(username: string, password: string, sender: string, receptor: string, message: string, customUrl?: string) {
+  const url = (customUrl && customUrl.trim()) ? customUrl.trim() : "https://ippanel.com/api/select";
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
