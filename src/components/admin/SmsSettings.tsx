@@ -16,7 +16,15 @@ interface SmsConfig {
   enabled: boolean;
   api_key?: string;
   sender?: string;
+  api_url?: string;
 }
+
+const DEFAULT_URLS = {
+  smsir: "https://api.sms.ir/v1/send/bulk",
+  kavenegar: "https://api.kavenegar.com/v1/{API_KEY}/sms/send.json",
+  melipayamak: "https://rest.payamak-panel.com/api/SendSMS/SendSMS",
+  faraz: "https://ippanel.com/api/select",
+};
 
 interface SmsTemplate {
   id: string;
@@ -70,7 +78,7 @@ export function SmsSettings({ userId }: Props) {
     setTesting(true);
     try {
       const cfg = state[testProvider as "smsir" | "kavenegar" | "melipayamak" | "faraz"] as any;
-      const payload: any = { provider: testProvider, phone: testPhone, message: testMessage };
+      const payload: any = { provider: testProvider, phone: testPhone, message: testMessage, api_url: cfg.api_url };
       if (testProvider === "smsir") {
         payload.api_key = cfg.api_key;
         payload.line_number = cfg.line_number;
@@ -250,6 +258,18 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <div className="space-y-2">
+                <Label>آدرس API (URL)</Label>
+                <Input
+                  dir="ltr"
+                  placeholder={DEFAULT_URLS.smsir}
+                  value={state.smsir.api_url || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, smsir: { ...s.smsir, api_url: e.target.value } }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">پیش‌فرض: {DEFAULT_URLS.smsir}</p>
+              </div>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("smsir")}>
                 <Send className="h-4 w-4" /> تست ارسال
               </Button>
@@ -306,6 +326,18 @@ export function SmsSettings({ userId }: Props) {
                     }))
                   }
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>آدرس API (URL)</Label>
+                <Input
+                  dir="ltr"
+                  placeholder={DEFAULT_URLS.kavenegar}
+                  value={state.kavenegar.api_url || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, kavenegar: { ...s.kavenegar, api_url: e.target.value } }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">پیش‌فرض: {DEFAULT_URLS.kavenegar}</p>
               </div>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("kavenegar")}>
                 <Send className="h-4 w-4" /> تست ارسال
@@ -378,6 +410,18 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <div className="space-y-2">
+                <Label>آدرس API (URL)</Label>
+                <Input
+                  dir="ltr"
+                  placeholder={DEFAULT_URLS.melipayamak}
+                  value={state.melipayamak.api_url || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, melipayamak: { ...s.melipayamak, api_url: e.target.value } }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">پیش‌فرض: {DEFAULT_URLS.melipayamak}</p>
+              </div>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("melipayamak")}>
                 <Send className="h-4 w-4" /> تست ارسال
               </Button>
@@ -448,6 +492,18 @@ export function SmsSettings({ userId }: Props) {
                     }))
                   }
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>آدرس API (URL)</Label>
+                <Input
+                  dir="ltr"
+                  placeholder={DEFAULT_URLS.faraz}
+                  value={state.faraz.api_url || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, faraz: { ...s.faraz, api_url: e.target.value } }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">پیش‌فرض: {DEFAULT_URLS.faraz}</p>
               </div>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("faraz")}>
                 <Send className="h-4 w-4" /> تست ارسال
