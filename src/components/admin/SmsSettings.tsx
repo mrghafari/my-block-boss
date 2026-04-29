@@ -78,7 +78,7 @@ export function SmsSettings({ userId }: Props) {
     setTesting(true);
     try {
       const cfg = state[testProvider as "smsir" | "kavenegar" | "melipayamak" | "faraz"] as any;
-      const payload: any = { provider: testProvider, phone: testPhone, message: testMessage };
+      const payload: any = { provider: testProvider, phone: testPhone, message: testMessage, api_url: cfg.api_url };
       if (testProvider === "smsir") {
         payload.api_key = cfg.api_key;
         payload.line_number = cfg.line_number;
