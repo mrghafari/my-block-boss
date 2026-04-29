@@ -84,20 +84,24 @@ export function SmsManagementPage() {
   const submitRequest = useMutation({
     mutationFn: async () => {
       if (!currentBuildingId || !user) throw new Error("ساختمان یا کاربر نامشخص");
-      const pkg = packages.find((p: any) => p.id === selectedPackageId);
-      if (!pkg) throw new Error("لطفاً یک بسته انتخاب کنید");
-      const { error } = await (supabase as any).from("sms_credit_requests").insert({
-        building_id: currentBuildingId,
-        requested_by: user.id,
-        package_count: pkg.package_count,
-        manager_note: managerNote || null,
+      if (!selectedPackageId) throw new Error("لطفاً یک بسته انتخاب کنید");
+      const { data, error } = await supabase.functions.invoke("sms-payment-init", {
+        body: {
+          building_id: currentBuildingId,
+          package_id: selectedPackageId,
+          manager_note: managerNote || null,
+        },
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message || "خطا در آغاز پرداخت");
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const redirect = (data as any)?.redirect_url;
+      if (!redirect) throw new Error("آدرس درگاه دریافت نشد");
+      return redirect as string;
     },
-    onSuccess: () => {
+    onSuccess: (redirect) => {
       qc.invalidateQueries({ queryKey: ["sms_credit_requests", currentBuildingId] });
-      setManagerNote("");
-      toast({ title: "درخواست ثبت شد", description: "ادمین به‌زودی بررسی خواهد کرد" });
+      toast({ title: "در حال انتقال به درگاه پرداخت..." });
+      window.location.href = redirect;
     },
     onError: (e: Error) => toast({ title: "خطا", description: e.message, variant: "destructive" }),
   });
