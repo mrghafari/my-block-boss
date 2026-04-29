@@ -16,7 +16,15 @@ interface SmsConfig {
   enabled: boolean;
   api_key?: string;
   sender?: string;
+  api_url?: string;
 }
+
+const DEFAULT_URLS = {
+  smsir: "https://api.sms.ir/v1/send/bulk",
+  kavenegar: "https://api.kavenegar.com/v1/{API_KEY}/sms/send.json",
+  melipayamak: "https://rest.payamak-panel.com/api/SendSMS/SendSMS",
+  faraz: "https://ippanel.com/api/select",
+};
 
 interface SmsTemplate {
   id: string;
