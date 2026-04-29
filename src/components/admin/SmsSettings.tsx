@@ -493,6 +493,18 @@ export function SmsSettings({ userId }: Props) {
                   }
                 />
               </div>
+              <div className="space-y-2">
+                <Label>آدرس API (URL)</Label>
+                <Input
+                  dir="ltr"
+                  placeholder={DEFAULT_URLS.faraz}
+                  value={state.faraz.api_url || ""}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, faraz: { ...s.faraz, api_url: e.target.value } }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">پیش‌فرض: {DEFAULT_URLS.faraz}</p>
+              </div>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setTestProvider("faraz")}>
                 <Send className="h-4 w-4" /> تست ارسال
               </Button>
