@@ -566,12 +566,7 @@ function OccupancyDialog({
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Reset/load on open
-  useState(() => {
-    // noop
-  });
-
-  useMemo(() => {
+  useEffect(() => {
     if (open) {
       if (editing) {
         setUnitId(editing.unit_id);
