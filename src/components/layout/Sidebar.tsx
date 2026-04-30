@@ -17,6 +17,7 @@ interface SidebarProps {
 const menuItems = [
   { id: "dashboard", label: "داشبورد", icon: Home },
   { id: "units", label: "واحدها", icon: Building2 },
+  { id: "occupancy", label: "تاریخچه افراد", icon: History },
   { id: "expenses", label: "هزینه‌ها", icon: Receipt },
   { id: "projects", label: "مدیریت پروژه", icon: FolderKanban },
   { id: "payments", label: "پرداخت‌ها", icon: CreditCard },
