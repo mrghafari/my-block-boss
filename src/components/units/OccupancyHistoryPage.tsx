@@ -56,7 +56,7 @@ interface Unit {
 
 const toISO = (d?: Date) => (d ? d.toISOString().split("T")[0] : null);
 
-export function OccupancyHistoryPage() {
+export function OccupancyHistoryPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { currentBuilding } = useBuilding();
   const qc = useQueryClient();
 
