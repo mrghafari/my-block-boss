@@ -307,11 +307,21 @@ function TimelineView({
     );
   }
 
+  if (unitFilter === "all") {
+    return (
+      <Card>
+        <CardContent className="text-center py-12 text-muted-foreground text-sm">
+          برای مشاهده تایم‌لاین، یک واحد را از فیلتر بالا انتخاب کنید
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (visibleUnits.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-12 text-muted-foreground text-sm">
-          رکوردی برای نمایش وجود ندارد
+          رکوردی برای این واحد یافت نشد
         </CardContent>
       </Card>
     );
