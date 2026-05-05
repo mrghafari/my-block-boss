@@ -22,7 +22,7 @@ interface UnitMatch {
   isManager: boolean;
 }
 
-type Step = "phone" | "otp";
+type Step = "phone" | "otp" | "select";
 
 const ResidentAuth = () => {
   const [step, setStep] = useState<Step>("phone");
@@ -64,7 +64,6 @@ const ResidentAuth = () => {
     try {
       let data: any = null;
       let error: any = null;
-      // Retry up to 2 times on transient edge runtime errors (503)
       for (let attempt = 0; attempt < 3; attempt++) {
         const res = await supabase.functions.invoke("resident-auth", {
           body: { action: "request", phone: normalizedPhone },
@@ -85,7 +84,6 @@ const ResidentAuth = () => {
         return;
       }
 
-      setMatches(data.matches || []);
       setIsNewUser(!!data.is_new_user);
       setSelectedMatchIndex(0);
       setStep("otp");
@@ -95,6 +93,20 @@ const ResidentAuth = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const navigateForMatch = (selectedMatch: UnitMatch | undefined) => {
+    if (!selectedMatch) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    localStorage.setItem("resident_matches", JSON.stringify([selectedMatch]));
+    localStorage.setItem("currentBuildingId", selectedMatch.building_id);
+    if (selectedMatch.isManager) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    navigate("/resident", { replace: true });
   };
 
   const handleVerifyOtp = async () => {
@@ -139,22 +151,16 @@ const ResidentAuth = () => {
         return;
       }
 
-      const selectedMatch = verifiedMatches[selectedMatchIndex] || verifiedMatches[0];
-
-      if (!selectedMatch) {
-        navigate("/dashboard", { replace: true });
+      // If multiple roles/units, let the user choose
+      if (verifiedMatches.length > 1) {
+        setMatches(verifiedMatches);
+        setSelectedMatchIndex(0);
+        setIsNewUser(!!data.is_new_user);
+        setStep("select");
         return;
       }
 
-      localStorage.setItem("resident_matches", JSON.stringify([selectedMatch]));
-      localStorage.setItem("currentBuildingId", selectedMatch.building_id);
-
-      if (selectedMatch.isManager) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-
-      navigate("/resident", { replace: true });
+      navigateForMatch(verifiedMatches[0]);
     } catch (err: any) {
       toast({ title: "خطا در تأیید", description: err?.message || "کد اشتباه است", variant: "destructive" });
       setOtp("");
@@ -166,6 +172,10 @@ const ResidentAuth = () => {
 
   const handleCreateBuilding = () => {
     navigate("/dashboard", { replace: true });
+  };
+
+  const handleConfirmSelection = () => {
+    navigateForMatch(matches[selectedMatchIndex]);
   };
 
   // Auto-submit OTP once 6 digits are entered
@@ -254,141 +264,145 @@ const ResidentAuth = () => {
         )}
 
         {step === "otp" && (
-          <div className="space-y-4">
-            <Card className="border-border/50 shadow-lg">
-              <CardHeader className="text-center">
-                <CardTitle className="flex items-center justify-center gap-2">
-                  <KeyRound className="w-5 h-5" />
-                  کد تأیید
-                </CardTitle>
-                <CardDescription>کد ارسال‌شده به {phone} را وارد کنید</CardDescription>
-              </CardHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleVerifyOtp();
-              }} className="space-y-4 px-6 pb-6">
-                <div className="flex justify-center" dir="ltr">
-                  <InputOTP maxLength={6} value={otp} onChange={(v) => setOtp(toEnDigits(v).replace(/\D/g, ""))}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
+          <Card className="border-border/50 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <KeyRound className="w-5 h-5" />
+                کد تأیید
+              </CardTitle>
+              <CardDescription>کد ارسال‌شده به {phone} را وارد کنید</CardDescription>
+            </CardHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleVerifyOtp();
+            }} className="space-y-4 px-6 pb-6">
+              <div className="flex justify-center" dir="ltr">
+                <InputOTP maxLength={6} value={otp} onChange={(v) => setOtp(toEnDigits(v).replace(/\D/g, ""))}>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
 
-                <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90 shadow-glow" disabled={isLoading || otp.length !== 6}>
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
-                  تأیید و ورود
+              <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90 shadow-glow" disabled={isLoading || otp.length !== 6}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+                تأیید و ورود
+              </Button>
+
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" className="flex-1" onClick={() => {
+                  setStep("phone");
+                  setOtp("");
+                  setMatches([]);
+                  setSelectedMatchIndex(0);
+                }}>
+                  تغییر شماره
                 </Button>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => navigate("/")}>
+                  انصراف
+                </Button>
+              </div>
+            </form>
+          </Card>
+        )}
 
-                <div className="flex gap-2">
-                  <Button type="button" variant="ghost" className="flex-1" onClick={() => {
-                    setStep("phone");
-                    setOtp("");
-                    setMatches([]);
-                    setSelectedMatchIndex(0);
-                  }}>
-                    تغییر شماره
-                  </Button>
-                  <Button type="button" variant="outline" className="flex-1" onClick={() => navigate("/")}>
-                    انصراف
-                  </Button>
-                </div>
-
-                {(matches.length > 0 || isNewUser) && (
-                  <div className="space-y-3 pt-2 border-t border-border/50">
-                    {matches.length > 0 && (
-                      <>
-                        <p className="text-sm font-semibold text-center text-muted-foreground">
-                          وارد کدام ساختمان شوید؟
-                        </p>
-
-                        {managerMatches.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-xs text-muted-foreground">🛡️ مدیریت</p>
-                            {managerMatches.map((match) => {
-                              const matchIndex = matches.findIndex(
-                                (item) => item.building_id === match.building_id && item.unit_id === match.unit_id && item.role === match.role,
-                              );
-                              const isSelected = selectedMatchIndex === matchIndex;
-                              return (
-                                <div
-                                  key={`mgr-${match.building_id}-${match.unit_id ?? "manager"}`}
-                                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-muted/50 hover:bg-muted"}`}
-                                  onClick={() => setSelectedMatchIndex(matchIndex)}
-                                >
-                                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                    <ShieldCheck className="w-4 h-4 text-primary" />
-                                  </div>
-                                  <div className="flex-1 text-right">
-                                    <p className="text-sm font-bold">{match.building_name}</p>
-                                    <p className="text-xs text-muted-foreground">مدیر ساختمان</p>
-                                  </div>
-                                  {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {residentMatches.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-xs text-muted-foreground">🏠 ساکن / مالک</p>
-                            {residentMatches.map((match) => {
-                              const matchIndex = matches.findIndex(
-                                (item) => item.building_id === match.building_id && item.unit_id === match.unit_id && item.role === match.role,
-                              );
-                              const isSelected = selectedMatchIndex === matchIndex;
-                              return (
-                                <div
-                                  key={`res-${match.building_id}-${match.unit_id}`}
-                                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-muted/50 hover:bg-muted"}`}
-                                  onClick={() => setSelectedMatchIndex(matchIndex)}
-                                >
-                                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                                    <Home className="w-4 h-4 text-accent" />
-                                  </div>
-                                  <div className="flex-1 text-right">
-                                    <p className="text-sm font-bold">{match.building_name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      واحد {match.unit_number} — {match.role === "owner" ? "مالک" : "ساکن"}
-                                    </p>
-                                  </div>
-                                  {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {!isNewUser && (
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">➕ ساختمان جدید</p>
-                        <div
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer border-2 border-dashed border-border hover:border-primary/50 transition-all duration-200"
-                          onClick={handleCreateBuilding}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Plus className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <p className="text-sm font-bold">ایجاد ساختمان</p>
-                            <p className="text-xs text-muted-foreground">ساختمان جدید بسازید</p>
-                          </div>
+        {step === "select" && (
+          <Card className="border-border/50 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle>انتخاب نقش ورود</CardTitle>
+              <CardDescription>برای ادامه یکی از موارد زیر را انتخاب کنید</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {managerMatches.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">🛡️ مدیریت</p>
+                  {managerMatches.map((match) => {
+                    const matchIndex = matches.findIndex(
+                      (item) => item.building_id === match.building_id && item.unit_id === match.unit_id && item.role === match.role,
+                    );
+                    const isSelected = selectedMatchIndex === matchIndex;
+                    return (
+                      <div
+                        key={`mgr-${match.building_id}-${match.unit_id ?? "manager"}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-muted/50 hover:bg-muted"}`}
+                        onClick={() => setSelectedMatchIndex(matchIndex)}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-4 h-4 text-primary" />
                         </div>
+                        <div className="flex-1 text-right">
+                          <p className="text-sm font-bold">{match.building_name}</p>
+                          <p className="text-xs text-muted-foreground">مدیر ساختمان</p>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
                       </div>
-                    )}
+                    );
+                  })}
+                </div>
+              )}
+
+              {residentMatches.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">🏠 ساکن / مالک</p>
+                  {residentMatches.map((match) => {
+                    const matchIndex = matches.findIndex(
+                      (item) => item.building_id === match.building_id && item.unit_id === match.unit_id && item.role === match.role,
+                    );
+                    const isSelected = selectedMatchIndex === matchIndex;
+                    return (
+                      <div
+                        key={`res-${match.building_id}-${match.unit_id}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${isSelected ? "bg-primary/10 ring-1 ring-primary/40" : "bg-muted/50 hover:bg-muted"}`}
+                        onClick={() => setSelectedMatchIndex(matchIndex)}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                          <Home className="w-4 h-4 text-accent" />
+                        </div>
+                        <div className="flex-1 text-right">
+                          <p className="text-sm font-bold">{match.building_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            واحد {match.unit_number} — {match.role === "owner" ? "مالک" : "ساکن"}
+                          </p>
+                        </div>
+                        {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!isNewUser && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">➕ ساختمان جدید</p>
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-lg cursor-pointer border-2 border-dashed border-border hover:border-primary/50 transition-all duration-200"
+                    onClick={handleCreateBuilding}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Plus className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 text-right">
+                      <p className="text-sm font-bold">ایجاد ساختمان</p>
+                      <p className="text-xs text-muted-foreground">ساختمان جدید بسازید</p>
+                    </div>
                   </div>
-                )}
-              </form>
-            </Card>
-          </div>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                className="w-full bg-gradient-primary hover:opacity-90 shadow-glow"
+                onClick={handleConfirmSelection}
+              >
+                ورود
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
