@@ -65,9 +65,12 @@ const ResidentDashboard = () => {
   }
 
   const currentMatch = matches[0];
+  const ownerName = currentUnit?.owner_name || currentMatch?.owner_name || "";
+  const residentName = currentUnit?.resident_name || currentMatch?.resident_name || "";
+  const unitNumber = currentUnit?.unit_number || currentMatch?.unit_number || "";
   const personName = currentMatch?.role === "owner"
-    ? currentUnit?.owner_name || ""
-    : (currentUnit?.resident_name || currentUnit?.owner_name || "");
+    ? ownerName
+    : (residentName || ownerName);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -118,7 +121,7 @@ const ResidentDashboard = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         buildingName={currentBuilding?.name || "ساختمان"}
-        unitNumber={currentUnit?.unit_number || ""}
+        unitNumber={unitNumber}
         role={currentMatch?.role || "resident"}
         personName={personName}
         onSignOut={handleSignOut}
