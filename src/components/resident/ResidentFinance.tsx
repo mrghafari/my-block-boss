@@ -136,8 +136,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
       setBulkMode({ charge: Math.round(charge), extra: Math.round(extra) });
       setPayChargeIds(chargeIds);
     } else {
+      // پرداخت مانده حساب: هیچ ردیف شارژی نباید حذف شود
       setBulkMode(null);
-      setPayChargeIds(charges.map((c) => c.id));
+      setPayChargeIds([]);
     }
     setPayOpen(true);
   };
