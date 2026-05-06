@@ -191,31 +191,33 @@ export function PaymentDialog({
               )}
 
               {/* فوق‌شارژ */}
-              <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="pay-extra"
-                      checked={extraChecked}
-                      onCheckedChange={(v) => setExtraChecked(!!v)}
-                    />
-                    <Label htmlFor="pay-extra" className="cursor-pointer font-medium">
-                      صندوق فوق‌شارژ
-                      <span className="text-xs text-muted-foreground mr-1">(بر عهده مالک)</span>
-                    </Label>
+              {r(extraDebt) > 0 && (
+                <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="pay-extra"
+                        checked={extraChecked}
+                        onCheckedChange={(v) => setExtraChecked(!!v)}
+                      />
+                      <Label htmlFor="pay-extra" className="cursor-pointer font-medium">
+                        صندوق فوق‌شارژ
+                        <span className="text-xs text-muted-foreground mr-1">(بر عهده مالک)</span>
+                      </Label>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      بدهی: {r(extraDebt).toLocaleString("fa-IR")} تومان
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    بدهی: {r(extraDebt).toLocaleString("fa-IR")} تومان
-                  </span>
+                  {extraChecked && (
+                    <NumericInput
+                      value={String(extraAmount || "")}
+                      onChange={(v) => setExtraAmount(Number(v) || 0)}
+                      placeholder="مبلغ فوق‌شارژ"
+                    />
+                  )}
                 </div>
-                {extraChecked && (
-                  <NumericInput
-                    value={String(extraAmount || "")}
-                    onChange={(v) => setExtraAmount(Number(v) || 0)}
-                    placeholder="مبلغ فوق‌شارژ"
-                  />
-                )}
-              </div>
+              )}
 
               {/* جمع کل */}
               <div className="flex justify-between items-center pt-2 border-t">
