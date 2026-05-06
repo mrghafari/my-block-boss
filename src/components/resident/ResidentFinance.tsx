@@ -318,6 +318,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                 <p className="text-[10px] text-muted-foreground pt-1 border-t">
                   توجه: بدهی‌های شارژ ماهانه ({formatNumber(totalCharges)} تومان) جداگانه نمایش داده می‌شوند و در این مانده لحاظ نشده‌اند.
                 </p>
+                <p className="text-[10px] text-amber-600 pt-1 border-t">
+                  ⚠ پرداخت بدهی مانده حساب فقط در صورت جابجایی و تغییر مالکیت و یا اتمام قرارداد مستاجر انجام می‌شود.
+                </p>
               </div>
             </TooltipContent>
           </Tooltip>
