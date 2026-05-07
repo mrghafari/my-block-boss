@@ -121,7 +121,10 @@ export function PaymentDialog({
       _building_id: buildingId,
       _unit_id: unitId,
       _payments: records as any,
-      _charge_ids_to_clear: chargeIdsToClear ?? [],
+      _charge_ids_to_clear: [
+        ...((chargeChecked && r(chargeAmount) > 0) ? (chargeFundIdsToClear ?? []) : []),
+        ...((extraChecked && r(extraAmount) > 0) ? (extraFundIdsToClear ?? []) : []),
+      ],
     });
 
     if (error) {
