@@ -23,8 +23,10 @@ interface Props {
   defaultDescription?: string;
   ownerName?: string | null;
   residentName?: string | null;
-  /** شناسه ردیف‌های unit_charges که پس از پرداخت موفق باید حذف شوند */
-  chargeIdsToClear?: string[];
+  /** شناسه ردیف‌های unit_charges از نوع شارژ که پس از پرداخت موفق باید حذف شوند */
+  chargeFundIdsToClear?: string[];
+  /** شناسه ردیف‌های unit_charges از نوع فوق‌شارژ که پس از پرداخت موفق باید حذف شوند */
+  extraFundIdsToClear?: string[];
 }
 
 type Step = "form" | "gateway" | "success";
@@ -42,7 +44,8 @@ export function PaymentDialog({
   defaultDescription,
   ownerName,
   residentName,
-  chargeIdsToClear,
+  chargeFundIdsToClear,
+  extraFundIdsToClear,
 }: Props) {
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>("form");
@@ -118,7 +121,10 @@ export function PaymentDialog({
       _building_id: buildingId,
       _unit_id: unitId,
       _payments: records as any,
-      _charge_ids_to_clear: chargeIdsToClear ?? [],
+      _charge_ids_to_clear: [
+        ...((chargeChecked && r(chargeAmount) > 0) ? (chargeFundIdsToClear ?? []) : []),
+        ...((extraChecked && r(extraAmount) > 0) ? (extraFundIdsToClear ?? []) : []),
+      ],
     });
 
     if (error) {
