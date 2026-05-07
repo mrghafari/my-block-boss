@@ -2,8 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pin, Bell, Loader2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Pin, Bell, Loader2, ScrollText } from "lucide-react";
 import { formatJalaliDate } from "@/lib/jalaliDate";
+import { BuildingRulesPanel } from "@/components/announcements/BuildingRulesPanel";
 
 interface Props {
   buildingId: string;
