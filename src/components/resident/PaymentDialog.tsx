@@ -44,7 +44,8 @@ export function PaymentDialog({
   defaultDescription,
   ownerName,
   residentName,
-  chargeIdsToClear,
+  chargeFundIdsToClear,
+  extraFundIdsToClear,
 }: Props) {
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>("form");
