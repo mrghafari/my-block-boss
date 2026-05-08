@@ -37,6 +37,27 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth();
   const { currentBuildingId } = useBuilding();
   const { toast } = useToast();
+  const [allMatches, setAllMatches] = useState<UnitMatch[]>([]);
+  const [currentMatch, setCurrentMatch] = useState<UnitMatch | null>(null);
+
+  useEffect(() => {
+    try {
+      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
+      const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
+      setAllMatches(all);
+      setCurrentMatch(sel[0] || null);
+    } catch {/* ignore */}
+  }, []);
+
+  const isSameMatch = (a: UnitMatch, b: UnitMatch | null) =>
+    !!b && a.building_id === b.building_id && a.unit_id === b.unit_id && a.role === b.role;
+
+  const switchToMatch = (m: UnitMatch) => {
+    if (isSameMatch(m, currentMatch)) return;
+    localStorage.setItem("resident_matches", JSON.stringify([m]));
+    localStorage.setItem("currentBuildingId", m.building_id);
+    window.location.href = m.isManager ? "/dashboard" : "/resident";
+  };
 
   const handleSignOut = async () => {
     try {
