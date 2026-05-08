@@ -35,6 +35,28 @@ const ResidentAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // If user is already logged in and has stored matches, jump straight to selection
+  useEffect(() => {
+    try {
+      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
+      if (Array.isArray(all) && all.length > 0) {
+        const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
+        const currentIdx = sel[0]
+          ? all.findIndex(
+              (m) =>
+                m.building_id === sel[0].building_id &&
+                m.unit_id === sel[0].unit_id &&
+                m.role === sel[0].role,
+            )
+          : 0;
+        setMatches(all);
+        setSelectedMatchIndex(currentIdx >= 0 ? currentIdx : 0);
+        setStep("select");
+      }
+    } catch {/* ignore */}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const managerMatches = useMemo(
     () => matches.filter((match) => match.isManager),
     [matches],
