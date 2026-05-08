@@ -63,7 +63,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 }
 
 function ResidentAuthRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -73,14 +73,8 @@ function ResidentAuthRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If user is logged in and has resident_matches, redirect to resident dashboard
-  if (user) {
-    const matches = localStorage.getItem("resident_matches");
-    if (matches) {
-      return <Navigate to="/resident" replace />;
-    }
-  }
-
+  // Always render — when user is already logged in, ResidentAuth shows the
+  // selection screen so they can switch between roles/buildings without re-OTP.
   return <>{children}</>;
 }
 

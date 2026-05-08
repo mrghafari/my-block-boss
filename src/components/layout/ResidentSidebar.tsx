@@ -1,9 +1,10 @@
-import { Building2, Wallet, Bell, BarChart3, FileText, Phone, ChevronLeft, ChevronRight, LogOut, UserCog, CalendarCheck, MessageSquare, ScrollText, X } from "lucide-react";
+import { Building2, Wallet, Bell, BarChart3, FileText, Phone, ChevronLeft, ChevronRight, LogOut, UserCog, CalendarCheck, MessageSquare, ScrollText, X, Repeat } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { RoleSwitcher } from "./RoleSwitcher";
+
 
 interface ResidentSidebarProps {
   activeTab: string;
@@ -92,12 +93,6 @@ export function ResidentSidebar({
           )}
         </div>
 
-        {/* Role / building switcher */}
-        {showLabels && (
-          <div className="px-2 pt-2">
-            <RoleSwitcher variant="sidebar" compact />
-          </div>
-        )}
 
         {/* Navigation */}
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
@@ -125,6 +120,7 @@ export function ResidentSidebar({
 
         {/* Sign out & Collapse */}
         <div className="p-2 border-t border-sidebar-border space-y-1">
+          <SwitchAccountButton showLabels={showLabels} />
           <button
             onClick={onSignOut}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
@@ -145,5 +141,25 @@ export function ResidentSidebar({
         </div>
       </aside>
     </>
+  );
+}
+
+function SwitchAccountButton({ showLabels }: { showLabels: boolean }) {
+  const navigate = useNavigate();
+  const hasMultiple = (() => {
+    try {
+      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]");
+      return Array.isArray(all) && all.length > 1;
+    } catch { return false; }
+  })();
+  if (!hasMultiple) return null;
+  return (
+    <button
+      onClick={() => navigate("/resident-auth")}
+      className="w-full flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
+    >
+      <Repeat className="w-4 h-4 shrink-0" />
+      {showLabels && <span className="text-xs font-medium flex-1 text-right">تغییر نقش / ساختمان</span>}
+    </button>
   );
 }

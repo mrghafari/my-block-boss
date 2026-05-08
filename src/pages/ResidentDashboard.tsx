@@ -15,7 +15,7 @@ import { ReservationsList } from "@/components/announcements/ReservationsList";
 import { MessagesPanel } from "@/components/messages/MessagesPanel";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { MeetingMinutesPage } from "@/components/meetings/MeetingMinutesPage";
-import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
+
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("finance");
@@ -141,7 +141,6 @@ const ResidentDashboard = () => {
             <Menu className="w-5 h-5" />
           </Button>
           <div className="flex-1" />
-          <RoleSwitcher compact />
           <NotificationBell buildingId={currentBuildingId} isManager={false} onNavigate={setActiveTab} />
         </div>
         <div className="p-3 md:p-6">
