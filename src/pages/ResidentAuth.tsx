@@ -101,6 +101,11 @@ const ResidentAuth = () => {
       return;
     }
     localStorage.setItem("resident_matches", JSON.stringify([selectedMatch]));
+    if (matches.length > 0) {
+      localStorage.setItem("resident_matches_all", JSON.stringify(matches));
+    } else {
+      localStorage.setItem("resident_matches_all", JSON.stringify([selectedMatch]));
+    }
     localStorage.setItem("currentBuildingId", selectedMatch.building_id);
     if (selectedMatch.isManager) {
       navigate("/dashboard", { replace: true });
@@ -139,6 +144,8 @@ const ResidentAuth = () => {
       }
 
       const verifiedMatches: UnitMatch[] = data.matches || [];
+      setMatches(verifiedMatches);
+      localStorage.setItem("resident_matches_all", JSON.stringify(verifiedMatches));
 
       const { error: otpErr } = await supabase.auth.verifyOtp({
         token_hash: data.token_hash,

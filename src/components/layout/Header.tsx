@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuildingSelector } from "./BuildingSelector";
 import { SearchCommand } from "./SearchCommand";
+import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useBuilding } from "@/contexts/BuildingContext";
@@ -78,6 +79,9 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-2 md:gap-4">
           <div className="hidden md:block">
             <BuildingSelector />
+          </div>
+          <div className="hidden md:block">
+            <RoleSwitcher />
           </div>
           <NotificationBell buildingId={currentBuildingId || undefined} isManager={true} onNavigate={(t) => onTabChange?.(t)} />
 

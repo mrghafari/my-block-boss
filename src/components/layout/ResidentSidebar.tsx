@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleSwitcher } from "./RoleSwitcher";
 
 interface ResidentSidebarProps {
   activeTab: string;
@@ -90,6 +91,13 @@ export function ResidentSidebar({
             </Button>
           )}
         </div>
+
+        {/* Role / building switcher */}
+        {showLabels && (
+          <div className="px-2 pt-2">
+            <RoleSwitcher variant="sidebar" compact />
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
