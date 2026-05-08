@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleSwitcher } from "./RoleSwitcher";
 
 interface ResidentSidebarProps {
   activeTab: string;
