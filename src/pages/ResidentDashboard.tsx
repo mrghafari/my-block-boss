@@ -15,7 +15,7 @@ import { ReservationsList } from "@/components/announcements/ReservationsList";
 import { MessagesPanel } from "@/components/messages/MessagesPanel";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { MeetingMinutesPage } from "@/components/meetings/MeetingMinutesPage";
-import { RoleSwitcher } from "@/components/layout/RoleSwitcher";
+
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("finance");
