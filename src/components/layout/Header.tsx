@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, User, LogOut, Menu } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, User, LogOut, Menu, ShieldCheck, Home, Check, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuildingSelector } from "./BuildingSelector";
@@ -13,8 +13,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+interface UnitMatch {
+  unit_id: string | null;
+  unit_number: string | null;
+  building_id: string;
+  building_name: string;
+  role: "owner" | "resident" | "manager";
+  isManager: boolean;
+}
 
 interface HeaderProps {
   onTabChange?: (tab: string) => void;
@@ -26,6 +37,27 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth();
   const { currentBuildingId } = useBuilding();
   const { toast } = useToast();
+  const [allMatches, setAllMatches] = useState<UnitMatch[]>([]);
+  const [currentMatch, setCurrentMatch] = useState<UnitMatch | null>(null);
+
+  useEffect(() => {
+    try {
+      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
+      const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
+      setAllMatches(all);
+      setCurrentMatch(sel[0] || null);
+    } catch {/* ignore */}
+  }, []);
+
+  const isSameMatch = (a: UnitMatch, b: UnitMatch | null) =>
+    !!b && a.building_id === b.building_id && a.unit_id === b.unit_id && a.role === b.role;
+
+  const switchToMatch = (m: UnitMatch) => {
+    if (isSameMatch(m, currentMatch)) return;
+    localStorage.setItem("resident_matches", JSON.stringify([m]));
+    localStorage.setItem("currentBuildingId", m.building_id);
+    window.location.href = m.isManager ? "/dashboard" : "/resident";
+  };
 
   const handleSignOut = async () => {
     try {
@@ -96,7 +128,36 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
                 </div>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-64">
+              {allMatches.length > 1 && (
+                <>
+                  <DropdownMenuLabel className="text-xs flex items-center gap-2">
+                    <Repeat className="w-3.5 h-3.5" />
+                    جابجایی بین نقش‌ها
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {allMatches.map((m) => (
+                    <DropdownMenuItem
+                      key={`sw-${m.building_id}-${m.unit_id ?? "mgr"}-${m.role}`}
+                      onClick={() => switchToMatch(m)}
+                      className="cursor-pointer gap-2"
+                    >
+                      {m.isManager ? (
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                      ) : (
+                        <Home className="w-4 h-4 text-accent" />
+                      )}
+                      <span className="flex-1 truncate text-xs">
+                        {m.isManager
+                          ? `مدیر · ${m.building_name}`
+                          : `${m.building_name} — واحد ${m.unit_number} (${m.role === "owner" ? "مالک" : "ساکن"})`}
+                      </span>
+                      {isSameMatch(m, currentMatch) && <Check className="w-4 h-4 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                 <LogOut className="w-4 h-4 ml-2" />
                 خروج از حساب
