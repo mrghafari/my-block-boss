@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Search, User, LogOut, Menu, ShieldCheck, Home, Check, Repeat } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, User, LogOut, Menu, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuildingSelector } from "./BuildingSelector";
 import { SearchCommand } from "./SearchCommand";
-import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useBuilding } from "@/contexts/BuildingContext";
@@ -13,19 +13,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-interface UnitMatch {
-  unit_id: string | null;
-  unit_number: string | null;
-  building_id: string;
-  building_name: string;
-  role: "owner" | "resident" | "manager";
-  isManager: boolean;
-}
 
 interface HeaderProps {
   onTabChange?: (tab: string) => void;
@@ -37,34 +27,21 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth();
   const { currentBuildingId } = useBuilding();
   const { toast } = useToast();
-  const [allMatches, setAllMatches] = useState<UnitMatch[]>([]);
-  const [currentMatch, setCurrentMatch] = useState<UnitMatch | null>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
+  const hasMultipleMatches = (() => {
     try {
-      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
-      const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
-      setAllMatches(all);
-      setCurrentMatch(sel[0] || null);
-    } catch {/* ignore */}
-  }, []);
-
-  const isSameMatch = (a: UnitMatch, b: UnitMatch | null) =>
-    !!b && a.building_id === b.building_id && a.unit_id === b.unit_id && a.role === b.role;
-
-  const switchToMatch = (m: UnitMatch) => {
-    if (isSameMatch(m, currentMatch)) return;
-    localStorage.setItem("resident_matches", JSON.stringify([m]));
-    localStorage.setItem("currentBuildingId", m.building_id);
-    window.location.href = m.isManager ? "/dashboard" : "/resident";
-  };
+      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]");
+      return Array.isArray(all) && all.length > 1;
+    } catch { return false; }
+  })();
 
   const handleSignOut = async () => {
     try {
       localStorage.removeItem("resident_matches");
+      localStorage.removeItem("resident_matches_all");
       localStorage.removeItem("currentBuildingId");
       const { error } = await signOut();
-      // "Auth session missing" means we're already logged out — treat as success
       if (error && !/session/i.test(error.message || "")) {
         toast({ title: "خطا در خروج", description: error.message, variant: "destructive" });
         return;
@@ -77,24 +54,16 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
 
   const rawEmail = user?.email || "";
   const rawName = user?.user_metadata?.full_name || "";
-  
-  // Strip fake email domain from any displayed value
   const cleanValue = (val: string) => val.replace(/@resident\.local$/i, "").trim();
-  
-  const displayPhone = rawEmail.includes("@resident.local") 
-    ? cleanValue(rawEmail) 
-    : "";
-  
-  // Use cleaned name, fallback to phone, never show @resident.local
-  const displayName = (rawName && !rawName.includes("@resident.local") ? rawName : "") 
-    || displayPhone 
-    || cleanValue(rawEmail) 
+  const displayPhone = rawEmail.includes("@resident.local") ? cleanValue(rawEmail) : "";
+  const displayName = (rawName && !rawName.includes("@resident.local") ? rawName : "")
+    || displayPhone
+    || cleanValue(rawEmail)
     || "کاربر";
 
   return (
     <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="flex items-center justify-between h-14 md:h-16 px-3 md:px-6 gap-2">
-        {/* Search */}
         <div className="relative flex-1 max-w-xs md:w-80 cursor-pointer" onClick={() => setSearchOpen(true)}>
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -107,13 +76,9 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
           <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} onTabChange={onTabChange} />
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-2 md:gap-4">
           <div className="hidden md:block">
             <BuildingSelector />
-          </div>
-          <div className="hidden md:block">
-            <RoleSwitcher />
           </div>
           <NotificationBell buildingId={currentBuildingId || undefined} isManager={true} onNavigate={(t) => onTabChange?.(t)} />
 
@@ -128,33 +93,13 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
                 </div>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              {allMatches.length > 1 && (
+            <DropdownMenuContent align="end" className="w-56">
+              {hasMultipleMatches && (
                 <>
-                  <DropdownMenuLabel className="text-xs flex items-center gap-2">
-                    <Repeat className="w-3.5 h-3.5" />
-                    جابجایی بین نقش‌ها
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {allMatches.map((m) => (
-                    <DropdownMenuItem
-                      key={`sw-${m.building_id}-${m.unit_id ?? "mgr"}-${m.role}`}
-                      onClick={() => switchToMatch(m)}
-                      className="cursor-pointer gap-2"
-                    >
-                      {m.isManager ? (
-                        <ShieldCheck className="w-4 h-4 text-primary" />
-                      ) : (
-                        <Home className="w-4 h-4 text-accent" />
-                      )}
-                      <span className="flex-1 truncate text-xs">
-                        {m.isManager
-                          ? `مدیر · ${m.building_name}`
-                          : `${m.building_name} — واحد ${m.unit_number} (${m.role === "owner" ? "مالک" : "ساکن"})`}
-                      </span>
-                      {isSameMatch(m, currentMatch) && <Check className="w-4 h-4 text-primary" />}
-                    </DropdownMenuItem>
-                  ))}
+                  <DropdownMenuItem onClick={() => navigate("/resident-auth")} className="cursor-pointer">
+                    <Repeat className="w-4 h-4 ml-2" />
+                    تغییر نقش / ساختمان
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
@@ -165,7 +110,6 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mobile menu button */}
           {onMenuClick && (
             <Button
               variant="ghost"
@@ -178,7 +122,6 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
           )}
         </div>
       </div>
-      {/* Mobile building selector */}
       <div className="md:hidden px-3 pb-2">
         <BuildingSelector />
       </div>
