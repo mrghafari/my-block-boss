@@ -128,7 +128,36 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
                 </div>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-64">
+              {allMatches.length > 1 && (
+                <>
+                  <DropdownMenuLabel className="text-xs flex items-center gap-2">
+                    <Repeat className="w-3.5 h-3.5" />
+                    جابجایی بین نقش‌ها
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {allMatches.map((m) => (
+                    <DropdownMenuItem
+                      key={`sw-${m.building_id}-${m.unit_id ?? "mgr"}-${m.role}`}
+                      onClick={() => switchToMatch(m)}
+                      className="cursor-pointer gap-2"
+                    >
+                      {m.isManager ? (
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                      ) : (
+                        <Home className="w-4 h-4 text-accent" />
+                      )}
+                      <span className="flex-1 truncate text-xs">
+                        {m.isManager
+                          ? `مدیر · ${m.building_name}`
+                          : `${m.building_name} — واحد ${m.unit_number} (${m.role === "owner" ? "مالک" : "ساکن"})`}
+                      </span>
+                      {isSameMatch(m, currentMatch) && <Check className="w-4 h-4 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                 <LogOut className="w-4 h-4 ml-2" />
                 خروج از حساب
