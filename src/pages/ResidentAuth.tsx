@@ -460,7 +460,9 @@ const ResidentAuth = () => {
                 type="button"
                 className="w-full bg-gradient-primary hover:opacity-90 shadow-glow"
                 onClick={handleConfirmSelection}
+                disabled={isLoading}
               >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                 ورود
               </Button>
               <Button
