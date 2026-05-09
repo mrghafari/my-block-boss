@@ -129,11 +129,8 @@ const ResidentAuth = () => {
       localStorage.setItem("resident_matches_all", JSON.stringify([selectedMatch]));
     }
     localStorage.setItem("currentBuildingId", selectedMatch.building_id);
-    if (selectedMatch.isManager) {
-      navigate("/dashboard", { replace: true });
-      return;
-    }
-    navigate("/resident", { replace: true });
+    // Force full reload so BuildingContext and resident hooks pick up the new selection
+    window.location.href = selectedMatch.isManager ? "/dashboard" : "/resident";
   };
 
   const handleVerifyOtp = async () => {
