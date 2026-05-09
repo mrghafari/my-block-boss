@@ -37,24 +37,40 @@ const ResidentAuth = () => {
 
   // If user is already logged in and has stored matches, jump straight to selection
   useEffect(() => {
-    try {
-      const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
-      if (Array.isArray(all) && all.length > 0) {
-        const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
-        const currentIdx = sel[0]
-          ? all.findIndex(
-              (m) =>
-                m.building_id === sel[0].building_id &&
-                m.unit_id === sel[0].unit_id &&
-                m.role === sel[0].role,
-            )
-          : 0;
-        setMatches(all);
-        setSelectedMatchIndex(currentIdx >= 0 ? currentIdx : 0);
-        setStep("select");
-      }
-    } catch {/* ignore */}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let mounted = true;
+    const restoreSelection = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
+        if (!mounted) return;
+
+        if (session && Array.isArray(all) && all.length > 0) {
+          const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
+          const currentIdx = sel[0]
+            ? all.findIndex(
+                (m) =>
+                  m.building_id === sel[0].building_id &&
+                  m.unit_id === sel[0].unit_id &&
+                  m.role === sel[0].role,
+              )
+            : 0;
+          setMatches(all);
+          setSelectedMatchIndex(currentIdx >= 0 ? currentIdx : 0);
+          setStep("select");
+          return;
+        }
+
+        if (!session) {
+          localStorage.removeItem("resident_matches");
+          localStorage.removeItem("currentBuildingId");
+        }
+      } catch {/* ignore */}
+    };
+
+    restoreSelection();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const managerMatches = useMemo(
@@ -117,11 +133,25 @@ const ResidentAuth = () => {
     }
   };
 
-  const navigateForMatch = (selectedMatch: UnitMatch | undefined) => {
+  const navigateForMatch = async (selectedMatch: UnitMatch | undefined, skipSessionCheck = false) => {
     if (!selectedMatch) {
       navigate("/dashboard", { replace: true });
       return;
     }
+
+    if (!skipSessionCheck) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        localStorage.removeItem("resident_matches");
+        localStorage.removeItem("currentBuildingId");
+        setMatches([]);
+        setSelectedMatchIndex(0);
+        setStep("phone");
+        toast({ title: "نشست ورود منقضی شده", description: "برای ورود دوباره کد تأیید بگیرید", variant: "destructive" });
+        return;
+      }
+    }
+
     localStorage.setItem("resident_matches", JSON.stringify([selectedMatch]));
     if (matches.length > 0) {
       localStorage.setItem("resident_matches_all", JSON.stringify(matches));
@@ -186,7 +216,7 @@ const ResidentAuth = () => {
         return;
       }
 
-      navigateForMatch(verifiedMatches[0]);
+      await navigateForMatch(verifiedMatches[0], true);
     } catch (err: any) {
       toast({ title: "خطا در تأیید", description: err?.message || "کد اشتباه است", variant: "destructive" });
       setOtp("");
@@ -200,8 +230,27 @@ const ResidentAuth = () => {
     navigate("/dashboard", { replace: true });
   };
 
-  const handleConfirmSelection = () => {
-    navigateForMatch(matches[selectedMatchIndex]);
+  const handleConfirmSelection = async () => {
+    setIsLoading(true);
+    try {
+      await navigateForMatch(matches[selectedMatchIndex]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelSelection = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      localStorage.removeItem("resident_matches");
+      localStorage.removeItem("currentBuildingId");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    const saved = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
+    const current = saved[0] || matches[selectedMatchIndex];
+    navigate(current ? (current.isManager ? "/dashboard" : "/resident") : "/", { replace: true });
   };
 
   // Auto-submit OTP once 6 digits are entered
@@ -424,21 +473,16 @@ const ResidentAuth = () => {
                 type="button"
                 className="w-full bg-gradient-primary hover:opacity-90 shadow-glow"
                 onClick={handleConfirmSelection}
+                disabled={isLoading}
               >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                 ورود
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => {
-                  const current = matches[selectedMatchIndex];
-                  if (current) {
-                    window.history.length > 1 ? navigate(-1) : navigate(current.isManager ? "/dashboard" : "/resident", { replace: true });
-                  } else {
-                    navigate("/", { replace: true });
-                  }
-                }}
+                onClick={handleCancelSelection}
               >
                 انصراف
               </Button>
