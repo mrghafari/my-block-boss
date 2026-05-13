@@ -359,7 +359,7 @@ export function ExpenseDetailsDialog({
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell colSpan={6} className="text-left">
+                  <TableCell colSpan={5} className="text-left">
                     جمع کل
                   </TableCell>
                   <TableCell className="text-primary">
