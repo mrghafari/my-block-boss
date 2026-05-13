@@ -24,7 +24,16 @@ export interface AdminBuilding {
   total_units: number;
   manager_name: string | null;
   manager_email: string | null;
+  manager_phone: string | null;
+  manager_user_id: string | null;
   created_at: string;
+}
+
+export interface AdminLookupUser {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
 }
 
 export interface AdminStats {
