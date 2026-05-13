@@ -184,9 +184,9 @@ serve(async (req) => {
         );
       }
 
-      const [units, managersFromTable, adminAssignedManagers] = await Promise.all([
-        lookupUnits(),
-        lookupManagers(),
+      const units = await lookupUnits();
+      const [managersFromTable, adminAssignedManagers] = await Promise.all([
+        lookupManagers(units.map((u: any) => u.id)),
         lookupAdminAssignedManagers(),
       ]);
 
