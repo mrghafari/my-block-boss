@@ -5,9 +5,10 @@ import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark, LifeBuoy, MessageSquare } from "lucide-react";
+import { Shield, Users, BarChart3, Loader2, LogOut, Settings, Landmark, LifeBuoy, MessageSquare, Building2 } from "lucide-react";
 import { AdminStatsCards } from "@/components/admin/AdminStats";
 import { AdminCustomers } from "@/components/admin/AdminCustomers";
+import { AdminBuildings } from "@/components/admin/AdminBuildings";
 import { AdminPlatformSettings } from "@/components/admin/AdminPlatformSettings";
 import { AdminBankAccounts } from "@/components/admin/AdminBankAccounts";
 import { AdminSmsPackages } from "@/components/admin/AdminSmsPackages";
@@ -53,6 +54,10 @@ export default function Admin() {
               <Users className="h-4 w-4" />
               مشتریان
             </TabsTrigger>
+            <TabsTrigger value="buildings" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              ساختمان‌ها
+            </TabsTrigger>
             <TabsTrigger value="bank-accounts" className="gap-2">
               <Landmark className="h-4 w-4" />
               حساب‌های بانکی
@@ -82,6 +87,10 @@ export default function Admin() {
 
           <TabsContent value="customers">
             <AdminCustomers />
+          </TabsContent>
+
+          <TabsContent value="buildings">
+            <AdminBuildings />
           </TabsContent>
 
           <TabsContent value="bank-accounts">

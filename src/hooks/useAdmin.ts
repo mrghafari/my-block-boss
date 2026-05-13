@@ -24,7 +24,16 @@ export interface AdminBuilding {
   total_units: number;
   manager_name: string | null;
   manager_email: string | null;
+  manager_phone: string | null;
+  manager_user_id: string | null;
   created_at: string;
+}
+
+export interface AdminLookupUser {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
 }
 
 export interface AdminStats {
@@ -138,6 +147,38 @@ export function useDeleteCustomer() {
     },
     onError: (err: Error) => {
       toast({ title: "خطا", description: err.message || "خطا در حذف مشتری", variant: "destructive" });
+    },
+  });
+}
+
+export function useAdminLookupUser(query: string) {
+  return useQuery({
+    queryKey: ["admin_lookup_user", query],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_lookup_user", { _query: query });
+      if (error) throw error;
+      return (data ?? []) as AdminLookupUser[];
+    },
+    enabled: query.trim().length >= 3,
+  });
+}
+
+export function useReassignBuildingManager() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ buildingId, newUserId }: { buildingId: string; newUserId: string }) => {
+      const { error } = await supabase.rpc("admin_reassign_building", {
+        _building_id: buildingId,
+        _new_user_id: newUserId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin_buildings"] });
+      toast({ title: "موفق", description: "مدیر ساختمان با موفقیت تغییر کرد" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "خطا", description: err.message || "خطا در انتساب مدیر", variant: "destructive" });
     },
   });
 }
