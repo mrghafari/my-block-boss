@@ -54,6 +54,10 @@ export default function Admin() {
               <Users className="h-4 w-4" />
               مشتریان
             </TabsTrigger>
+            <TabsTrigger value="buildings" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              ساختمان‌ها
+            </TabsTrigger>
             <TabsTrigger value="bank-accounts" className="gap-2">
               <Landmark className="h-4 w-4" />
               حساب‌های بانکی
