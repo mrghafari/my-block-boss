@@ -60,4 +60,15 @@ export function StatsCard({
       </CardContent>
     </Card>
   );
+
+  if (!tooltip) return card;
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>{card}</TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
