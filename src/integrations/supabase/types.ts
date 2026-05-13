@@ -1893,6 +1893,15 @@ export type Database = {
         }
         Returns: string
       }
+      admin_lookup_user: {
+        Args: { _query: string }
+        Returns: {
+          email: string
+          full_name: string
+          phone: string
+          user_id: string
+        }[]
+      }
       admin_reassign_building: {
         Args: { _building_id: string; _new_user_id: string }
         Returns: undefined
@@ -1905,6 +1914,8 @@ export type Database = {
           id: string
           manager_email: string
           manager_name: string
+          manager_phone: string
+          manager_user_id: string
           name: string
           total_units: number
         }[]
