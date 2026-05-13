@@ -155,7 +155,7 @@ export function ProjectReport() {
       {/* Projects Overview */}
       <Card variant="elevated">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center justify-end gap-2 text-right" dir="rtl">
             <FolderKanban className="w-5 h-5 text-primary" />
             خلاصه پروژه‌ها
           </CardTitle>
