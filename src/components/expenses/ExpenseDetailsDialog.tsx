@@ -343,8 +343,14 @@ export function ExpenseDetailsDialog({
                   <TableRow key={ua.unitNumber}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{ua.unitNumber}</TableCell>
-                    <TableCell>{ua.ownerName}</TableCell>
-                    <TableCell>{ua.residentName || "-"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span>{ua.residentName || ua.ownerName || "-"}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {ua.residentName ? "ساکن" : "مالک"}
+                        </Badge>
+                      </div>
+                    </TableCell>
                     <TableCell>{ua.area ? `${ua.area} متر` : "-"}</TableCell>
                     <TableCell>{ua.residentCount || "-"}</TableCell>
                     <TableCell className="font-bold text-primary">
