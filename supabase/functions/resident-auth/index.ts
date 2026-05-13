@@ -164,7 +164,17 @@ serve(async (req) => {
         );
       }
 
-      const [units, managers] = await Promise.all([lookupUnits(), lookupManagers()]);
+      const [units, managersFromTable, adminAssignedManagers] = await Promise.all([
+        lookupUnits(),
+        lookupManagers(),
+        lookupAdminAssignedManagers(),
+      ]);
+
+      // Merge, dedupe by building_id (prefer managers table entry)
+      const managerByBuilding = new Map<string, any>();
+      for (const m of adminAssignedManagers) managerByBuilding.set(m.building_id, m);
+      for (const m of managersFromTable) managerByBuilding.set(m.building_id, m);
+      const managers = Array.from(managerByBuilding.values());
 
       const managerBuildingIds = new Set(managers.map((m: any) => m.building_id));
       const isManager = managerBuildingIds.size > 0;
