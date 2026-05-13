@@ -150,7 +150,7 @@ export function ManagersHistoryReport({ buildingId }: { buildingId?: string } = 
         return (
           <Card key={role.id}>
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-base flex items-center justify-end gap-2 text-right" dir="rtl">
                 <UserCog className="w-4 h-4 text-primary" />
                 {role.label}
                 {active ? (
