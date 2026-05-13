@@ -97,6 +97,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           icon={CreditCard}
           iconColor="bg-accent"
           delay={300}
+          tooltip={periodTooltip}
         />
         <StatsCard
           title="مجموع هزینه‌ها"
@@ -106,6 +107,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           icon={AlertCircle}
           iconColor="bg-destructive"
           delay={400}
+          tooltip={periodTooltip}
         />
       </div>
 
