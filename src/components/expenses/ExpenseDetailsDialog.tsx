@@ -355,10 +355,10 @@ export function ExpenseDetailsDialog({
                   <TableRow key={ua.unitNumber}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{ua.unitNumber}</TableCell>
-                    <TableCell>{ua.residentName || ua.ownerName || "-"}</TableCell>
+                    <TableCell>{ua.personName || "-"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
-                        {ua.residentName ? "ساکن" : "مالک"}
+                        {ua.personRole}
                       </Badge>
                     </TableCell>
                     <TableCell>{ua.area ? `${ua.area} متر` : "-"}</TableCell>
