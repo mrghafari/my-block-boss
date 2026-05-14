@@ -10,10 +10,13 @@ interface Props {
   buildingId: string;
 }
 
+type ActiveRole = "owner" | "resident";
+
 const DEFAULT_FOLDERS = ["عمومی", "قراردادها", "صورتجلسات", "نقشه‌ها", "مالی"];
 
 export function ResidentDocuments({ buildingId }: Props) {
-  const { currentUnitId } = useResidentUnit();
+  const { currentUnitId, matches } = useResidentUnit();
+  const activeRole: ActiveRole = (matches?.[0]?.role as ActiveRole) || "resident";
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [customFolders, setCustomFolders] = useState<string[]>([]);
 
@@ -29,17 +32,17 @@ export function ResidentDocuments({ buildingId }: Props) {
   }, [buildingId]);
 
   const { data: isBlocked, isLoading: checkingAccess } = useQuery({
-    queryKey: ["unit_doc_access_check", buildingId, currentUnitId],
+    queryKey: ["unit_doc_access_check", buildingId, currentUnitId, activeRole],
     queryFn: async () => {
       if (!currentUnitId) return false;
       const { data, error } = await supabase
         .from("unit_document_access_blocks" as any)
-        .select("id")
+        .select("id, person_type")
         .eq("building_id", buildingId)
         .eq("unit_id", currentUnitId)
-        .maybeSingle();
+        .in("person_type", [activeRole, "both"]);
       if (error) throw error;
-      return !!data;
+      return (data || []).length > 0;
     },
     enabled: !!buildingId && !!currentUnitId,
   });
