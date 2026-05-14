@@ -123,6 +123,7 @@ export function ResidentPolls({ buildingId }: Props) {
         const options = (poll.options as any[]) || [];
         const pollVotes = votes.filter((v) => v.poll_id === poll.id);
         const totalVotes = pollVotes.length;
+        const myVote = myVoteFor(poll.id);
 
         return (
           <Card key={poll.id}>
@@ -137,17 +138,19 @@ export function ResidentPolls({ buildingId }: Props) {
               {options.map((opt: any, i: number) => {
                 const optVotes = pollVotes.filter((v) => v.selected_option === i).length;
                 const pct = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+                const isMine = myVote === i;
 
                 return (
                   <div key={i} className="space-y-1">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <Button
-                        variant="ghost"
+                        variant={isMine ? "default" : "ghost"}
                         size="sm"
-                        className="text-sm h-auto py-1 px-2"
+                        className="text-sm h-auto py-1 px-2 flex-1 justify-start"
                         onClick={() => voteMutation.mutate({ pollId: poll.id, optionIndex: i })}
-                        disabled={voteMutation.isPending}
+                        disabled={voteMutation.isPending || isMine}
                       >
+                        {isMine && <CheckCircle2 className="w-3 h-3 ml-1" />}
                         {typeof opt === "string" ? opt : opt.text || `گزینه ${i + 1}`}
                       </Button>
                       <span className="text-xs text-muted-foreground">{pct}%</span>
@@ -156,6 +159,11 @@ export function ResidentPolls({ buildingId }: Props) {
                   </div>
                 );
               })}
+              {myVote !== null && (
+                <p className="text-xs text-muted-foreground pt-1">
+                  می‌توانید تا پایان نظرسنجی رأی خود را تغییر دهید.
+                </p>
+              )}
             </CardContent>
           </Card>
         );
