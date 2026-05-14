@@ -102,22 +102,22 @@ export function UnitModuleAccessManager() {
                     const ownerGranted = isGranted(u.id, "owner", m.key);
                     const residentGranted = isGranted(u.id, "resident", m.key);
                     return (
-                      <>
-                        <td key={`${u.id}-${m.key}-o`} className="border-b border-l p-1 text-center">
+                      <Fragment key={m.key}>
+                        <td className="border-b border-l p-1 text-center">
                           <Switch
                             checked={ownerGranted}
                             onCheckedChange={() => handleToggle(u.id, "owner", m.key, ownerGranted)}
                             disabled={toggle.isPending}
                           />
                         </td>
-                        <td key={`${u.id}-${m.key}-r`} className="border-b border-l p-1 text-center">
+                        <td className="border-b border-l p-1 text-center">
                           <Switch
                             checked={residentGranted}
                             onCheckedChange={() => handleToggle(u.id, "resident", m.key, residentGranted)}
                             disabled={toggle.isPending}
                           />
                         </td>
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tr>
