@@ -169,6 +169,12 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     if (reqStart >= reqEnd) return;
     if (overlapInfo) return;
     if (exclusiveLockOnDate) return;
+    if (residentMode) {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const picked = new Date(reqDate.getFullYear(), reqDate.getMonth(), reqDate.getDate());
+      if (picked < todayStart) return;
+    }
     const gregDate = reqDate.toISOString().split("T")[0];
     const targetUnitId = !residentMode && reqOnBehalfUnitId ? reqOnBehalfUnitId : (unitId || null);
     createReservation.mutate(
@@ -510,7 +516,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">تاریخ رزرو</label>
-              <JalaliDatePicker value={reqDate} onChange={setReqDate} />
+              <JalaliDatePicker value={reqDate} onChange={setReqDate} minDate={residentMode ? new Date() : undefined} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
