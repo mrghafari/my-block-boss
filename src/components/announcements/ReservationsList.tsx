@@ -510,7 +510,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">تاریخ رزرو</label>
-              <JalaliDatePicker value={reqDate} onChange={setReqDate} />
+              <JalaliDatePicker value={reqDate} onChange={setReqDate} minDate={residentMode ? new Date() : undefined} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
