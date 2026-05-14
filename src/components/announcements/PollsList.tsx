@@ -229,7 +229,9 @@ export function PollsList() {
           {polls.map((poll) => {
             const voted = hasVoted(poll.id);
             const { counts, total } = getVoteCounts(poll.id, (poll.options as string[]).length);
-            const showResults = voted || !poll.is_active;
+            const expired = !!poll.ends_at && new Date(poll.ends_at).getTime() < Date.now();
+            const isOpen = poll.is_active && !expired;
+            const showResults = voted || !isOpen;
 
             return (
               <Card key={poll.id}>
