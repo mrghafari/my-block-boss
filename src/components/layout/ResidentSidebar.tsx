@@ -1,4 +1,4 @@
-import { Building2, Wallet, Bell, BarChart3, FileText, Phone, ChevronLeft, ChevronRight, LogOut, UserCog, CalendarCheck, MessageSquare, ScrollText, X, Repeat } from "lucide-react";
+import { Building2, Wallet, Bell, BarChart3, FileText, Phone, ChevronLeft, ChevronRight, LogOut, UserCog, CalendarCheck, MessageSquare, ScrollText, X, Repeat, FolderKanban } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ interface ResidentSidebarProps {
 
 const menuItems = [
   { id: "finance", label: "وضعیت مالی", icon: Wallet },
+  { id: "projects", label: "هزینه‌های پروژه‌ای", icon: FolderKanban },
   { id: "messages", label: "پیام به مدیر", icon: MessageSquare },
   { id: "announcements", label: "اطلاعیه‌ها", icon: Bell },
   { id: "polls", label: "نظرسنجی", icon: BarChart3 },

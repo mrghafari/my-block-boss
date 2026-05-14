@@ -10,6 +10,7 @@ import { ResidentAnnouncements } from "@/components/resident/ResidentAnnouncemen
 import { ResidentPolls } from "@/components/resident/ResidentPolls";
 import { ResidentDocuments } from "@/components/resident/ResidentDocuments";
 import { ResidentContacts } from "@/components/resident/ResidentContacts";
+import { ResidentProjects } from "@/components/resident/ResidentProjects";
 import { ManagersHistoryReport } from "@/components/reports/ManagersHistoryReport";
 import { ReservationsList } from "@/components/announcements/ReservationsList";
 import { MessagesPanel } from "@/components/messages/MessagesPanel";
@@ -77,6 +78,8 @@ const ResidentDashboard = () => {
     switch (activeTab) {
       case "finance":
         return <ResidentFinance buildingId={currentBuildingId} unitId={currentUnitId} />;
+      case "projects":
+        return <ResidentProjects buildingId={currentBuildingId} unitId={currentUnitId} />;
       case "messages":
         return (
           <div className="max-w-3xl mx-auto space-y-4">
