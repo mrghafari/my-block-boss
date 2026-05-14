@@ -241,6 +241,10 @@ export function PollsList() {
             const expired = !!poll.ends_at && new Date(poll.ends_at).getTime() < Date.now();
             const isOpen = poll.is_active && !expired;
             const showResults = voted || !isOpen;
+            const myHash = myHashes.find((h) => h.pollId === poll.id)?.hash;
+            const myVote = myHash
+              ? allVotes.find((v) => v.poll_id === poll.id && v.voter_hash === myHash)?.selected_option
+              : undefined;
 
             return (
               <Card key={poll.id}>
@@ -267,13 +271,30 @@ export function PollsList() {
                 <CardContent className="space-y-2">
                   {(poll.options as string[]).map((opt, idx) => {
                     const pct = total > 0 ? Math.round((counts[idx] / total) * 100) : 0;
+                    const isMine = myVote === idx;
                     return (
                       <div key={idx}>
                         {showResults ? (
                           <div className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span>{opt}</span>
-                              <span className="text-muted-foreground">{counts[idx]} رأی ({pct}%)</span>
+                            <div className="flex justify-between items-center text-sm gap-2">
+                              <div className="flex items-center gap-1">
+                                {isMine && <CheckCircle2 className="w-3 h-3 text-primary" />}
+                                <span className={isMine ? "font-medium text-primary" : ""}>{opt}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">{counts[idx]} رأی ({pct}%)</span>
+                                {isOpen && !isMine && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-6 text-xs"
+                                    onClick={() => voteMutation.mutate({ pollId: poll.id, optionIndex: idx })}
+                                    disabled={voteMutation.isPending}
+                                  >
+                                    تغییر به این
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                             <Progress value={pct} className="h-2" />
                           </div>
@@ -293,7 +314,7 @@ export function PollsList() {
                   {voted && (
                     <div className="flex items-center gap-1 text-xs text-primary mt-2">
                       <CheckCircle2 className="w-3 h-3" />
-                      رأی شما ثبت شده است (بدون نام)
+                      {isOpen ? "رأی شما ثبت شده است — تا پایان نظرسنجی قابل تغییر است" : "رأی شما ثبت شده است (بدون نام)"}
                     </div>
                   )}
                   <div className="flex justify-between text-xs text-muted-foreground mt-2">
