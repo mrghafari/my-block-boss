@@ -26,7 +26,8 @@ export function ResidentPolls({ buildingId }: Props) {
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      const now = Date.now();
+      return (data || []).filter((p: any) => !p.ends_at || new Date(p.ends_at).getTime() >= now);
     },
   });
 
