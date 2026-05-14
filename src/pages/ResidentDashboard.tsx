@@ -84,8 +84,6 @@ const ResidentDashboard = () => {
     ? ownerName
     : (residentName || ownerName);
 
-  const activeRole: "owner" | "resident" = currentMatch?.role === "owner" ? "owner" : "resident";
-  const { data: grantedModules = [] } = useMyUnitModules(currentBuildingId, currentUnitId, activeRole);
 
   const renderContent = () => {
     switch (activeTab) {
