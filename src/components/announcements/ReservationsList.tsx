@@ -357,7 +357,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day, i) => {
                   const inMonth = format(day, "M", { locale: faIR }) === format(viewDate, "M", { locale: faIR });
-                  const key = day.toISOString().split("T")[0];
+                  const key = getLocalDateKey(day);
                   const dayItems = reservationsByDate[key] || [];
                   const approved = dayHasApproved(day);
                   const pending = dayHasPending(day);
@@ -540,7 +540,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </div>
             {(() => {
               const now = new Date();
-              const isToday = !!reqDate && reqDate.toDateString() === now.toDateString();
+              const isToday = !!reqDate && getLocalDateKey(reqDate) === getLocalDateKey(now);
               const minTime = residentMode && isToday
                 ? `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
                 : undefined;
@@ -653,7 +653,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </DialogTitle>
           </DialogHeader>
           {dayDetail && (() => {
-            const key = dayDetail.toISOString().split("T")[0];
+            const key = getLocalDateKey(dayDetail);
             const dayItems = (reservationsByDate[key] || []).filter(r => r.status !== "rejected");
             const toMin = (t: string) => {
               const [h, m] = t.slice(0, 5).split(":").map(Number);
