@@ -127,18 +127,24 @@ export function JalaliDatePicker({
               const selected = value && isSameDay(day, value);
               const today = isToday(day);
               const dayNum = format(day, "d", { locale: faIR });
+              const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+              const minStart = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
+              const maxStart = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
+              const isDisabled = (minStart && dayStart < minStart) || (maxStart && dayStart > maxStart);
 
               return (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => handleSelect(day)}
+                  onClick={() => !isDisabled && handleSelect(day)}
+                  disabled={!!isDisabled}
                   className={cn(
                     "h-9 w-9 rounded-md text-sm flex items-center justify-center transition-colors",
                     !inMonth && "text-muted-foreground opacity-40",
-                    inMonth && "hover:bg-accent",
+                    inMonth && !isDisabled && "hover:bg-accent",
                     selected && "bg-primary text-primary-foreground hover:bg-primary",
                     today && !selected && "bg-accent text-accent-foreground",
+                    isDisabled && "opacity-30 cursor-not-allowed line-through",
                   )}
                 >
                   {dayNum}
