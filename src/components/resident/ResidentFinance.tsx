@@ -385,7 +385,22 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
         {/* Payments Tab */}
         <TabsContent value="payments">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-3">
+              <ExportToolbar
+                from={paymentsFrom}
+                to={paymentsTo}
+                onFromChange={setPaymentsFrom}
+                onToChange={setPaymentsTo}
+                onExportExcel={() => {
+                  const rows = payments.filter((p: any) => inDateRange(p.payment_date, paymentsFrom, paymentsTo));
+                  exportPaymentsExcel(rows as any, unitInfo?.unit_number || "", paymentsFrom, paymentsTo);
+                }}
+                onExportPdf={async () => {
+                  const rows = payments.filter((p: any) => inDateRange(p.payment_date, paymentsFrom, paymentsTo));
+                  await exportPaymentsPdf(rows as any, unitInfo?.unit_number || "", paymentsFrom, paymentsTo);
+                }}
+                disabled={payments.length === 0}
+              />
               {payments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">پرداختی ثبت نشده است</p>
               ) : (
@@ -402,7 +417,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {payments.map((p: any) => {
+                    {payments
+                      .filter((p: any) => inDateRange(p.payment_date, paymentsFrom, paymentsTo))
+                      .map((p: any) => {
                       const personName = p.resident_name || p.owner_name || "-";
                       const roleLabel = p.resident_name ? "ساکن" : (p.owner_name ? "مالک" : "-");
                       return (
