@@ -98,7 +98,7 @@ export function AdminPricingSettings() {
   return (
     <div className="space-y-4">
       <div className="bg-muted/50 border rounded-lg p-4 text-sm text-muted-foreground">
-        قیمت پلن‌ها (به <strong className="text-foreground">هزار تومان در ماه</strong>) را اینجا تنظیم کنید. اگر می‌خواهید به‌جای قیمت عبارت «تماس بگیرید» نمایش داده شود، گزینه «تماس بگیرید» را فعال کنید.
+        قیمت پلن‌ها (به <strong className="text-foreground">هزار تومان به ازای هر واحد در سال</strong>) را اینجا تنظیم کنید. اگر می‌خواهید به‌جای قیمت عبارت «تماس بگیرید» نمایش داده شود، گزینه «تماس بگیرید» را فعال کنید.
       </div>
 
       {plans.map((plan, idx) => (
