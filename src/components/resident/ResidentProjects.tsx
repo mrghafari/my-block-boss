@@ -50,7 +50,7 @@ export function ResidentProjects({ buildingId, unitId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expense_unit_shares")
-        .select("expense_id, allocated_amount")
+        .select("expense_id, allocated_amount, owner_name, resident_name")
         .eq("building_id", buildingId)
         .eq("unit_id", unitId);
       if (error) throw error;
@@ -59,8 +59,14 @@ export function ResidentProjects({ buildingId, unitId }: Props) {
   });
 
   const shareMap = useMemo(() => {
-    const m = new Map<string, number>();
-    shares.forEach((s: any) => m.set(s.expense_id, Number(s.allocated_amount) || 0));
+    const m = new Map<string, { amount: number; owner_name: string | null; resident_name: string | null }>();
+    shares.forEach((s: any) =>
+      m.set(s.expense_id, {
+        amount: Number(s.allocated_amount) || 0,
+        owner_name: s.owner_name,
+        resident_name: s.resident_name,
+      })
+    );
     return m;
   }, [shares]);
 
