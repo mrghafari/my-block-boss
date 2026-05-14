@@ -601,3 +601,48 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
     </div>
   );
 }
+
+interface ExportToolbarProps {
+  from?: Date;
+  to?: Date;
+  onFromChange: (d: Date | undefined) => void;
+  onToChange: (d: Date | undefined) => void;
+  onExportExcel: () => void;
+  onExportPdf: () => void | Promise<void>;
+  disabled?: boolean;
+}
+
+function ExportToolbar({ from, to, onFromChange, onToChange, onExportExcel, onExportPdf, disabled }: ExportToolbarProps) {
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const handlePdf = async () => {
+    setPdfLoading(true);
+    try {
+      await onExportPdf();
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-muted/40 border">
+      <span className="text-xs text-muted-foreground">از</span>
+      <JalaliDatePicker value={from} onChange={onFromChange} placeholder="از تاریخ" buttonClassName="h-8 text-xs px-2 min-w-[110px]" />
+      <span className="text-xs text-muted-foreground">تا</span>
+      <JalaliDatePicker value={to} onChange={onToChange} placeholder="تا تاریخ" buttonClassName="h-8 text-xs px-2 min-w-[110px]" />
+      {(from || to) && (
+        <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { onFromChange(undefined); onToChange(undefined); }}>
+          پاک کردن
+        </Button>
+      )}
+      <div className="flex-1" />
+      <Button variant="outline" size="sm" className="h-8 gap-1" onClick={onExportExcel} disabled={disabled}>
+        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+        خروجی Excel
+      </Button>
+      <Button variant="outline" size="sm" className="h-8 gap-1" onClick={handlePdf} disabled={disabled || pdfLoading}>
+        {pdfLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5 text-red-600" />}
+        خروجی PDF
+      </Button>
+    </div>
+  );
+}
+
