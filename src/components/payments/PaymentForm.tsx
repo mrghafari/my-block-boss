@@ -15,8 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, CreditCard } from "lucide-react";
+import { Plus, CreditCard, AlertTriangle, Loader2 } from "lucide-react";
 import { useCreatePayment } from "@/hooks/usePayments";
 import { useUnits } from "@/hooks/useUnits";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -59,11 +60,26 @@ export function PaymentForm() {
     description: "",
   });
 
+  const [duplicateInfo, setDuplicateInfo] = useState<{
+    open: boolean;
+    message: string;
+  }>({ open: false, message: "" });
+
   const createPayment = useCreatePayment();
   const { data: units } = useUnits();
   const { data: policy } = usePaymentPolicy();
   const { currentBuildingId } = useBuilding();
   const qc = useQueryClient();
+
+  const submitPayment = () => {
+    const selectedUnit = units?.find((u) => u.id === formData.unit_id);
+    const paymentDate = new Date();
+    const paymentAmount = Number(formData.amount);
+    const monthNum = Number(formData.month);
+    const yearNum = Number(formData.year);
+    const fundType = formData.fund_type as "charge" | "extra_charge";
+    doCreate(selectedUnit, paymentDate, paymentAmount, monthNum, yearNum, fundType);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,12 +105,25 @@ export function PaymentForm() {
       if (existing && existing.length > 0) {
         const fundLabel = fundType === "charge" ? "شارژ" : "فوق‌شارژ";
         const monthLabel = persianMonths.find((m) => m.value === monthNum)?.label || "";
-        const ok = window.confirm(
-          `برای واحد ${selectedUnit?.unit_number} قبلاً ${existing.length} پرداخت ${fundLabel} برای ${monthLabel} ${yearNum} ثبت شده است.\nآیا می‌خواهید پرداخت جدید را نیز ثبت کنید؟`
-        );
-        if (!ok) return;
+        setDuplicateInfo({
+          open: true,
+          message: `برای واحد ${selectedUnit?.unit_number} قبلاً ${existing.length} پرداخت ${fundLabel} برای ${monthLabel} ${yearNum} ثبت شده است. در صورت ادامه، پرداخت تکراری ثبت خواهد شد.`,
+        });
+        return;
       }
     }
+
+    doCreate(selectedUnit, paymentDate, paymentAmount, monthNum, yearNum, fundType);
+  };
+
+  const doCreate = (
+    selectedUnit: any,
+    paymentDate: Date,
+    paymentAmount: number,
+    monthNum: number,
+    yearNum: number,
+    fundType: "charge" | "extra_charge"
+  ) => {
 
     createPayment.mutate(
       {
@@ -145,6 +174,7 @@ export function PaymentForm() {
           }
 
           setOpen(false);
+          setDuplicateInfo({ open: false, message: "" });
           setFormData({
             unit_id: "",
             amount: "",
@@ -301,6 +331,48 @@ export function PaymentForm() {
           </Button>
         </form>
       </DialogContent>
+
+      {/* Duplicate warning dialog */}
+      <Dialog
+        open={duplicateInfo.open}
+        onOpenChange={(o) => setDuplicateInfo((d) => ({ ...d, open: o }))}
+      >
+        <DialogContent
+          dir="rtl"
+          className="max-w-md border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-50 [&>button]:text-orange-900 dark:[&>button]:text-orange-50"
+        >
+          <DialogHeader>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-500/20 mb-2">
+              <AlertTriangle className="h-7 w-7 text-orange-600 dark:text-orange-300" />
+            </div>
+            <DialogTitle className="text-center text-orange-900 dark:text-orange-50">
+              هشدار: پرداخت تکراری
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-sm leading-7">
+            {duplicateInfo.message}
+          </p>
+          <DialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+            <Button
+              variant="outline"
+              className="flex-1 border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-900/40"
+              onClick={() => setDuplicateInfo({ open: false, message: "" })}
+            >
+              انصراف
+            </Button>
+            <Button
+              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={submitPayment}
+              disabled={createPayment.isPending}
+            >
+              {createPayment.isPending && (
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              )}
+              ادامه و ثبت
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

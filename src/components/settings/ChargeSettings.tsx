@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NumericInput } from "@/components/ui/numeric-input";
-import { Loader2, Zap, CalendarDays, Info } from "lucide-react";
+import { Loader2, Zap, CalendarDays, Info, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -58,6 +59,10 @@ export function ChargeSettings() {
   const [selectedMonth, setSelectedMonth] = useState(currentJalaliMonth);
   const [selectedYear, setSelectedYear] = useState(currentJalaliYear);
   const [applyDescription, setApplyDescription] = useState("");
+  const [duplicateInfo, setDuplicateInfo] = useState<{
+    open: boolean;
+    message: string;
+  }>({ open: false, message: "" });
 
   if (!currentBuilding || !currentBuildingId) return null;
 
@@ -69,15 +74,38 @@ export function ChargeSettings() {
     });
   };
 
-  const handleApply = async () => {
+  const buildDescriptions = () => {
     const monthLabel = `${JALALI_MONTHS[Number(selectedMonth) - 1]} ${selectedYear}`;
     const baseDesc = applyDescription || "";
-    const chargeDesc = baseDesc
-      ? `شارژ ${monthLabel} - ${baseDesc}`
-      : `شارژ ${monthLabel}`;
-    const extraDesc = baseDesc
-      ? `فوق‌شارژ ${monthLabel} - ${baseDesc}`
-      : `فوق‌شارژ ${monthLabel}`;
+    return {
+      monthLabel,
+      chargeDesc: baseDesc ? `شارژ ${monthLabel} - ${baseDesc}` : `شارژ ${monthLabel}`,
+      extraDesc: baseDesc ? `فوق‌شارژ ${monthLabel} - ${baseDesc}` : `فوق‌شارژ ${monthLabel}`,
+    };
+  };
+
+  const runApply = () => {
+    const { chargeDesc, extraDesc } = buildDescriptions();
+    applyCharges.mutate(
+      {
+        chargeAmount: Number(chargeAmount) || 0,
+        extraChargeAmount: Number(extraChargeAmount) || 0,
+        month: Number(selectedMonth),
+        year: Number(selectedYear),
+        chargeDescription: chargeDesc,
+        extraChargeDescription: extraDesc,
+      },
+      {
+        onSuccess: () => {
+          setApplyDialogOpen(false);
+          setDuplicateInfo({ open: false, message: "" });
+        },
+      }
+    );
+  };
+
+  const handleApply = async () => {
+    const { monthLabel } = buildDescriptions();
 
     // بررسی تکراری بودن شارژ برای این ماه/سال
     if (currentBuildingId) {
@@ -100,25 +128,16 @@ export function ChargeSettings() {
           const parts: string[] = [];
           if (chargeCount > 0) parts.push(`${chargeCount} رکورد شارژ`);
           if (extraCount > 0) parts.push(`${extraCount} رکورد فوق‌شارژ`);
-          const ok = window.confirm(
-            `برای ${monthLabel} قبلاً ${parts.join(" و ")} ثبت شده است.\nآیا می‌خواهید مجدداً اعمال کنید؟ (ممکن است رکوردهای تکراری ایجاد شود)`
-          );
-          if (!ok) return;
+          setDuplicateInfo({
+            open: true,
+            message: `برای ${monthLabel} قبلاً ${parts.join(" و ")} ثبت شده است. در صورت ادامه، رکوردهای تکراری ایجاد خواهد شد.`,
+          });
+          return;
         }
       }
     }
 
-    applyCharges.mutate(
-      {
-        chargeAmount: Number(chargeAmount) || 0,
-        extraChargeAmount: Number(extraChargeAmount) || 0,
-        month: Number(selectedMonth),
-        year: Number(selectedYear),
-        chargeDescription: chargeDesc,
-        extraChargeDescription: extraDesc,
-      },
-      { onSuccess: () => setApplyDialogOpen(false) }
-    );
+    runApply();
   };
 
   const vacantCount = units.filter((u) => !u.is_occupied).length;
@@ -285,6 +304,48 @@ export function ChargeSettings() {
               اعمال شارژ
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate warning dialog */}
+      <Dialog
+        open={duplicateInfo.open}
+        onOpenChange={(o) => setDuplicateInfo((d) => ({ ...d, open: o }))}
+      >
+        <DialogContent
+          dir="rtl"
+          className="max-w-md border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-50 [&>button]:text-orange-900 dark:[&>button]:text-orange-50"
+        >
+          <DialogHeader>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-500/20 mb-2">
+              <AlertTriangle className="h-7 w-7 text-orange-600 dark:text-orange-300" />
+            </div>
+            <DialogTitle className="text-center text-orange-900 dark:text-orange-50">
+              هشدار: شارژ تکراری
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-center text-sm leading-7">
+            {duplicateInfo.message}
+          </p>
+          <DialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
+            <Button
+              variant="outline"
+              className="flex-1 border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-900/40"
+              onClick={() => setDuplicateInfo({ open: false, message: "" })}
+            >
+              انصراف
+            </Button>
+            <Button
+              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={runApply}
+              disabled={applyCharges.isPending}
+            >
+              {applyCharges.isPending && (
+                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+              )}
+              ادامه و ثبت
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
