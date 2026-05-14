@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck } from "lucide-react";
 import { useUnits } from "@/hooks/useUnits";
-import { useUnitDocumentAccessBlocks, useToggleUnitDocumentAccess } from "@/hooks/useUnitDocumentAccess";
+import {
+  useUnitDocumentAccessBlocks,
+  useToggleUnitDocumentAccess,
+  type DocAccessPersonType,
+} from "@/hooks/useUnitDocumentAccess";
 import { useBuilding } from "@/contexts/BuildingContext";
 
 export function DocumentAccessManager() {
@@ -16,7 +18,21 @@ export function DocumentAccessManager() {
   const toggle = useToggleUnitDocumentAccess();
   const [search, setSearch] = useState("");
 
-  const blockedSet = useMemo(() => new Set(blocks.map(b => b.unit_id)), [blocks]);
+  // Map: unitId -> Set of blocked person_types
+  const blockMap = useMemo(() => {
+    const m = new Map<string, Set<DocAccessPersonType>>();
+    blocks.forEach(b => {
+      if (!m.has(b.unit_id)) m.set(b.unit_id, new Set());
+      m.get(b.unit_id)!.add(b.person_type);
+    });
+    return m;
+  }, [blocks]);
+
+  const isBlocked = (unitId: string, person: DocAccessPersonType) => {
+    const set = blockMap.get(unitId);
+    if (!set) return false;
+    return set.has(person) || set.has("both");
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim();
@@ -28,9 +44,14 @@ export function DocumentAccessManager() {
     );
   }, [units, search]);
 
-  const handleToggle = (unitId: string, currentlyAllowed: boolean) => {
+  const handleToggle = (unitId: string, person: DocAccessPersonType, currentlyAllowed: boolean) => {
     if (!currentBuildingId) return;
-    toggle.mutate({ buildingId: currentBuildingId, unitId, blocked: currentlyAllowed });
+    toggle.mutate({
+      buildingId: currentBuildingId,
+      unitId,
+      personType: person,
+      blocked: currentlyAllowed, // turning switch OFF = block
+    });
   };
 
   return (
@@ -41,7 +62,7 @@ export function DocumentAccessManager() {
           مدیریت دسترسی واحدها به اسناد
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
-          به صورت پیش‌فرض همه واحدها به اسناد دسترسی دارند. در صورت غیرفعال‌سازی، آن واحد در پورتال خود اسنادی نخواهد دید.
+          به صورت پیش‌فرض همه واحدها به اسناد دسترسی دارند. می‌توانید دسترسی مالک یا ساکن هر واحد را به‌صورت جداگانه فعال یا غیرفعال کنید.
         </p>
       </CardHeader>
       <CardContent>
@@ -54,32 +75,42 @@ export function DocumentAccessManager() {
             className="pr-9"
           />
         </div>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-[500px] overflow-y-auto pr-1">
+        <div className="grid gap-2 sm:grid-cols-2 max-h-[500px] overflow-y-auto pr-1">
           {filtered.map(u => {
-            const blocked = blockedSet.has(u.id);
+            const ownerBlocked = isBlocked(u.id, "owner");
+            const residentBlocked = isBlocked(u.id, "resident");
             return (
               <div
                 key={u.id}
-                className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                className="p-3 rounded-lg border bg-card space-y-2"
               >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">واحد {u.unit_number}</span>
-                    {blocked ? (
-                      <Badge variant="destructive" className="gap-1 text-[10px]"><Lock className="w-3 h-3" /> قطع</Badge>
-                    ) : (
-                      <Badge variant="secondary" className="gap-1 text-[10px]"><Unlock className="w-3 h-3" /> فعال</Badge>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate mt-0.5">
-                    {u.owner_name}{u.resident_name && u.resident_name !== u.owner_name ? ` • ${u.resident_name}` : ""}
-                  </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">واحد {u.unit_number}</span>
                 </div>
-                <Switch
-                  checked={!blocked}
-                  onCheckedChange={() => handleToggle(u.id, !blocked)}
-                  disabled={toggle.isPending}
-                />
+
+                <div className="flex items-center justify-between text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-muted-foreground">مالک</div>
+                    <div className="truncate">{u.owner_name || "—"}</div>
+                  </div>
+                  <Switch
+                    checked={!ownerBlocked}
+                    onCheckedChange={() => handleToggle(u.id, "owner", !ownerBlocked)}
+                    disabled={toggle.isPending}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-sm border-t pt-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-muted-foreground">ساکن</div>
+                    <div className="truncate">{u.resident_name || "—"}</div>
+                  </div>
+                  <Switch
+                    checked={!residentBlocked}
+                    onCheckedChange={() => handleToggle(u.id, "resident", !residentBlocked)}
+                    disabled={toggle.isPending}
+                  />
+                </div>
               </div>
             );
           })}

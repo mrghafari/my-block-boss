@@ -1686,6 +1686,7 @@ export type Database = {
           blocked_by: string | null
           building_id: string
           id: string
+          person_type: string
           unit_id: string
         }
         Insert: {
@@ -1693,6 +1694,7 @@ export type Database = {
           blocked_by?: string | null
           building_id: string
           id?: string
+          person_type?: string
           unit_id: string
         }
         Update: {
@@ -1700,6 +1702,7 @@ export type Database = {
           blocked_by?: string | null
           building_id?: string
           id?: string
+          person_type?: string
           unit_id?: string
         }
         Relationships: []
