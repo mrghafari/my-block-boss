@@ -559,6 +559,11 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
                 </div>
               );
             })()}
+            {isSelectedReservationInPast && (
+              <div className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm text-destructive">
+                امکان ثبت رزرو برای تاریخ یا ساعت گذشته وجود ندارد.
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">توضیحات</label>
               <Textarea value={reqDesc} onChange={e => setReqDesc(e.target.value)} placeholder="مناسبت، تعداد مهمان و..." />
@@ -598,7 +603,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRequestDialog(false)}>انصراف</Button>
-            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo || !!exclusiveLockOnDate}>
+            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo || !!exclusiveLockOnDate || isSelectedReservationInPast}>
               {createReservation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               {residentMode ? "ثبت درخواست" : "ثبت و تایید رزرو"}
             </Button>
