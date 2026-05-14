@@ -147,6 +147,8 @@ export function ManagersHistoryReport({ buildingId, hideEmpty = false }: { build
             return bEnd.localeCompare(aEnd);
           });
 
+        if (hideEmpty && !active && past.length === 0) return null;
+
         return (
           <Card key={role.id}>
             <CardHeader>
