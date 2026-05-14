@@ -46,6 +46,7 @@ export function PollsList() {
   const [createOpen, setCreateOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const [endsAt, setEndsAt] = useState<Date | undefined>(undefined);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: polls = [], isLoading } = useQuery({
