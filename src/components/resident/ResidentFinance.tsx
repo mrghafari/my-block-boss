@@ -383,6 +383,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       <TableHead className="text-right">تاریخ</TableHead>
                       <TableHead className="text-right">شخص</TableHead>
                       <TableHead className="text-right">نقش</TableHead>
+                      <TableHead className="text-right">مدیر</TableHead>
                       <TableHead className="text-right">توضیحات</TableHead>
                       <TableHead className="text-right">نوع</TableHead>
                       <TableHead className="text-left">مبلغ</TableHead>
@@ -399,6 +400,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">{roleLabel}</Badge>
                         </TableCell>
+                        <TableCell className="text-xs">{p.manager_name || "-"}</TableCell>
                         <TableCell className="text-xs">{p.description || "-"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
@@ -432,6 +434,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       <TableHead className="text-right">عنوان</TableHead>
                       <TableHead className="text-right">شخص</TableHead>
                       <TableHead className="text-right">نقش</TableHead>
+                      <TableHead className="text-right">مدیر</TableHead>
                       <TableHead className="text-right">نوع</TableHead>
                       <TableHead className="text-left">سهم شما</TableHead>
                     </TableRow>
@@ -455,6 +458,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                           <TableCell>
                             <Badge variant="secondary" className="text-xs">{roleLabel}</Badge>
                           </TableCell>
+                          <TableCell className="text-xs">{e.manager_name || "-"}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
                               {fundType === "charge" ? "شارژ" : "فوق‌شارژ"}
