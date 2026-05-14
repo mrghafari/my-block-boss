@@ -27,6 +27,8 @@ interface JalaliDatePickerProps {
   className?: string;
   disabled?: boolean;
   buttonClassName?: string;
+  minDate?: Date;
+  maxDate?: Date;
 }
 
 export function JalaliDatePicker({
@@ -36,6 +38,8 @@ export function JalaliDatePicker({
   className,
   disabled,
   buttonClassName,
+  minDate,
+  maxDate,
 }: JalaliDatePickerProps) {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState(value || new Date());
