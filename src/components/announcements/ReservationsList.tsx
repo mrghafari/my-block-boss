@@ -183,6 +183,8 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     return conflicts.length > 0 ? conflicts : null;
   }, [reqVenue, reqDate, reqStart, reqEnd, reqExclusive, reservations, venueMap]);
 
+  const isSelectedReservationInPast = residentMode && isPastReservationStart(reqDate, reqStart);
+
   const handleCreateRequest = async () => {
     if (!bId || !reqVenue || !reqDate || !reqName.trim() || !reqStart || !reqEnd) return;
     if (reqStart >= reqEnd) return;
@@ -276,7 +278,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
         </div>
         <div className="flex items-center gap-2">
           {residentMode ? (
-            <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
+            <Button onClick={() => { if (isPastReservationStart(reqDate, "00:00")) setReqDate(new Date()); setRequestDialog(true); }} className="gap-2" disabled={venues.length === 0}>
               <Plus className="w-4 h-4" /> درخواست رزرو
             </Button>
           ) : (
