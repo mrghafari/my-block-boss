@@ -623,7 +623,7 @@ function ExportToolbar({ from, to, onFromChange, onToChange, onExportExcel, onEx
     }
   };
   return (
-    <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-muted/40 border">
+    <div className="flex flex-nowrap items-center gap-2 p-2 rounded-lg bg-muted/40 border overflow-x-auto">
       <span className="text-xs text-muted-foreground">از</span>
       <JalaliDatePicker value={from} onChange={onFromChange} placeholder="از تاریخ" buttonClassName="h-8 text-xs px-2 min-w-[110px]" />
       <span className="text-xs text-muted-foreground">تا</span>
