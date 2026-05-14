@@ -53,9 +53,12 @@ export function ResidentSidebar({
   const [collapsed, setCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const showLabels = isMobile ? true : !collapsed;
+  const projectsIdx = baseMenuItems.findIndex(i => i.id === "projects");
+  const extras = optionalItems.filter(i => grantedModules.includes(i.module));
   const menuItems = [
-    ...baseMenuItems,
-    ...optionalItems.filter(i => grantedModules.includes(i.module)),
+    ...baseMenuItems.slice(0, projectsIdx + 1),
+    ...extras,
+    ...baseMenuItems.slice(projectsIdx + 1),
   ];
 
   const handleItemClick = (id: string) => {
