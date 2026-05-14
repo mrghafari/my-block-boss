@@ -40,6 +40,25 @@ const normalizeTime = (v: string) => {
     .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 };
 
+const getLocalDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getDayStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const getReservationDateTime = (date: Date, time: string) => {
+  const [hours = 0, minutes = 0] = normalizeTime(time).split(":").map(Number);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+};
+
+const isPastReservationStart = (date: Date | undefined, startTime: string) => {
+  if (!date || !startTime) return false;
+  return getReservationDateTime(date, startTime) < new Date();
+};
+
 const statusBadge = (s: string) => {
   if (s === "approved") return <Badge className="bg-success text-success-foreground">تایید شده</Badge>;
   if (s === "rejected") return <Badge variant="destructive">رد شده</Badge>;
@@ -129,7 +148,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   // Detect any approved/pending قرق (full-day exclusive) for the selected venue+date
   const exclusiveLockOnDate = useMemo(() => {
     if (!reqVenue || !reqDate) return null;
-    const dateStr = reqDate.toISOString().split("T")[0];
+    const dateStr = getLocalDateKey(reqDate);
     return (
       reservations.find(
         (r) =>
@@ -146,7 +165,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     if (!reqVenue || !reqDate || !reqStart || !reqEnd) return null;
     const venue = venueMap[reqVenue];
     if (!venue) return null;
-    const dateStr = reqDate.toISOString().split("T")[0];
+    const dateStr = getLocalDateKey(reqDate);
     const sameDay = reservations.filter(r =>
       r.venue_id === reqVenue &&
       r.reservation_date === dateStr &&
@@ -164,6 +183,8 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     return conflicts.length > 0 ? conflicts : null;
   }, [reqVenue, reqDate, reqStart, reqEnd, reqExclusive, reservations, venueMap]);
 
+  const isSelectedReservationInPast = residentMode && isPastReservationStart(reqDate, reqStart);
+
   const handleCreateRequest = async () => {
     if (!bId || !reqVenue || !reqDate || !reqName.trim() || !reqStart || !reqEnd) return;
     if (reqStart >= reqEnd) return;
@@ -171,16 +192,12 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
     if (exclusiveLockOnDate) return;
     if (residentMode) {
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const picked = new Date(reqDate.getFullYear(), reqDate.getMonth(), reqDate.getDate());
+      const todayStart = getDayStart(now);
+      const picked = getDayStart(reqDate);
       if (picked < todayStart) return;
-      if (picked.getTime() === todayStart.getTime()) {
-        const nowMin = now.getHours() * 60 + now.getMinutes();
-        const [sh, sm] = reqStart.split(":").map(Number);
-        if (sh * 60 + sm < nowMin) return;
-      }
+      if (isPastReservationStart(reqDate, reqStart)) return;
     }
-    const gregDate = reqDate.toISOString().split("T")[0];
+    const gregDate = getLocalDateKey(reqDate);
     const targetUnitId = !residentMode && reqOnBehalfUnitId ? reqOnBehalfUnitId : (unitId || null);
     createReservation.mutate(
       {
@@ -234,11 +251,11 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
   };
 
   const dayHasApproved = (d: Date) => {
-    const key = d.toISOString().split("T")[0];
+    const key = getLocalDateKey(d);
     return (reservationsByDate[key] || []).some(r => r.status === "approved");
   };
   const dayHasPending = (d: Date) => {
-    const key = d.toISOString().split("T")[0];
+    const key = getLocalDateKey(d);
     return (reservationsByDate[key] || []).some(r => r.status === "pending");
   };
 
@@ -261,7 +278,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
         </div>
         <div className="flex items-center gap-2">
           {residentMode ? (
-            <Button onClick={() => setRequestDialog(true)} className="gap-2" disabled={venues.length === 0}>
+            <Button onClick={() => { if (isPastReservationStart(reqDate, "00:00")) setReqDate(new Date()); setRequestDialog(true); }} className="gap-2" disabled={venues.length === 0}>
               <Plus className="w-4 h-4" /> درخواست رزرو
             </Button>
           ) : (
@@ -342,18 +359,20 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
               <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day, i) => {
                   const inMonth = format(day, "M", { locale: faIR }) === format(viewDate, "M", { locale: faIR });
-                  const key = day.toISOString().split("T")[0];
+                  const key = getLocalDateKey(day);
                   const dayItems = reservationsByDate[key] || [];
                   const approved = dayHasApproved(day);
                   const pending = dayHasPending(day);
                   const today = isToday(day);
+                  const pastDay = residentMode && getDayStart(day) < getDayStart(new Date());
                   return (
                     <div
                       key={i}
-                      onClick={() => inMonth && setDayDetail(day)}
+                      onClick={() => inMonth && !pastDay && setDayDetail(day)}
                       className={cn(
                         "min-h-[90px] rounded-lg border p-1.5 text-xs transition-colors cursor-pointer hover:border-primary/60",
                         !inMonth && "opacity-40 bg-muted/30 cursor-default",
+                        pastDay && "opacity-50 cursor-not-allowed hover:border-border",
                         approved && "bg-destructive/10 border-destructive/30",
                         !approved && pending && "bg-warning/10 border-warning/30",
                         today && "ring-2 ring-primary",
@@ -525,7 +544,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </div>
             {(() => {
               const now = new Date();
-              const isToday = !!reqDate && reqDate.toDateString() === now.toDateString();
+              const isToday = !!reqDate && getLocalDateKey(reqDate) === getLocalDateKey(now);
               const minTime = residentMode && isToday
                 ? `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
                 : undefined;
@@ -542,6 +561,11 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
                 </div>
               );
             })()}
+            {isSelectedReservationInPast && (
+              <div className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 text-sm text-destructive">
+                امکان ثبت رزرو برای تاریخ یا ساعت گذشته وجود ندارد.
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">توضیحات</label>
               <Textarea value={reqDesc} onChange={e => setReqDesc(e.target.value)} placeholder="مناسبت، تعداد مهمان و..." />
@@ -581,7 +605,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRequestDialog(false)}>انصراف</Button>
-            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo || !!exclusiveLockOnDate}>
+            <Button onClick={handleCreateRequest} disabled={createReservation.isPending || !reqVenue || !reqName.trim() || !reqDate || !!overlapInfo || !!exclusiveLockOnDate || isSelectedReservationInPast}>
               {createReservation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
               {residentMode ? "ثبت درخواست" : "ثبت و تایید رزرو"}
             </Button>
@@ -638,7 +662,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
             </DialogTitle>
           </DialogHeader>
           {dayDetail && (() => {
-            const key = dayDetail.toISOString().split("T")[0];
+            const key = getLocalDateKey(dayDetail);
             const dayItems = (reservationsByDate[key] || []).filter(r => r.status !== "rejected");
             const toMin = (t: string) => {
               const [h, m] = t.slice(0, 5).split(":").map(Number);
@@ -715,7 +739,7 @@ export function ReservationsList({ residentMode = false, buildingId, unitId, req
           })()}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDayDetail(null)}>بستن</Button>
-            {dayDetail && (
+            {dayDetail && (!residentMode || getDayStart(dayDetail) >= getDayStart(new Date())) && (
               <Button onClick={() => {
                 setReqDate(dayDetail);
                 setDayDetail(null);
