@@ -77,6 +77,9 @@ const ResidentDashboard = () => {
     ? ownerName
     : (residentName || ownerName);
 
+  const activeRole: "owner" | "resident" = currentMatch?.role === "owner" ? "owner" : "resident";
+  const { data: grantedModules = [] } = useMyUnitModules(currentBuildingId, currentUnitId, activeRole);
+
   const renderContent = () => {
     switch (activeTab) {
       case "finance":
@@ -117,6 +120,14 @@ const ResidentDashboard = () => {
         return <ManagersHistoryReport buildingId={currentBuildingId} hideEmpty />;
       case "meetings":
         return <MeetingMinutesPage buildingId={currentBuildingId} canEdit={false} />;
+      case "all_expenses":
+        return grantedModules.includes("all_expenses")
+          ? <ResidentAllExpenses buildingId={currentBuildingId} />
+          : <ResidentFinance buildingId={currentBuildingId} unitId={currentUnitId} />;
+      case "fund_balances":
+        return grantedModules.includes("fund_balances")
+          ? <ResidentFundBalances buildingId={currentBuildingId} />
+          : <ResidentFinance buildingId={currentBuildingId} unitId={currentUnitId} />;
       default:
         return <ResidentFinance buildingId={currentBuildingId} unitId={currentUnitId} />;
     }
@@ -134,6 +145,7 @@ const ResidentDashboard = () => {
         onSignOut={handleSignOut}
         mobileOpen={mobileSidebarOpen}
         onMobileOpenChange={setMobileSidebarOpen}
+        grantedModules={grantedModules}
       />
       <main className="md:mr-64 transition-all duration-300">
         <div className="flex items-center justify-between gap-2 p-3 md:p-4 border-b">
