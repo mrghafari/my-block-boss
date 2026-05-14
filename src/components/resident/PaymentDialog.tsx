@@ -93,24 +93,28 @@ export function PaymentDialog({
       payment_date: now.toISOString().slice(0, 10),
       month: now.getMonth() + 1,
       year: now.getFullYear(),
-      owner_name: ownerName || null,
-      resident_name: residentName || null,
     };
 
     const records: any[] = [];
+    // صندوق شارژ بر عهده ساکن است → فقط نام ساکن ثبت شود
     if (chargeChecked && r(chargeAmount) > 0) {
       records.push({
         ...baseRecord,
         amount: r(chargeAmount),
         fund_type: "charge",
+        owner_name: null,
+        resident_name: residentName || ownerName || null,
         description: defaultDescription || "پرداخت آنلاین صندوق شارژ (شبیه‌سازی)",
       });
     }
+    // صندوق فوق‌شارژ بر عهده مالک است → فقط نام مالک ثبت شود
     if (extraChecked && r(extraAmount) > 0) {
       records.push({
         ...baseRecord,
         amount: r(extraAmount),
         fund_type: "extra_charge",
+        owner_name: ownerName || residentName || null,
+        resident_name: null,
         description: defaultDescription || "پرداخت آنلاین صندوق فوق‌شارژ (شبیه‌سازی)",
       });
     }
