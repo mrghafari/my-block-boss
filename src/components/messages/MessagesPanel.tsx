@@ -100,6 +100,31 @@ export function MessagesPanel({ buildingId, residentMode = false, unitId, sender
     }
   }, [filtered.length]);
 
+  // Auto-mark all visible unread messages as read once the panel is open
+  useEffect(() => {
+    if (!user?.id || !buildingId || messages.length === 0) return;
+    const unreadIds = messages
+      .filter(
+        (m) =>
+          !m.is_read &&
+          m.sender_user_id !== user.id &&
+          (m.recipient_user_id === user.id || m.recipient_user_id === null)
+      )
+      .map((m) => m.id);
+    if (unreadIds.length === 0) return;
+    (async () => {
+      const { error } = await supabase
+        .from("building_messages")
+        .update({ is_read: true })
+        .in("id", unreadIds);
+      if (!error) {
+        qc.invalidateQueries({ queryKey: ["building_messages"] });
+        qc.invalidateQueries({ queryKey: ["unread_messages_count"] });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, user?.id, buildingId]);
+
   // Find parent message helper for reply preview inside a bubble
   const findParent = (id: string | null) => (id ? messages.find((m) => m.id === id) : null);
 
