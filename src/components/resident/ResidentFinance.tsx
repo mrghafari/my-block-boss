@@ -452,7 +452,22 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
         {/* Allocated Expenses Tab */}
         <TabsContent value="expenses">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-3">
+              <ExportToolbar
+                from={expensesFrom}
+                to={expensesTo}
+                onFromChange={setExpensesFrom}
+                onToChange={setExpensesTo}
+                onExportExcel={() => {
+                  const rows = expenseShares.filter((e: any) => inDateRange(e.expenses?.expense_date, expensesFrom, expensesTo));
+                  exportExpensesExcel(rows as any, unitInfo?.unit_number || "", expensesFrom, expensesTo);
+                }}
+                onExportPdf={async () => {
+                  const rows = expenseShares.filter((e: any) => inDateRange(e.expenses?.expense_date, expensesFrom, expensesTo));
+                  await exportExpensesPdf(rows as any, unitInfo?.unit_number || "", expensesFrom, expensesTo);
+                }}
+                disabled={expenseShares.length === 0}
+              />
               {expenseShares.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">هزینه‌ای تسهیم نشده است</p>
               ) : (
@@ -469,7 +484,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {expenseShares.map((e: any) => {
+                    {expenseShares
+                      .filter((e: any) => inDateRange(e.expenses?.expense_date, expensesFrom, expensesTo))
+                      .map((e: any) => {
                       const expense = e.expenses as any;
                       const fundType = expense?.fund_type ?? "charge";
                       const isExtra = fundType === "extra_charge";
