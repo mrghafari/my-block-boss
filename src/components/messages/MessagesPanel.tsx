@@ -46,6 +46,7 @@ const formatDay = (iso: string) => {
 
 export function MessagesPanel({ buildingId, residentMode = false, unitId, senderName, senderRole }: MessagesPanelProps) {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const { data: messages = [], isLoading } = useMessages(buildingId);
   const sendMessage = useSendMessage();
   const markRead = useMarkMessageRead();
