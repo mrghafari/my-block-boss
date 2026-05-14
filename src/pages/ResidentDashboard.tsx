@@ -11,11 +11,14 @@ import { ResidentPolls } from "@/components/resident/ResidentPolls";
 import { ResidentDocuments } from "@/components/resident/ResidentDocuments";
 import { ResidentContacts } from "@/components/resident/ResidentContacts";
 import { ResidentProjects } from "@/components/resident/ResidentProjects";
+import { ResidentAllExpenses } from "@/components/resident/ResidentAllExpenses";
+import { ResidentFundBalances } from "@/components/resident/ResidentFundBalances";
 import { ManagersHistoryReport } from "@/components/reports/ManagersHistoryReport";
 import { ReservationsList } from "@/components/announcements/ReservationsList";
 import { MessagesPanel } from "@/components/messages/MessagesPanel";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { MeetingMinutesPage } from "@/components/meetings/MeetingMinutesPage";
+import { useMyUnitModules } from "@/hooks/useUnitModuleAccess";
 
 
 const ResidentDashboard = () => {
