@@ -22,6 +22,7 @@ import { useBuilding, useUpdateBuilding } from "@/contexts/BuildingContext";
 import { useApplyCharges } from "@/hooks/useUnitCharges";
 import { useUnits } from "@/hooks/useUnits";
 import { useActiveManager } from "@/hooks/useManagers";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 
