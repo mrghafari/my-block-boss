@@ -476,25 +476,31 @@ export type Database = {
       building_rules: {
         Row: {
           building_id: string
-          content: string
+          content: string | null
           created_at: string
           id: string
+          pdf_name: string | null
+          pdf_path: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           building_id: string
-          content?: string
+          content?: string | null
           created_at?: string
           id?: string
+          pdf_name?: string | null
+          pdf_path?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           building_id?: string
-          content?: string
+          content?: string | null
           created_at?: string
           id?: string
+          pdf_name?: string | null
+          pdf_path?: string | null
           updated_at?: string
           updated_by?: string | null
         }
