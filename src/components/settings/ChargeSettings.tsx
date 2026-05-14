@@ -74,15 +74,38 @@ export function ChargeSettings() {
     });
   };
 
-  const handleApply = async () => {
+  const buildDescriptions = () => {
     const monthLabel = `${JALALI_MONTHS[Number(selectedMonth) - 1]} ${selectedYear}`;
     const baseDesc = applyDescription || "";
-    const chargeDesc = baseDesc
-      ? `شارژ ${monthLabel} - ${baseDesc}`
-      : `شارژ ${monthLabel}`;
-    const extraDesc = baseDesc
-      ? `فوق‌شارژ ${monthLabel} - ${baseDesc}`
-      : `فوق‌شارژ ${monthLabel}`;
+    return {
+      monthLabel,
+      chargeDesc: baseDesc ? `شارژ ${monthLabel} - ${baseDesc}` : `شارژ ${monthLabel}`,
+      extraDesc: baseDesc ? `فوق‌شارژ ${monthLabel} - ${baseDesc}` : `فوق‌شارژ ${monthLabel}`,
+    };
+  };
+
+  const runApply = () => {
+    const { chargeDesc, extraDesc } = buildDescriptions();
+    applyCharges.mutate(
+      {
+        chargeAmount: Number(chargeAmount) || 0,
+        extraChargeAmount: Number(extraChargeAmount) || 0,
+        month: Number(selectedMonth),
+        year: Number(selectedYear),
+        chargeDescription: chargeDesc,
+        extraChargeDescription: extraDesc,
+      },
+      {
+        onSuccess: () => {
+          setApplyDialogOpen(false);
+          setDuplicateInfo({ open: false, message: "" });
+        },
+      }
+    );
+  };
+
+  const handleApply = async () => {
+    const { monthLabel } = buildDescriptions();
 
     // بررسی تکراری بودن شارژ برای این ماه/سال
     if (currentBuildingId) {
@@ -105,25 +128,16 @@ export function ChargeSettings() {
           const parts: string[] = [];
           if (chargeCount > 0) parts.push(`${chargeCount} رکورد شارژ`);
           if (extraCount > 0) parts.push(`${extraCount} رکورد فوق‌شارژ`);
-          const ok = window.confirm(
-            `برای ${monthLabel} قبلاً ${parts.join(" و ")} ثبت شده است.\nآیا می‌خواهید مجدداً اعمال کنید؟ (ممکن است رکوردهای تکراری ایجاد شود)`
-          );
-          if (!ok) return;
+          setDuplicateInfo({
+            open: true,
+            message: `برای ${monthLabel} قبلاً ${parts.join(" و ")} ثبت شده است. در صورت ادامه، رکوردهای تکراری ایجاد خواهد شد.`,
+          });
+          return;
         }
       }
     }
 
-    applyCharges.mutate(
-      {
-        chargeAmount: Number(chargeAmount) || 0,
-        extraChargeAmount: Number(extraChargeAmount) || 0,
-        month: Number(selectedMonth),
-        year: Number(selectedYear),
-        chargeDescription: chargeDesc,
-        extraChargeDescription: extraDesc,
-      },
-      { onSuccess: () => setApplyDialogOpen(false) }
-    );
+    runApply();
   };
 
   const vacantCount = units.filter((u) => !u.is_occupied).length;
