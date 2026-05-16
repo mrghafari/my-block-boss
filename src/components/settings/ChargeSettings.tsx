@@ -114,23 +114,37 @@ export function ChargeSettings() {
       if ((Number(extraChargeAmount) || 0) > 0) fundTypesToCheck.push("extra_charge");
 
       if (fundTypesToCheck.length > 0) {
-        const { data: existing } = await supabase
-          .from("unit_charges")
-          .select("id, fund_type")
-          .eq("building_id", currentBuildingId)
-          .eq("month", Number(selectedMonth))
-          .eq("year", Number(selectedYear))
-          .in("fund_type", fundTypesToCheck);
+        const [{ data: existing }, { data: paidExisting }] = await Promise.all([
+          supabase
+            .from("unit_charges")
+            .select("id, fund_type")
+            .eq("building_id", currentBuildingId)
+            .eq("month", Number(selectedMonth))
+            .eq("year", Number(selectedYear))
+            .in("fund_type", fundTypesToCheck),
+          supabase
+            .from("payments")
+            .select("id, fund_type")
+            .eq("building_id", currentBuildingId)
+            .eq("month", Number(selectedMonth))
+            .eq("year", Number(selectedYear))
+            .in("fund_type", fundTypesToCheck),
+        ]);
 
-        if (existing && existing.length > 0) {
-          const chargeCount = existing.filter((r) => r.fund_type === "charge").length;
-          const extraCount = existing.filter((r) => r.fund_type === "extra_charge").length;
+        const allRows = [...(existing || []), ...(paidExisting || [])];
+        if (allRows.length > 0) {
+          const chargeUnpaid = (existing || []).filter((r) => r.fund_type === "charge").length;
+          const extraUnpaid = (existing || []).filter((r) => r.fund_type === "extra_charge").length;
+          const chargePaid = (paidExisting || []).filter((r) => r.fund_type === "charge").length;
+          const extraPaid = (paidExisting || []).filter((r) => r.fund_type === "extra_charge").length;
           const parts: string[] = [];
-          if (chargeCount > 0) parts.push(`${chargeCount} رکورد شارژ`);
-          if (extraCount > 0) parts.push(`${extraCount} رکورد فوق‌شارژ`);
+          if (chargeUnpaid > 0) parts.push(`${chargeUnpaid} رکورد شارژ ثبت‌شده (پرداخت‌نشده)`);
+          if (extraUnpaid > 0) parts.push(`${extraUnpaid} رکورد فوق‌شارژ ثبت‌شده (پرداخت‌نشده)`);
+          if (chargePaid > 0) parts.push(`${chargePaid} پرداخت شارژ`);
+          if (extraPaid > 0) parts.push(`${extraPaid} پرداخت فوق‌شارژ`);
           setDuplicateInfo({
             open: true,
-            message: `برای ${monthLabel} قبلاً ${parts.join(" و ")} ثبت شده است. در صورت ادامه، رکوردهای تکراری ایجاد خواهد شد.`,
+            message: `برای ${monthLabel} قبلاً ${parts.join(" و ")} وجود دارد. در صورت ادامه، رکوردهای تکراری ایجاد خواهد شد.`,
           });
           return;
         }
