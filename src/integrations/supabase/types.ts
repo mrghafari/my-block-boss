@@ -1569,6 +1569,7 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          admin_read_at: string | null
           building_id: string
           category: Database["public"]["Enums"]["ticket_category"]
           created_at: string
@@ -1578,12 +1579,14 @@ export type Database = {
           id: string
           last_reply_at: string
           last_reply_by_role: string
+          manager_read_at: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           updated_at: string
         }
         Insert: {
+          admin_read_at?: string | null
           building_id: string
           category?: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
@@ -1593,12 +1596,14 @@ export type Database = {
           id?: string
           last_reply_at?: string
           last_reply_by_role?: string
+          manager_read_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
           updated_at?: string
         }
         Update: {
+          admin_read_at?: string | null
           building_id?: string
           category?: Database["public"]["Enums"]["ticket_category"]
           created_at?: string
@@ -1608,6 +1613,7 @@ export type Database = {
           id?: string
           last_reply_at?: string
           last_reply_by_role?: string
+          manager_read_at?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
