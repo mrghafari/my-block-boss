@@ -10,6 +10,7 @@ import { Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
+import type { Json } from "@/integrations/supabase/types";
 
 interface Props {
   open: boolean;
@@ -32,6 +33,19 @@ interface Props {
 }
 
 type Step = "form" | "gateway" | "success";
+
+type PaymentRpcRecord = {
+  building_id: string;
+  unit_id: string;
+  payment_date: string;
+  month: number;
+  year: number;
+  amount: number;
+  fund_type: "charge" | "extra_charge";
+  owner_name: string | null;
+  resident_name: string | null;
+  description: string;
+};
 
 const r = (n: number) => Math.max(0, Math.round(n));
 
@@ -97,7 +111,7 @@ export function PaymentDialog({
       year: Number(format(now, "yyyy", { locale: faIR })),
     };
 
-    const records: any[] = [];
+    const records: PaymentRpcRecord[] = [];
     // صندوق شارژ بر عهده ساکن است → فقط نام ساکن ثبت شود
     if (chargeChecked && r(chargeAmount) > 0) {
       records.push({
@@ -129,7 +143,7 @@ export function PaymentDialog({
     const { error } = await supabase.rpc("resident_pay_and_clear", {
       _building_id: buildingId,
       _unit_id: unitId,
-      _payments: records as any,
+      _payments: records as Json,
       _charge_ids_to_clear: [...selectedChargeIds, ...selectedExtraIds],
     });
 
