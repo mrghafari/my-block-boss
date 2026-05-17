@@ -8,6 +8,8 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale";
 
 interface Props {
   open: boolean;
@@ -91,8 +93,8 @@ export function PaymentDialog({
       building_id: buildingId,
       unit_id: unitId,
       payment_date: now.toISOString().slice(0, 10),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
+      month: Number(format(now, "M", { locale: faIR })),
+      year: Number(format(now, "yyyy", { locale: faIR })),
     };
 
     const records: any[] = [];
