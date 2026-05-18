@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, X, Loader2, Edit, Lock } from "lucide-react";
 import { useCreateUnit, useUpdateUnit, type Unit, type CreateUnitData } from "@/hooks/useUnits";
 import { NumericInput } from "@/components/ui/numeric-input";
+import { UnitAssetsManager } from "./UnitAssetsManager";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -247,6 +248,14 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
               </Label>
             </div>
           </div>
+
+          {/* Storages & Vehicles - only available after the unit exists */}
+          {editUnit && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">انبارها و خودروها</h3>
+              <UnitAssetsManager unitId={editUnit.id} />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
