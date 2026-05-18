@@ -137,8 +137,9 @@ export function UnitAssetsManager({ unitId }: Props) {
           <div className="space-y-2">
             <Label>پلاک خودرو (الگوی ایران)</Label>
             {/* Plate visual: city | part2 | letter | part1  (right-to-left reading) */}
-            <div dir="ltr" className="flex items-stretch gap-1 justify-center bg-background border-2 border-foreground/30 rounded-md p-2 max-w-md mx-auto">
+            <div dir="ltr" style={{ unicodeBidi: "isolate", flexDirection: "row" }} className="flex items-stretch gap-1 justify-center bg-background border-2 border-foreground/30 rounded-md p-2 max-w-md mx-auto">
               <Input
+                dir="ltr"
                 value={p1}
                 onChange={(e) => setP1(normalizeDigits(e.target.value).slice(0, 2))}
                 placeholder="12"
@@ -156,6 +157,7 @@ export function UnitAssetsManager({ unitId }: Props) {
                 </SelectContent>
               </Select>
               <Input
+                dir="ltr"
                 value={p2}
                 onChange={(e) => setP2(normalizeDigits(e.target.value).slice(0, 3))}
                 placeholder="345"
@@ -165,6 +167,7 @@ export function UnitAssetsManager({ unitId }: Props) {
               <div className="flex flex-col items-center justify-center px-2 bg-primary text-primary-foreground rounded">
                 <span className="text-[10px]">ایران</span>
                 <Input
+                  dir="ltr"
                   value={city}
                   onChange={(e) => setCity(normalizeDigits(e.target.value).slice(0, 2))}
                   placeholder="67"
@@ -196,8 +199,12 @@ export function UnitAssetsManager({ unitId }: Props) {
                   <div className="flex items-center gap-3">
                     <Car className="w-4 h-4 text-primary" />
                     <div>
-                      <div dir="ltr" className="font-mono font-bold tracking-wider">
-                        {v.plate_part1} {v.plate_letter} {v.plate_part2} - {v.plate_city}
+                      <div dir="ltr" style={{ unicodeBidi: "isolate" }} className="font-mono font-bold tracking-wider inline-flex gap-2 items-center">
+                        <span>{v.plate_part1}</span>
+                        <span>{v.plate_letter}</span>
+                        <span>{v.plate_part2}</span>
+                        <span>-</span>
+                        <span>{v.plate_city}</span>
                       </div>
                       {v.description && <div className="text-xs text-muted-foreground">{v.description}</div>}
                     </div>
