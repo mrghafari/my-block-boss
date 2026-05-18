@@ -196,8 +196,12 @@ export function UnitAssetsManager({ unitId }: Props) {
                   <div className="flex items-center gap-3">
                     <Car className="w-4 h-4 text-primary" />
                     <div>
-                      <div dir="ltr" className="font-mono font-bold tracking-wider">
-                        {v.plate_part1} {v.plate_letter} {v.plate_part2} - {v.plate_city}
+                      <div dir="ltr" style={{ unicodeBidi: "isolate" }} className="font-mono font-bold tracking-wider inline-flex gap-2 items-center">
+                        <span>{v.plate_part1}</span>
+                        <span>{v.plate_letter}</span>
+                        <span>{v.plate_part2}</span>
+                        <span>-</span>
+                        <span>{v.plate_city}</span>
                       </div>
                       {v.description && <div className="text-xs text-muted-foreground">{v.description}</div>}
                     </div>
