@@ -236,15 +236,7 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
               <Label htmlFor="isOccupied" className="cursor-pointer">
                 این واحد دارای ساکن است
               </Label>
-          </div>
-
-          {/* Storages & Vehicles - only available after the unit exists */}
-          {editUnit && (
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">انبارها و خودروها</h3>
-              <UnitAssetsManager unitId={editUnit.id} />
             </div>
-          )}
             <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
               <Switch
                 id="latePenaltyExempt"
@@ -256,6 +248,14 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
               </Label>
             </div>
           </div>
+
+          {/* Storages & Vehicles - only available after the unit exists */}
+          {editUnit && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">انبارها و خودروها</h3>
+              <UnitAssetsManager unitId={editUnit.id} />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
