@@ -1806,6 +1806,75 @@ export type Database = {
           },
         ]
       }
+      unit_storages: {
+        Row: {
+          building_id: string
+          created_at: string
+          description: string | null
+          id: string
+          storage_number: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          storage_number: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          storage_number?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      unit_vehicles: {
+        Row: {
+          building_id: string
+          created_at: string
+          description: string | null
+          id: string
+          plate_city: string
+          plate_letter: string
+          plate_part1: string
+          plate_part2: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          plate_city: string
+          plate_letter: string
+          plate_part1: string
+          plate_part2: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          plate_city?: string
+          plate_letter?: string
+          plate_part1?: string
+          plate_part2?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           area: number | null
