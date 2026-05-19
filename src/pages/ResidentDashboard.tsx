@@ -46,6 +46,7 @@ const ResidentDashboard = () => {
     try {
       localStorage.removeItem("resident_matches");
       localStorage.removeItem("resident_matches_all");
+      localStorage.removeItem("resident_matches_phone");
       localStorage.removeItem("currentBuildingId");
       await signOut();
     } catch (err) {
