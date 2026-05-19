@@ -40,6 +40,7 @@ export function Header({ onTabChange, onMenuClick }: HeaderProps) {
     try {
       localStorage.removeItem("resident_matches");
       localStorage.removeItem("resident_matches_all");
+      localStorage.removeItem("resident_matches_phone");
       localStorage.removeItem("currentBuildingId");
       const { error } = await signOut();
       if (error && !/session/i.test(error.message || "")) {
