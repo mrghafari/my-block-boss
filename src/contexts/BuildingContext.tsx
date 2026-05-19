@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface Building {
   id: string;
@@ -44,8 +45,10 @@ export function useBuilding() {
 }
 
 export function useBuildings() {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: ["buildings"],
+    queryKey: ["buildings", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("buildings")
@@ -54,6 +57,7 @@ export function useBuildings() {
       if (error) throw error;
       return data as Building[];
     },
+    enabled: !!user,
   });
 }
 
@@ -145,12 +149,22 @@ export function BuildingProvider({ children, filterBuildingIds, adminForUserId }
     : allBuildings;
 
   useEffect(() => {
-    if (buildings.length > 0 && !currentBuildingId) {
-      const saved = localStorage.getItem("currentBuildingId");
-      const found = buildings.find((b) => b.id === saved);
-      setCurrentBuildingId(found ? found.id : buildings[0].id);
+    if (isLoading) return;
+
+    if (buildings.length === 0) {
+      if (currentBuildingId) setCurrentBuildingId(null);
+      localStorage.removeItem("currentBuildingId");
+      return;
     }
-  }, [buildings, currentBuildingId]);
+
+    const saved = localStorage.getItem("currentBuildingId");
+    const foundSaved = buildings.find((b) => b.id === saved);
+    const foundCurrent = buildings.find((b) => b.id === currentBuildingId);
+
+    if (!currentBuildingId || !foundCurrent) {
+      setCurrentBuildingId(foundSaved ? foundSaved.id : buildings[0].id);
+    }
+  }, [buildings, currentBuildingId, isLoading]);
 
   const handleSetBuilding = (id: string) => {
     setCurrentBuildingId(id);
