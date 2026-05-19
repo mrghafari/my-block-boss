@@ -40,6 +40,7 @@ const ResidentAuth = () => {
   const clearResidentSessionState = () => {
     localStorage.removeItem("resident_matches");
     localStorage.removeItem("resident_matches_all");
+    localStorage.removeItem("resident_matches_phone");
     localStorage.removeItem("currentBuildingId");
   };
 
@@ -50,9 +51,11 @@ const ResidentAuth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const all = JSON.parse(localStorage.getItem("resident_matches_all") || "[]") as UnitMatch[];
+        const savedPhone = localStorage.getItem("resident_matches_phone");
+        const sessionPhone = session?.user?.email?.replace(/@resident\.local$/i, "") || "";
         if (!mounted) return;
 
-        if (session && Array.isArray(all) && all.length > 0) {
+        if (session && savedPhone && sessionPhone === savedPhone && Array.isArray(all) && all.length > 0) {
           const sel = JSON.parse(localStorage.getItem("resident_matches") || "[]") as UnitMatch[];
           const currentIdx = sel[0]
             ? all.findIndex(
@@ -68,7 +71,9 @@ const ResidentAuth = () => {
           return;
         }
 
-        if (!session) clearResidentSessionState();
+        if (!session || (session && all.length > 0 && (!savedPhone || sessionPhone !== savedPhone))) {
+          clearResidentSessionState();
+        }
       } catch {/* ignore */}
     };
 
@@ -203,6 +208,7 @@ const ResidentAuth = () => {
       const verifiedMatches: UnitMatch[] = data.matches || [];
       setMatches(verifiedMatches);
       localStorage.setItem("resident_matches_all", JSON.stringify(verifiedMatches));
+      localStorage.setItem("resident_matches_phone", normalizedPhone);
 
       const { error: otpErr } = await supabase.auth.verifyOtp({
         token_hash: data.token_hash,
