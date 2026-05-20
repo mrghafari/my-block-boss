@@ -42,14 +42,18 @@ export function ChargeSettings() {
 
   const [chargeAmount, setChargeAmount] = useState("0");
   const [extraChargeAmount, setExtraChargeAmount] = useState("0");
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [autoDay, setAutoDay] = useState("1");
 
   // Sync with building defaults when loaded/changed
   useEffect(() => {
     if (currentBuilding) {
       setChargeAmount(String(currentBuilding.default_charge_amount || 0));
       setExtraChargeAmount(String(currentBuilding.default_extra_charge_amount || 0));
+      setAutoEnabled(Boolean(currentBuilding.auto_charge_enabled));
+      setAutoDay(String(currentBuilding.auto_charge_day || 1));
     }
-  }, [currentBuilding?.id, currentBuilding?.default_charge_amount, currentBuilding?.default_extra_charge_amount]);
+  }, [currentBuilding?.id, currentBuilding?.default_charge_amount, currentBuilding?.default_extra_charge_amount, currentBuilding?.auto_charge_enabled, currentBuilding?.auto_charge_day]);
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
 
   // Current Jalali month/year
