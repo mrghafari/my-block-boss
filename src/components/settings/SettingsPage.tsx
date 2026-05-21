@@ -1,10 +1,11 @@
-import { Building2, Users, CreditCard, Tags, Landmark, Send } from "lucide-react";
+import { Building2, Users, CreditCard, Tags, Landmark, Send, Wallet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategorySettings } from "./CategorySettings";
 import { ManagerSettings } from "./ManagerSettings";
 import { BuildingSettings } from "./BuildingSettings";
 import { PaymentPolicySettings } from "./PaymentPolicySettings";
 import { BankAccountSettings } from "./BankAccountSettings";
+import { OpeningBalancesSettings } from "./OpeningBalancesSettings";
 import { SmsManagementPage } from "@/components/sms/SmsManagementPage";
 
 export function SettingsPage() {
