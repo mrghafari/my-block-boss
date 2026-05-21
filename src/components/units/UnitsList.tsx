@@ -31,7 +31,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUnits, useDeleteUnit, type Unit } from "@/hooks/useUnits";
-import { UnitFinanceDialog } from "./UnitFinanceDialog";
 interface UnitsListProps {
   onEdit: (unit: Unit) => void;
 }
@@ -46,7 +45,6 @@ export function UnitsList({ onEdit }: UnitsListProps) {
   const { data: units = [], isLoading } = useUnits();
   const deleteUnit = useDeleteUnit();
   const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
 
   const handleDelete = () => {
     if (unitToDelete) {
@@ -101,7 +99,7 @@ export function UnitsList({ onEdit }: UnitsListProps) {
                 </TableHeader>
                 <TableBody>
                   {units.map((unit) => (
-                    <TableRow key={unit.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setSelectedUnit(unit)}>
+                    <TableRow key={unit.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell className="font-bold text-primary">
                         {unit.unit_number}
                       </TableCell>
@@ -163,7 +161,7 @@ export function UnitsList({ onEdit }: UnitsListProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -212,12 +210,6 @@ export function UnitsList({ onEdit }: UnitsListProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Unit Finance Dialog */}
-      <UnitFinanceDialog
-        unit={selectedUnit}
-        open={!!selectedUnit}
-        onOpenChange={(open) => !open && setSelectedUnit(null)}
-      />
     </>
   );
 }
