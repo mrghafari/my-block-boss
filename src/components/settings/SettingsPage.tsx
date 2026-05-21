@@ -17,7 +17,7 @@ export function SettingsPage() {
       </div>
 
       <Tabs defaultValue="building" className="w-full" dir="rtl">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 h-auto gap-1 bg-muted p-1">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 h-auto gap-1 bg-muted p-1">
           <TabsTrigger value="building" className="flex items-center justify-center gap-1.5 py-2.5 px-2 min-w-0 text-xs whitespace-normal text-center leading-tight">
             <Building2 className="w-4 h-4 shrink-0" />
             <span className="truncate">ساختمان</span>
