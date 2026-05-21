@@ -210,12 +210,6 @@ export function UnitsList({ onEdit }: UnitsListProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Unit Finance Dialog */}
-      <UnitFinanceDialog
-        unit={selectedUnit}
-        open={!!selectedUnit}
-        onOpenChange={(open) => !open && setSelectedUnit(null)}
-      />
     </>
   );
 }
