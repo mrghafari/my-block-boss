@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, X, Loader2, Edit, Lock } from "lucide-react";
 import { useCreateUnit, useUpdateUnit, type Unit, type CreateUnitData } from "@/hooks/useUnits";
 import { NumericInput } from "@/components/ui/numeric-input";
@@ -28,6 +29,20 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
   const [landlinePhone, setLandlinePhone] = useState(editUnit?.landline_phone || "");
   const [isOccupied, setIsOccupied] = useState(editUnit?.is_occupied ?? true);
   const [latePenaltyExempt, setLatePenaltyExempt] = useState(editUnit?.late_penalty_exempt ?? false);
+  const [sameAsOwner, setSameAsOwner] = useState(
+    !!editUnit &&
+      !!editUnit.owner_name &&
+      editUnit.owner_name === (editUnit.resident_name || "") &&
+      (editUnit.phone || "") === (editUnit.resident_phone || "")
+  );
+
+  const handleSameAsOwnerChange = (checked: boolean) => {
+    setSameAsOwner(checked);
+    if (checked) {
+      setResidentName(ownerName);
+      setResidentPhone(ownerPhone);
+    }
+  };
 
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
@@ -62,8 +77,8 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
       area: area ? parseFloat(area) : null,
       floor: floor ? parseInt(floor) : null,
       resident_count: residentCount ? parseInt(residentCount) : 1,
-      resident_name: residentName.trim() || null,
-      resident_phone: residentPhone.trim() || null,
+      resident_name: sameAsOwner ? (ownerName.trim() || null) : (residentName.trim() || null),
+      resident_phone: sameAsOwner ? (ownerPhone.trim() || null) : (residentPhone.trim() || null),
       landline_phone: landlinePhone.trim() || null,
       is_occupied: isOccupied,
       late_penalty_exempt: latePenaltyExempt,
@@ -187,15 +202,29 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
 
           {/* Resident Info */}
           <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">اطلاعات ساکن</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground">اطلاعات ساکن</h3>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="sameAsOwner"
+                  checked={sameAsOwner}
+                  onCheckedChange={(c) => handleSameAsOwnerChange(!!c)}
+                />
+                <Label htmlFor="sameAsOwner" className="cursor-pointer text-sm">
+                  مالک و ساکن یکی هستند
+                </Label>
+              </div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="residentName">نام ساکن</Label>
                 <Input
                   id="residentName"
-                  value={residentName}
+                  value={sameAsOwner ? ownerName : residentName}
                   onChange={(e) => setResidentName(e.target.value)}
                   maxLength={100}
+                  disabled={sameAsOwner}
+                  className={sameAsOwner ? "bg-muted cursor-not-allowed" : ""}
                 />
               </div>
 
@@ -204,10 +233,12 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
                 <Input
                   id="residentPhone"
                   type="tel"
-                  value={residentPhone}
+                  value={sameAsOwner ? ownerPhone : residentPhone}
                   onChange={(e) => setResidentPhone(e.target.value)}
                   maxLength={15}
                   dir="ltr"
+                  disabled={sameAsOwner}
+                  className={sameAsOwner ? "bg-muted cursor-not-allowed" : ""}
                 />
               </div>
 
