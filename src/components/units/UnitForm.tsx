@@ -29,6 +29,20 @@ export function UnitForm({ onClose, editUnit }: UnitFormProps) {
   const [landlinePhone, setLandlinePhone] = useState(editUnit?.landline_phone || "");
   const [isOccupied, setIsOccupied] = useState(editUnit?.is_occupied ?? true);
   const [latePenaltyExempt, setLatePenaltyExempt] = useState(editUnit?.late_penalty_exempt ?? false);
+  const [sameAsOwner, setSameAsOwner] = useState(
+    !!editUnit &&
+      !!editUnit.owner_name &&
+      editUnit.owner_name === (editUnit.resident_name || "") &&
+      (editUnit.phone || "") === (editUnit.resident_phone || "")
+  );
+
+  const handleSameAsOwnerChange = (checked: boolean) => {
+    setSameAsOwner(checked);
+    if (checked) {
+      setResidentName(ownerName);
+      setResidentPhone(ownerPhone);
+    }
+  };
 
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
