@@ -163,7 +163,7 @@ export function UnitsList({ onEdit }: UnitsListProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
