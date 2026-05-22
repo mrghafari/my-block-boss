@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Building2, Plus, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { ExpensesPage } from "@/components/expenses/ExpensesPage";
@@ -216,10 +217,15 @@ const Index = () => {
       />
       <main className="md:mr-64 transition-all duration-300">
         <Header onTabChange={setActiveTab} onMenuClick={() => setMobileSidebarOpen(true)} />
-        <div className="p-3 md:p-6">
+        <div className="p-3 md:p-6 pb-20 md:pb-6">
           {renderContent()}
         </div>
       </main>
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onMenuClick={() => setMobileSidebarOpen(true)}
+      />
     </div>
   );
 };
