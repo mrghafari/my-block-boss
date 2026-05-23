@@ -115,6 +115,7 @@ const Index = () => {
   });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { buildings, isLoading } = useBuilding();
+  useAutoApplyCharges();
 
   const setActiveTab = (tab: string) => {
     if (tab !== activeTab) {
