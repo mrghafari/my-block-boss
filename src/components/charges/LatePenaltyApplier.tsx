@@ -61,6 +61,7 @@ export function LatePenaltyApplier() {
   const [month, setMonth] = useState(String(currentJalaliMonth));
   const [year, setYear] = useState(String(currentJalaliYear));
   const [submitting, setSubmitting] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   const balanceLoading = !units || !payments || !shares || !existingCharges;
 
