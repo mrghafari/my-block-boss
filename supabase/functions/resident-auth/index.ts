@@ -144,16 +144,68 @@ serve(async (req) => {
         .select("user_id, building_id, unit_id, role")
         .in("user_id", userIds)
         .eq("role", "manager");
-      return (members || []).map((m: any) => ({
-        id: `bm-${m.building_id}-${m.user_id}`,
-        building_id: m.building_id,
-        unit_id: m.unit_id,
-        mobile: normalizedPhone,
-        external_name: nameMap[m.user_id] || normalizedPhone,
-        role_type: "manager",
-        _user_id: m.user_id,
-      }));
+
+      const verified: any[] = [];
+
+      for (const m of (members || [])) {
+        // Verify: must still be an active manager in this building
+        // (either by mobile match in managers, or by being linked to a unit
+        // in this building that still carries this phone).
+        const { data: mgrByMobile } = await adminClient
+          .from("managers")
+          .select("id")
+          .eq("building_id", m.building_id)
+          .eq("is_active", true)
+          .eq("mobile", normalizedPhone)
+          .maybeSingle();
+
+        let valid = !!mgrByMobile;
+
+        if (!valid) {
+          const { data: unitRow } = await adminClient
+            .from("units")
+            .select("id")
+            .eq("building_id", m.building_id)
+            .or(`phone.eq.${normalizedPhone},resident_phone.eq.${normalizedPhone}`)
+            .limit(1)
+            .maybeSingle();
+
+          if (unitRow) {
+            const { data: mgrByUnit } = await adminClient
+              .from("managers")
+              .select("id")
+              .eq("building_id", m.building_id)
+              .eq("is_active", true)
+              .eq("unit_id", unitRow.id)
+              .maybeSingle();
+            valid = !!mgrByUnit;
+          }
+        }
+
+        if (valid) {
+          verified.push({
+            id: `bm-${m.building_id}-${m.user_id}`,
+            building_id: m.building_id,
+            unit_id: m.unit_id,
+            mobile: normalizedPhone,
+            external_name: nameMap[m.user_id] || normalizedPhone,
+            role_type: "manager",
+            _user_id: m.user_id,
+          });
+        } else {
+          // Stale manager membership — purge so the user can't keep logging in as manager
+          await adminClient
+            .from("building_members")
+            .delete()
+            .eq("user_id", m.user_id)
+            .eq("building_id", m.building_id)
+            .eq("role", "manager");
+        }
+      }
+
+      return verified;
     }
+
 
     // Helper: get building names
     async function getBuildingMap(buildingIds: string[]) {
