@@ -332,9 +332,21 @@ export function LatePenaltyApplier() {
           </div>
         )}
         {dismissed && (
-          <p className="text-xs text-muted-foreground text-center">
-            پیشنهاد جریمه نادیده گرفته شد.
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              پیشنهاد جریمه برای این دوره نادیده گرفته شده است.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDismissed(false);
+                try { window.localStorage.removeItem(dismissKey); } catch {}
+              }}
+            >
+              نمایش مجدد
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
