@@ -215,6 +215,9 @@ export function LatePenaltyApplier() {
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
           فرمول: مانده بدهی هر واحد در پایان ماه انتخاب‌شده × {policy.late_penalty_percent_per_month}٪ — جریمه‌های قبلی در محاسبه لحاظ نمی‌شوند.
+          {policy.late_grace_days > 0 && (
+            <> مهلت آوانس: <strong>{policy.late_grace_days.toLocaleString("fa-IR")} روز</strong> پس از پایان ماه.</>
+          )}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
