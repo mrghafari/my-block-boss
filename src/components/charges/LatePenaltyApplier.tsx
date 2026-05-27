@@ -61,7 +61,19 @@ export function LatePenaltyApplier() {
   const [month, setMonth] = useState(String(currentJalaliMonth));
   const [year, setYear] = useState(String(currentJalaliYear));
   const [submitting, setSubmitting] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+
+  const dismissKey = `penalty_dismissed:${currentBuildingId}:${year}-${month}`;
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try { return typeof window !== "undefined" && window.localStorage.getItem(dismissKey) === "1"; }
+    catch { return false; }
+  });
+
+  // Re-read persistence whenever period or building changes
+  useMemo(() => {
+    try {
+      setDismissed(typeof window !== "undefined" && window.localStorage.getItem(dismissKey) === "1");
+    } catch { setDismissed(false); }
+  }, [dismissKey]);
 
   const balanceLoading = !units || !payments || !shares || !existingCharges;
 
