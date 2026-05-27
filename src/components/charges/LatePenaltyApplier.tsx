@@ -273,6 +273,14 @@ export function LatePenaltyApplier() {
           </div>
         </div>
 
+        {withinGrace && newOnes.length > 0 && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+            هنوز در دوره آوانس هستیم — تا <strong>{graceRemainingDays.toLocaleString("fa-IR")} روز</strong> دیگر جریمه قابل اعمال نیست.
+            {policy.late_penalty_auto_apply ? " اعمال خودکار پس از پایان آوانس انجام می‌شود." : ""}
+          </div>
+        )}
+
+
         {!dismissed && newOnes.length > 0 && (
           <div className="border rounded-lg overflow-hidden">
             <div className="max-h-60 overflow-y-auto">
