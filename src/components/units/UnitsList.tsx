@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   Building2,
   Ruler,
   PhoneCall,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   Table,
@@ -20,6 +21,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,10 +49,39 @@ const getFloorLabel = (floor: number | null) => {
   return `طبقه ${floor}`;
 };
 
+type SortKey = "unit_number_asc" | "unit_number_desc" | "floor_asc" | "floor_desc" | "area_asc" | "area_desc" | "owner_asc";
+
 export function UnitsList({ onEdit }: UnitsListProps) {
   const { data: units = [], isLoading } = useUnits();
   const deleteUnit = useDeleteUnit();
   const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("unit_number_asc");
+
+  const sortedUnits = useMemo(() => {
+    const arr = [...units];
+    const numOr = (v: any, d: number) => {
+      const n = parseFloat(String(v ?? ""));
+      return isNaN(n) ? d : n;
+    };
+    switch (sortKey) {
+      case "unit_number_asc":
+        return arr.sort((a, b) => numOr(a.unit_number, Infinity) - numOr(b.unit_number, Infinity));
+      case "unit_number_desc":
+        return arr.sort((a, b) => numOr(b.unit_number, -Infinity) - numOr(a.unit_number, -Infinity));
+      case "floor_asc":
+        return arr.sort((a, b) => (a.floor ?? Infinity) - (b.floor ?? Infinity));
+      case "floor_desc":
+        return arr.sort((a, b) => (b.floor ?? -Infinity) - (a.floor ?? -Infinity));
+      case "area_asc":
+        return arr.sort((a, b) => numOr(a.area, Infinity) - numOr(b.area, Infinity));
+      case "area_desc":
+        return arr.sort((a, b) => numOr(b.area, -Infinity) - numOr(a.area, -Infinity));
+      case "owner_asc":
+        return arr.sort((a, b) => (a.owner_name || "").localeCompare(b.owner_name || "", "fa"));
+      default:
+        return arr;
+    }
+  }, [units, sortKey]);
 
   const handleDelete = () => {
     if (unitToDelete) {
