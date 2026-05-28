@@ -25,6 +25,7 @@ export function ResidentProjects({ buildingId, unitId }: Props) {
         .from("projects")
         .select("*")
         .eq("building_id", buildingId)
+        .eq("is_visible_to_residents", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];

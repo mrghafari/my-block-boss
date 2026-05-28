@@ -247,6 +247,24 @@ export function ProjectFormDialog({ open, onOpenChange, project }: ProjectFormDi
 
             <FormField
               control={form.control}
+              name="is_visible_to_residents"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
+                  <div className="space-y-0.5">
+                    <FormLabel>قابل نمایش به ساکنین</FormLabel>
+                    <FormDescription>
+                      در صورت فعال بودن، این پروژه و هزینه‌های آن در پنل ساکنین نیز نمایش داده می‌شود
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="is_active"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between">
