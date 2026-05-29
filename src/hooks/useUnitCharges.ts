@@ -44,6 +44,9 @@ export function useApplyCharges() {
   const { currentBuildingId, currentBuilding } = useBuilding();
   const { data: units = [] } = useUnits();
   const { data: activeManager } = useActiveManager();
+  const { data: existingCharges = [] } = useUnitCharges();
+
+
 
   return useMutation({
     mutationFn: async ({
@@ -88,7 +91,17 @@ export function useApplyCharges() {
       const applyForFund = (baseAmount: number, fundType: FundType) => {
         if (baseAmount <= 0) return;
 
+        // Build set of unit ids that already have a charge row for this period+fund_type
+        const existingSet = new Set(
+          (existingCharges as any[])
+            .filter(
+              (c) => c.month === month && c.year === year && c.fund_type === fundType
+            )
+            .map((c) => c.unit_id)
+        );
+
         const vacantDiscount = fundType === "charge" ? vacantChargeDiscount : vacantExtraDiscount;
+
         const mgrDiscount = fundType === "charge" ? managerChargeDiscount : managerExtraDiscount;
         const fundDescription =
           fundType === "charge"
@@ -97,7 +110,10 @@ export function useApplyCharges() {
 
         // Calculate each unit's amount
         units.forEach((unit) => {
+          // Skip units that already have a charge for this period/fund_type (so re-apply only fills missing ones)
+          if (existingSet.has(unit.id)) return;
           let amount = baseAmount;
+
 
           // Vacant discount
           if (!unit.is_occupied && vacantDiscount > 0) {
@@ -129,8 +145,9 @@ export function useApplyCharges() {
       applyForFund(extraChargeAmount, "extra_charge");
 
       if (records.length === 0) {
-        throw new Error("مبلغی برای اعمال وجود ندارد");
+        throw new Error("همه واحدها قبلاً برای این دوره شارژ شده‌اند");
       }
+
 
       const { error } = await supabase.from("unit_charges").insert(records);
       if (error) throw error;

@@ -64,10 +64,8 @@ export function ChargeSettings() {
   const [selectedMonth, setSelectedMonth] = useState(currentJalaliMonth);
   const [selectedYear, setSelectedYear] = useState(currentJalaliYear);
   const [applyDescription, setApplyDescription] = useState("");
-  const [duplicateInfo, setDuplicateInfo] = useState<{
-    open: boolean;
-    message: string;
-  }>({ open: false, message: "" });
+
+
 
   if (!currentBuilding || !currentBuildingId) return null;
 
@@ -106,68 +104,18 @@ export function ChargeSettings() {
       {
         onSuccess: () => {
           setApplyDialogOpen(false);
-          setDuplicateInfo({ open: false, message: "" });
         },
       }
+
     );
   };
 
   const handleApply = async () => {
-    const { monthLabel } = buildDescriptions();
-
-    // بررسی تکراری بودن شارژ برای این ماه/سال
-    if (currentBuildingId) {
-      const fundTypesToCheck: ("charge" | "extra_charge")[] = [];
-      if ((Number(chargeAmount) || 0) > 0) fundTypesToCheck.push("charge");
-      if ((Number(extraChargeAmount) || 0) > 0) fundTypesToCheck.push("extra_charge");
-
-      if (fundTypesToCheck.length > 0) {
-        const selectedMonthNumber = Number(selectedMonth);
-        const selectedYearNumber = Number(selectedYear);
-
-        const [{ data: existing }, { data: paidExisting }] = await Promise.all([
-          supabase
-            .from("unit_charges")
-            .select("id, fund_type")
-            .eq("building_id", currentBuildingId)
-            .eq("month", selectedMonthNumber)
-            .eq("year", selectedYearNumber)
-            .in("fund_type", fundTypesToCheck),
-          supabase
-            .from("payments")
-            .select("id, fund_type")
-            .eq("building_id", currentBuildingId)
-            .eq("month", selectedMonthNumber)
-            .eq("year", selectedYearNumber)
-            .in("fund_type", fundTypesToCheck),
-        ]);
-
-        const paidRowsById = new Map(
-          (paidExisting || []).map((row) => [row.id, row])
-        );
-        const paidRows = Array.from(paidRowsById.values());
-        const allRows = [...(existing || []), ...paidRows];
-        if (allRows.length > 0) {
-          const chargeUnpaid = (existing || []).filter((r) => r.fund_type === "charge").length;
-          const extraUnpaid = (existing || []).filter((r) => r.fund_type === "extra_charge").length;
-          const chargePaid = paidRows.filter((r) => r.fund_type === "charge").length;
-          const extraPaid = paidRows.filter((r) => r.fund_type === "extra_charge").length;
-          const parts: string[] = [];
-          if (chargeUnpaid > 0) parts.push(`${chargeUnpaid} رکورد شارژ ثبت‌شده (پرداخت‌نشده)`);
-          if (extraUnpaid > 0) parts.push(`${extraUnpaid} رکورد فوق‌شارژ ثبت‌شده (پرداخت‌نشده)`);
-          if (chargePaid > 0) parts.push(`${chargePaid} پرداخت شارژ`);
-          if (extraPaid > 0) parts.push(`${extraPaid} پرداخت فوق‌شارژ`);
-          setDuplicateInfo({
-            open: true,
-            message: `برای ${monthLabel} قبلاً ${parts.join(" و ")} وجود دارد. در صورت ادامه، رکوردهای تکراری ایجاد خواهد شد.`,
-          });
-          return;
-        }
-      }
-    }
-
+    // اعمال شارژ به صورت خودکار از واحدهایی که قبلاً برای این ماه شارژ دارند صرف‌نظر می‌کند.
+    // بنابراین در صورت حذف پرداخت یک واحد، با اعمال مجدد، فقط همان واحد دوباره شارژ می‌شود.
     runApply();
   };
+
 
   const vacantCount = units.filter((u) => !u.is_occupied).length;
   const hasManagerDiscount =
@@ -368,47 +316,8 @@ export function ChargeSettings() {
         </DialogContent>
       </Dialog>
 
-      {/* Duplicate warning dialog */}
-      <Dialog
-        open={duplicateInfo.open}
-        onOpenChange={(o) => setDuplicateInfo((d) => ({ ...d, open: o }))}
-      >
-        <DialogContent
-          dir="rtl"
-          className="max-w-md border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-50 [&>button]:text-orange-900 dark:[&>button]:text-orange-50"
-        >
-          <DialogHeader>
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-500/20 mb-2">
-              <AlertTriangle className="h-7 w-7 text-orange-600 dark:text-orange-300" />
-            </div>
-            <DialogTitle className="text-center text-orange-900 dark:text-orange-50">
-              هشدار: شارژ تکراری
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-center text-sm leading-7">
-            {duplicateInfo.message}
-          </p>
-          <DialogFooter className="flex-row-reverse gap-2 sm:flex-row-reverse">
-            <Button
-              variant="outline"
-              className="flex-1 border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-900/40"
-              onClick={() => setDuplicateInfo({ open: false, message: "" })}
-            >
-              انصراف
-            </Button>
-            <Button
-              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
-              onClick={runApply}
-              disabled={applyCharges.isPending}
-            >
-              {applyCharges.isPending && (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-              )}
-              ادامه و ثبت
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
     </>
   );
 }
