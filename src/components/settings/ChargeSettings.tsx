@@ -104,9 +104,9 @@ export function ChargeSettings() {
       {
         onSuccess: () => {
           setApplyDialogOpen(false);
-          setDuplicateInfo({ open: false, message: "" });
         },
       }
+
     );
   };
 
