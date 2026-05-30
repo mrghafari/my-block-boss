@@ -1,16 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import type { Json } from "@/integrations/supabase/types";
+
+const BANK_LABELS: Record<string, string> = {
+  saman: "بانک سامان",
+  blu_saman: "بلو (بانک سامان)",
+  mellat: "بانک ملت",
+  parsian: "بانک پارسیان",
+  saderat: "بانک صادرات",
+  pasargad: "بانک پاسارگاد",
+  melli: "بانک ملی",
+};
+const TOP_LABELS: Record<string, string> = {
+  zarinpal: "زرین‌پال",
+  idpay: "آیدی‌پی",
+  nextpay: "نکست‌پی",
+};
 
 interface Props {
   open: boolean;
@@ -70,21 +86,78 @@ export function PaymentDialog({
   const [chargeAmount, setChargeAmount] = useState<number>(0);
   const [extraAmount, setExtraAmount] = useState<number>(0);
   const [processing, setProcessing] = useState(false);
+  const [selectedGateway, setSelectedGateway] = useState<string>("");
+
+  // Load enabled gateways: customer override (building manager) ← platform default
+  const { data: gateways = [] } = useQuery({
+    queryKey: ["enabled_gateways", buildingId],
+    enabled: open && !!buildingId,
+    queryFn: async () => {
+      // Find building manager user_id (first manager member)
+      const { data: members } = await supabase
+        .from("building_members")
+        .select("user_id, role")
+        .eq("building_id", buildingId)
+        .eq("role", "manager")
+        .limit(1);
+      const managerId = members?.[0]?.user_id;
+
+      let cfg: any = null;
+      if (managerId) {
+        const { data: cs } = await supabase
+          .from("customer_settings")
+          .select("setting_value, is_enabled")
+          .eq("user_id", managerId)
+          .eq("setting_key", "payment_gateways")
+          .maybeSingle();
+        if (cs?.is_enabled && cs.setting_value) cfg = cs.setting_value;
+      }
+      if (!cfg) {
+        const { data: ps } = await supabase
+          .from("platform_settings")
+          .select("setting_value")
+          .eq("setting_key", "payment_gateways")
+          .maybeSingle();
+        cfg = ps?.setting_value || {};
+      }
+
+      const list: { key: string; label: string }[] = [];
+      for (const k of ["zarinpal", "idpay", "nextpay"] as const) {
+        if (cfg?.[k]?.enabled) list.push({ key: k, label: TOP_LABELS[k] });
+      }
+      if (cfg?.banks) {
+        for (const [bk, bv] of Object.entries(cfg.banks as Record<string, any>)) {
+          if (bv?.enabled) list.push({ key: `bank:${bk}`, label: BANK_LABELS[bk] || bk });
+        }
+      }
+      return list;
+    },
+  });
 
   useEffect(() => {
     if (open) {
       setStep("form");
       setChargeAmount(r(chargeDebt));
       setExtraAmount(r(extraDebt));
-      // پیش‌فرض: هر دو نوع پرداخت در صورت وجود بدهی فعال باشند
       setChargeChecked(r(chargeDebt) > 0);
       setExtraChecked(r(extraDebt) > 0);
       setProcessing(false);
     }
   }, [open, chargeDebt, extraDebt, defaultRole]);
 
+  useEffect(() => {
+    if (gateways.length > 0 && !selectedGateway) {
+      setSelectedGateway(gateways[0].key);
+    }
+  }, [gateways, selectedGateway]);
+
   const totalAmount =
     (chargeChecked ? r(chargeAmount) : 0) + (extraChecked ? r(extraAmount) : 0);
+
+  const selectedGatewayLabel = useMemo(
+    () => gateways.find((g) => g.key === selectedGateway)?.label || "—",
+    [gateways, selectedGateway]
+  );
 
   const handleProceed = () => {
     if (!chargeChecked && !extraChecked) {
@@ -93,6 +166,14 @@ export function PaymentDialog({
     }
     if (totalAmount <= 0) {
       toast({ title: "مبلغ نامعتبر", description: "مجموع مبلغ باید بیشتر از صفر باشد", variant: "destructive" });
+      return;
+    }
+    if (gateways.length === 0) {
+      toast({ title: "درگاه فعالی موجود نیست", description: "از مدیر بخواهید درگاه پرداخت را فعال کند.", variant: "destructive" });
+      return;
+    }
+    if (!selectedGateway) {
+      toast({ title: "درگاه انتخاب نشده", description: "یک درگاه پرداخت انتخاب کنید", variant: "destructive" });
       return;
     }
     setStep("gateway");
@@ -247,6 +328,27 @@ export function PaymentDialog({
                     />
                   )}
                 </div>
+              )}
+
+              {/* انتخاب درگاه */}
+              {gateways.length > 0 ? (
+                <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
+                  <Label className="text-sm font-medium">انتخاب درگاه پرداخت</Label>
+                  <RadioGroup value={selectedGateway} onValueChange={setSelectedGateway} className="grid grid-cols-2 gap-2">
+                    {gateways.map((g) => (
+                      <label
+                        key={g.key}
+                        htmlFor={`gw-${g.key}`}
+                        className="flex items-center gap-2 border rounded-md p-2 cursor-pointer hover:bg-muted/40"
+                      >
+                        <RadioGroupItem value={g.key} id={`gw-${g.key}`} />
+                        <span className="text-xs">{g.label}</span>
+                      </label>
+                    ))}
+                  </RadioGroup>
+                </div>
+              ) : (
+                <p className="text-xs text-destructive text-center">هیچ درگاه پرداختی فعال نیست. با مدیر تماس بگیرید.</p>
               )}
 
               {/* جمع کل */}

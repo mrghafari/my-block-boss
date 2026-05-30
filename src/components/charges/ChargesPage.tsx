@@ -1,9 +1,10 @@
 import { ChargeSettings } from "@/components/settings/ChargeSettings";
 import { ChargeHistory } from "./ChargeHistory";
 import { LatePenaltyApplier } from "./LatePenaltyApplier";
+import { EarlyPayApplier } from "./EarlyPayApplier";
 import { CustomDebtForm } from "./CustomDebtForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, AlertTriangle, FilePlus, History } from "lucide-react";
+import { Settings, AlertTriangle, FilePlus, History, BadgePercent } from "lucide-react";
 
 export function ChargesPage() {
   return (
@@ -16,10 +17,14 @@ export function ChargesPage() {
       </div>
 
       <Tabs defaultValue="settings" className="w-full" dir="rtl">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="settings" className="gap-2">
             <Settings className="w-4 h-4" />
             اعمال شارژ
+          </TabsTrigger>
+          <TabsTrigger value="early" className="gap-2">
+            <BadgePercent className="w-4 h-4" />
+            خوش‌حسابی
           </TabsTrigger>
           <TabsTrigger value="penalty" className="gap-2">
             <AlertTriangle className="w-4 h-4" />
@@ -37,6 +42,9 @@ export function ChargesPage() {
 
         <TabsContent value="settings" className="mt-4">
           <ChargeSettings />
+        </TabsContent>
+        <TabsContent value="early" className="mt-4">
+          <EarlyPayApplier />
         </TabsContent>
         <TabsContent value="penalty" className="mt-4">
           <LatePenaltyApplier />
