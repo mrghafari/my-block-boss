@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsSuperAdmin } from "@/hooks/useAdmin";
 import { DEFAULT_PRICING, type PricingPlanConfig } from "@/components/admin/AdminPricingSettings";
 import blueTehran from "@/assets/blue-tehran.png";
 import sharjanLogo from "@/assets/sharjan-logo.png";
@@ -50,7 +52,19 @@ const stats = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
   const [pricingPlans, setPricingPlans] = useState<PricingPlanConfig[]>(DEFAULT_PRICING);
+
+  // Auto-redirect authed users so PWA install (start_url=/) lands them in their app, not marketing
+  useEffect(() => {
+    if (loading || !user) return;
+    if (isSuperAdmin) { navigate("/admin", { replace: true }); return; }
+    const hasResident = !!localStorage.getItem("resident_matches");
+    if (hasResident) { navigate("/resident", { replace: true }); return; }
+    // Manager (no resident match) → manager dashboard
+    navigate("/dashboard", { replace: true });
+  }, [user, loading, isSuperAdmin, navigate]);
 
   useEffect(() => {
     (async () => {
