@@ -10,6 +10,7 @@ import { usePayments } from "@/hooks/usePayments";
 import { useManagers } from "@/hooks/useManagers";
 import { useBackfillExpenseShares } from "@/hooks/useBackfillExpenseShares";
 import { useAutoLatePenalty } from "@/hooks/useAutoLatePenalty";
+import { useAutoEarlyPay } from "@/hooks/useAutoEarlyPay";
 import { formatJalaliDate } from "@/lib/jalaliDate";
 
 const formatAmount = (amount: number) => {
@@ -30,6 +31,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
   useBackfillExpenseShares();
   // Auto-apply late penalties for past months when enabled in settings
   useAutoLatePenalty();
+  // Auto-apply early-pay (خوش‌حسابی) discounts when enabled in settings
+  useAutoEarlyPay();
 
   const isLoading = unitsLoading || expensesLoading || paymentsLoading;
 
