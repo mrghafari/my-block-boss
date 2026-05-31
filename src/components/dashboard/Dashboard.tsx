@@ -31,6 +31,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
   useBackfillExpenseShares();
   // Auto-apply late penalties for past months when enabled in settings
   useAutoLatePenalty();
+  // Auto-apply early-pay (خوش‌حسابی) discounts when enabled in settings
+  useAutoEarlyPay();
 
   const isLoading = unitsLoading || expensesLoading || paymentsLoading;
 
