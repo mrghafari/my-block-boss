@@ -121,7 +121,7 @@ const Index = () => {
   const [forceCreate, setForceCreate] = useState(() => {
     return new URLSearchParams(window.location.search).get("new") === "1";
   });
-  const { buildings, isLoading, setCurrentBuildingId } = useBuilding();
+  const { buildings, isLoading } = useBuilding();
   useAutoApplyCharges();
 
   const setActiveTab = (tab: string) => {
