@@ -6,6 +6,7 @@ import { BadgePercent, Loader2, Calculator } from "lucide-react";
 import { usePaymentPolicy } from "@/hooks/usePaymentPolicy";
 import { useUnits } from "@/hooks/useUnits";
 import { usePayments } from "@/hooks/usePayments";
+import { useUnitCharges } from "@/hooks/useUnitCharges";
 import { useBuilding } from "@/contexts/BuildingContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
