@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-function CreateBuildingScreen() {
+function CreateBuildingScreen({ onCreated }: { onCreated?: () => void }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [totalUnits, setTotalUnits] = useState("");
@@ -35,11 +35,14 @@ function CreateBuildingScreen() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createBuilding.mutate({
-      name: name.trim(),
-      address: address.trim() || undefined,
-      total_units: totalUnits ? parseInt(totalUnits) : undefined,
-    });
+    createBuilding.mutate(
+      {
+        name: name.trim(),
+        address: address.trim() || undefined,
+        total_units: totalUnits ? parseInt(totalUnits) : undefined,
+      },
+      { onSuccess: () => onCreated?.() }
+    );
   };
 
   return (
