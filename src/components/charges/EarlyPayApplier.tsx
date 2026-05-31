@@ -169,7 +169,7 @@ export function EarlyPayApplier() {
           اعمال تخفیف خوش‌حسابی
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
-          فرمول: مجموع پرداخت‌های هر واحد در ماه انتخاب‌شده تا روز <strong>{policy.early_pay_days.toLocaleString("fa-IR")}</strong> × <strong>{policy.early_pay_discount_percent}٪</strong> — به‌صورت بستانکاری ثبت می‌شود.
+          فرمول: برای هر پرداخت شارژ در دوره، اگر در پنجره <strong>{policy.early_pay_days.toLocaleString("fa-IR")}</strong> روز پس از اعمال شارژ انجام شود، تخفیف = مبلغ × <strong>{policy.early_pay_discount_percent}٪</strong> × ((روزهای پنجره − روزهای سپری‌شده) ÷ روزهای پنجره). هرچه زودتر بپردازد، تخفیف بیشتر است.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
