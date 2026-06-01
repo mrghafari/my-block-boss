@@ -2080,6 +2080,10 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_enabled_payment_gateways: {
+        Args: { _building_id: string }
+        Returns: Json
+      }
       get_manager_name_at: {
         Args: { _building_id: string; _on_date: string }
         Returns: string
