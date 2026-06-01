@@ -93,33 +93,11 @@ export function PaymentDialog({
     queryKey: ["enabled_gateways", buildingId],
     enabled: open && !!buildingId,
     queryFn: async () => {
-      // Find building manager user_id (first manager member)
-      const { data: members } = await supabase
-        .from("building_members")
-        .select("user_id, role")
-        .eq("building_id", buildingId)
-        .eq("role", "manager")
-        .limit(1);
-      const managerId = members?.[0]?.user_id;
-
-      let cfg: any = null;
-      if (managerId) {
-        const { data: cs } = await supabase
-          .from("customer_settings")
-          .select("setting_value, is_enabled")
-          .eq("user_id", managerId)
-          .eq("setting_key", "payment_gateways")
-          .maybeSingle();
-        if (cs?.is_enabled && cs.setting_value) cfg = cs.setting_value;
-      }
-      if (!cfg) {
-        const { data: ps } = await supabase
-          .from("platform_settings")
-          .select("setting_value")
-          .eq("setting_key", "payment_gateways")
-          .maybeSingle();
-        cfg = ps?.setting_value || {};
-      }
+      const { data, error } = await supabase.rpc("get_enabled_payment_gateways", {
+        _building_id: buildingId,
+      });
+      if (error) throw error;
+      const cfg: any = data || {};
 
       const list: { key: string; label: string }[] = [];
       for (const k of ["zarinpal", "idpay", "nextpay"] as const) {
@@ -127,7 +105,7 @@ export function PaymentDialog({
       }
       if (cfg?.banks) {
         for (const [bk, bv] of Object.entries(cfg.banks as Record<string, any>)) {
-          if (bv?.enabled) list.push({ key: `bank:${bk}`, label: BANK_LABELS[bk] || bk });
+          if ((bv as any)?.enabled) list.push({ key: `bank:${bk}`, label: BANK_LABELS[bk] || bk });
         }
       }
       return list;
