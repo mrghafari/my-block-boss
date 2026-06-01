@@ -99,10 +99,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
 
   const totalPayments = useMemo(() => payments.reduce((s, p) => s + Number(p.amount), 0), [payments]);
   const totalExpenses = useMemo(() => expenseShares.reduce((s, e) => s + Number(e.allocated_amount), 0), [expenseShares]);
-  const totalCharges = useMemo(() => charges.reduce((s, c) => s + Number(c.amount), 0), [charges]);
+  // مانده هر ردیف شارژ = مبلغ - مبلغ پرداخت‌شده
+  const remainingOf = (c: any) => Math.max(0, Number(c.amount) - Number(c.paid_amount || 0));
+  const totalCharges = useMemo(() => charges.reduce((s, c: any) => s + remainingOf(c), 0), [charges]);
   const balance = totalPayments - totalExpenses;
 
-  // تفکیک بدهی شارژ و فوق‌شارژ بر اساس fund_type
   const chargePaid = useMemo(
     () => payments.filter((p) => p.fund_type === "charge").reduce((s, p) => s + Number(p.amount), 0),
     [payments]
@@ -119,17 +120,14 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
     () => expenseShares.filter((e: any) => e.expenses?.fund_type === "extra_charge").reduce((s, e) => s + Number(e.allocated_amount), 0),
     [expenseShares]
   );
-  const chargeOwed = useMemo(() => {
-    const fromCharges = charges.filter((c) => c.fund_type === "charge").reduce((s, c) => s + Number(c.amount), 0);
-    return chargeExpenses + fromCharges;
-  }, [chargeExpenses, charges]);
-  const extraOwed = useMemo(() => {
-    const fromCharges = charges.filter((c) => c.fund_type === "extra_charge").reduce((s, c) => s + Number(c.amount), 0);
-    return extraExpenses + fromCharges;
-  }, [extraExpenses, charges]);
-
-  const chargeDebt = Math.max(0, chargeOwed - chargePaid);
-  const extraDebt = Math.max(0, extraOwed - extraPaid);
+  const chargeDebt = useMemo(
+    () => charges.filter((c: any) => c.fund_type === "charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    [charges]
+  );
+  const extraDebt = useMemo(
+    () => charges.filter((c: any) => c.fund_type === "extra_charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    [charges]
+  );
   const chargeBalance = chargePaid - chargeExpenses;
   const extraBalance = extraPaid - extraExpenses;
 
