@@ -18,6 +18,8 @@ export interface UnitCharge {
   owner_name: string | null;
   resident_name: string | null;
   created_at: string;
+  paid_amount?: number | null;
+  paid_at?: string | null;
 }
 
 export function useUnitCharges() {
