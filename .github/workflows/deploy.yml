@@ -36,13 +36,21 @@ jobs:
       - name: List dist files
         run: ls -la dist/
       
+      - name: Test SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 2222 ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh -p 2222 -o ConnectTimeout=10 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'" || true
+      
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 443
+          port: 2222
           source: "dist/*"
           target: "/var/www/my-block-boss/"
           strip_components: 1
@@ -56,8 +64,9 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 443
+          port: 2222
           script: |
+            chown -R www-data:www-data /var/www/my-block-boss/
             systemctl restart nginx
             echo "✅ Deployment completed successfully!"
           debug: true
