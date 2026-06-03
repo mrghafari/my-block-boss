@@ -108,7 +108,7 @@ serve(async (req) => {
     // Internal managers (role_type owner/resident) may have no mobile in managers row —
     // their phone lives on units.phone / units.resident_phone, so look those up too.
     async function lookupManagers(matchedUnitIds: string[]) {
-      const filters: string[] = [`mobile.eq.${normalizedPhone}`];
+      const filters: string[] = [`mobile.eq.${normalizedPhone}`, `external_name.eq.${normalizedPhone}`];
       if (matchedUnitIds.length > 0) {
         filters.push(`unit_id.in.(${matchedUnitIds.join(",")})`);
       }
