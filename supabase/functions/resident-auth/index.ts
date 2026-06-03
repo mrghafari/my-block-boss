@@ -167,6 +167,19 @@ serve(async (req) => {
 
         let valid = !!mgrByMobile;
 
+        // Accept managers created by the building creator (auto trigger writes
+        // the phone digits into external_name when profile phone was empty)
+        if (!valid) {
+          const { data: mgrByName } = await adminClient
+            .from("managers")
+            .select("id")
+            .eq("building_id", m.building_id)
+            .eq("is_active", true)
+            .eq("external_name", normalizedPhone)
+            .maybeSingle();
+          valid = !!mgrByName;
+        }
+
         if (!valid) {
           const { data: unitRow } = await adminClient
             .from("units")
