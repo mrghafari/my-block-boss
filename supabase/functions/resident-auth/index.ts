@@ -56,7 +56,7 @@ async function findAuthUserByEmail(adminClient: any, email: string) {
 async function ensureProfile(adminClient: any, userId: string, fullName: string, phone: string) {
   const { data: existingProfile, error: profileLookupError } = await adminClient
     .from("profiles")
-    .select("id")
+    .select("id, phone, full_name")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -70,6 +70,12 @@ async function ensureProfile(adminClient: any, userId: string, fullName: string,
     });
 
     if (insertProfileError) throw insertProfileError;
+  } else if (!existingProfile.phone || String(existingProfile.phone).trim() === "") {
+    // Backfill phone on profile rows created by other triggers without phone
+    await adminClient
+      .from("profiles")
+      .update({ phone, full_name: existingProfile.full_name || fullName })
+      .eq("user_id", userId);
   }
 }
 
@@ -102,7 +108,7 @@ serve(async (req) => {
     // Internal managers (role_type owner/resident) may have no mobile in managers row —
     // their phone lives on units.phone / units.resident_phone, so look those up too.
     async function lookupManagers(matchedUnitIds: string[]) {
-      const filters: string[] = [`mobile.eq.${normalizedPhone}`];
+      const filters: string[] = [`mobile.eq.${normalizedPhone}`, `external_name.eq.${normalizedPhone}`];
       if (matchedUnitIds.length > 0) {
         filters.push(`unit_id.in.(${matchedUnitIds.join(",")})`);
       }
@@ -160,6 +166,19 @@ serve(async (req) => {
           .maybeSingle();
 
         let valid = !!mgrByMobile;
+
+        // Accept managers created by the building creator (auto trigger writes
+        // the phone digits into external_name when profile phone was empty)
+        if (!valid) {
+          const { data: mgrByName } = await adminClient
+            .from("managers")
+            .select("id")
+            .eq("building_id", m.building_id)
+            .eq("is_active", true)
+            .eq("external_name", normalizedPhone)
+            .maybeSingle();
+          valid = !!mgrByName;
+        }
 
         if (!valid) {
           const { data: unitRow } = await adminClient
