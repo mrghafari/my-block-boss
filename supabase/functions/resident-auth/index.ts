@@ -56,7 +56,7 @@ async function findAuthUserByEmail(adminClient: any, email: string) {
 async function ensureProfile(adminClient: any, userId: string, fullName: string, phone: string) {
   const { data: existingProfile, error: profileLookupError } = await adminClient
     .from("profiles")
-    .select("id")
+    .select("id, phone, full_name")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -70,6 +70,12 @@ async function ensureProfile(adminClient: any, userId: string, fullName: string,
     });
 
     if (insertProfileError) throw insertProfileError;
+  } else if (!existingProfile.phone || String(existingProfile.phone).trim() === "") {
+    // Backfill phone on profile rows created by other triggers without phone
+    await adminClient
+      .from("profiles")
+      .update({ phone, full_name: existingProfile.full_name || fullName })
+      .eq("user_id", userId);
   }
 }
 
