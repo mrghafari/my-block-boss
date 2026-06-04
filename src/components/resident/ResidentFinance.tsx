@@ -99,9 +99,14 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
 
   const totalPayments = useMemo(() => payments.reduce((s, p) => s + Number(p.amount), 0), [payments]);
   const totalExpenses = useMemo(() => expenseShares.reduce((s, e) => s + Number(e.allocated_amount), 0), [expenseShares]);
-  // مانده هر ردیف شارژ = مبلغ - مبلغ پرداخت‌شده
-  const remainingOf = (c: any) => Math.max(0, Number(c.amount) - Number(c.paid_amount || 0));
-  const totalCharges = useMemo(() => charges.reduce((s, c: any) => s + remainingOf(c), 0), [charges]);
+  // تخفیف خوش‌حسابی به صورت رکورد منفی در unit_charges ذخیره می‌شود (کاهنده)
+  const isDiscount = (c: any) => Number(c.amount) < 0;
+  // مانده با علامت (برای تخفیف منفی می‌ماند)
+  const outstandingSigned = (c: any) => Number(c.amount) - Number(c.paid_amount || 0);
+  // مانده مثبت برای ردیف بدهی معمولی
+  const remainingOf = (c: any) => Math.max(0, outstandingSigned(c));
+  const signedRemain = (c: any) => (isDiscount(c) ? outstandingSigned(c) : remainingOf(c));
+  const totalCharges = useMemo(() => charges.reduce((s, c: any) => s + signedRemain(c), 0), [charges]);
   const balance = totalPayments - totalExpenses;
 
   const chargePaid = useMemo(
@@ -121,11 +126,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
     [expenseShares]
   );
   const chargeDebt = useMemo(
-    () => charges.filter((c: any) => c.fund_type === "charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    () => charges.filter((c: any) => c.fund_type === "charge").reduce((s, c: any) => s + signedRemain(c), 0),
     [charges]
   );
   const extraDebt = useMemo(
-    () => charges.filter((c: any) => c.fund_type === "extra_charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    () => charges.filter((c: any) => c.fund_type === "extra_charge").reduce((s, c: any) => s + signedRemain(c), 0),
     [charges]
   );
   const chargeBalance = chargePaid - chargeExpenses;
@@ -138,12 +143,12 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
       const idSet = new Set(chargeIds);
       charges.forEach((c: any) => {
         if (!idSet.has(c.id)) return;
-        const amt = remainingOf(c);
-        if (amt <= 0) return;
+        const amt = signedRemain(c);
+        if (amt === 0) return;
         if (c.fund_type === "extra_charge") extra += amt;
         else charge += amt;
       });
-      setBulkMode({ charge: Math.round(charge), extra: Math.round(extra) });
+      setBulkMode({ charge: Math.max(0, Math.round(charge)), extra: Math.max(0, Math.round(extra)) });
       setPayChargeIds(chargeIds);
     } else {
       setBulkMode(null);
@@ -155,19 +160,27 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const selectedTotals = useMemo(() => {
     let charge = 0;
     let extra = 0;
+    let hasNonDiscount = false;
     charges.forEach((c: any) => {
       if (!selectedChargeIds.has(c.id)) return;
-      const amt = remainingOf(c);
-      if (amt <= 0) return;
+      const amt = signedRemain(c);
+      if (amt === 0) return;
+      if (!isDiscount(c)) hasNonDiscount = true;
       if (c.fund_type === "extra_charge") extra += amt;
       else charge += amt;
     });
-    return { charge: Math.round(charge), extra: Math.round(extra) };
+    return { charge: Math.round(charge), extra: Math.round(extra), hasNonDiscount };
   }, [charges, selectedChargeIds]);
 
+  const bulkNet = selectedTotals.charge + selectedTotals.extra;
+  const canBulkPay = selectedTotals.hasNonDiscount && bulkNet > 0;
+
   const openBulkPay = () => {
-    if (selectedTotals.charge === 0 && selectedTotals.extra === 0) return;
-    setBulkMode({ charge: selectedTotals.charge, extra: selectedTotals.extra });
+    if (!canBulkPay) return;
+    setBulkMode({
+      charge: Math.max(0, selectedTotals.charge),
+      extra: Math.max(0, selectedTotals.extra),
+    });
     setPayChargeIds(Array.from(selectedChargeIds));
     setPayOpen(true);
   };
@@ -531,9 +544,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
             بدهی شارژ ماهانه
           </CardTitle>
           {selectedChargeIds.size > 0 && (
-            <Button size="sm" onClick={openBulkPay} className="gap-1">
+            <Button size="sm" onClick={openBulkPay} disabled={!canBulkPay} className="gap-1">
               <CreditCard className="w-3 h-3" />
-              پرداخت تجمیعی ({formatNumber(selectedTotals.charge + selectedTotals.extra)} ریال)
+              پرداخت تجمیعی ({formatNumber(Math.max(0, bulkNet))} ریال)
             </Button>
           )}
         </CardHeader>
@@ -555,11 +568,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                   <TableHead className="text-right w-10">
                     <Checkbox
                       checked={
-                        charges.filter((c: any) => remainingOf(c) > 0).length > 0 &&
-                        selectedChargeIds.size === charges.filter((c: any) => remainingOf(c) > 0).length
+                        charges.filter((c: any) => isDiscount(c) || remainingOf(c) > 0).length > 0 &&
+                        selectedChargeIds.size === charges.filter((c: any) => isDiscount(c) || remainingOf(c) > 0).length
                       }
                       onCheckedChange={() => {
-                        const payable = charges.filter((c: any) => remainingOf(c) > 0).map((c) => c.id);
+                        const payable = charges.filter((c: any) => isDiscount(c) || remainingOf(c) > 0).map((c) => c.id);
                         if (selectedChargeIds.size === payable.length) setSelectedChargeIds(new Set());
                         else setSelectedChargeIds(new Set(payable));
                       }}
@@ -571,9 +584,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
               <TableBody>
                 {charges.map((c: any) => {
                   const paid = Number(c.paid_amount || 0);
+                  const discount = isDiscount(c);
                   const remaining = remainingOf(c);
-                  const isFullyPaid = remaining <= 0 && (paid > 0 || c.paid_at);
-                  const isPartiallyPaid = paid > 0 && remaining > 0;
+                  const signedAmt = Number(c.amount);
+                  const isFullyPaid = !discount && remaining <= 0 && (paid > 0 || c.paid_at);
+                  const isPartiallyPaid = !discount && paid > 0 && remaining > 0;
                   return (
                   <TableRow
                     key={c.id}
@@ -587,11 +602,17 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs">{c.description || "-"}</TableCell>
-                    <TableCell className="font-semibold text-orange-600">{formatNumber(Number(c.amount))} ریال</TableCell>
+                    <TableCell className={`font-semibold ${discount ? "text-emerald-600" : "text-orange-600"}`}>
+                      {discount ? "-" : ""}{formatNumber(signedAmt)} ریال
+                    </TableCell>
                     <TableCell className="text-emerald-600 text-xs">{paid > 0 ? `${formatNumber(paid)} ریال` : "-"}</TableCell>
-                    <TableCell className="font-semibold text-xs">{remaining > 0 ? `${formatNumber(remaining)} ریال` : "0"}</TableCell>
+                    <TableCell className={`font-semibold text-xs ${discount ? "text-emerald-600" : ""}`}>
+                      {discount ? `-${formatNumber(signedAmt)} ریال` : (remaining > 0 ? `${formatNumber(remaining)} ریال` : "0")}
+                    </TableCell>
                     <TableCell>
-                      {isFullyPaid ? (
+                      {discount ? (
+                        <Badge className="text-xs bg-emerald-600 hover:bg-emerald-600">دریافت</Badge>
+                      ) : isFullyPaid ? (
                         <Badge className="text-xs bg-emerald-600 hover:bg-emerald-600">پرداخت شده</Badge>
                       ) : isPartiallyPaid ? (
                         <Badge variant="secondary" className="text-xs">پرداخت جزئی</Badge>
@@ -604,10 +625,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                         size="sm"
                         variant="outline"
                         onClick={() => openPay([c.id])}
-                        disabled={remaining <= 0}
+                        disabled={discount || remaining <= 0}
+                        title={discount ? "تخفیف تنها قابل دریافت نیست؛ به‌همراه شارژ/فوق‌شارژ هم‌نوع انتخاب شود" : undefined}
                       >
                         <CreditCard className="w-3 h-3 ml-1" />
-                        پرداخت
+                        {discount ? "دریافت" : "پرداخت"}
                       </Button>
                     </TableCell>
                     <TableCell>
@@ -615,7 +637,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                         checked={selectedChargeIds.has(c.id)}
                         onCheckedChange={() => toggleChargeSelect(c.id)}
                         aria-label="انتخاب برای پرداخت تجمیعی"
-                        disabled={remaining <= 0}
+                        disabled={!discount && remaining <= 0}
                       />
                     </TableCell>
                   </TableRow>
