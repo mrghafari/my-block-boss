@@ -99,9 +99,14 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
 
   const totalPayments = useMemo(() => payments.reduce((s, p) => s + Number(p.amount), 0), [payments]);
   const totalExpenses = useMemo(() => expenseShares.reduce((s, e) => s + Number(e.allocated_amount), 0), [expenseShares]);
-  // مانده هر ردیف شارژ = مبلغ - مبلغ پرداخت‌شده
-  const remainingOf = (c: any) => Math.max(0, Number(c.amount) - Number(c.paid_amount || 0));
-  const totalCharges = useMemo(() => charges.reduce((s, c: any) => s + remainingOf(c), 0), [charges]);
+  // تخفیف خوش‌حسابی به صورت رکورد منفی در unit_charges ذخیره می‌شود (کاهنده)
+  const isDiscount = (c: any) => Number(c.amount) < 0;
+  // مانده با علامت (برای تخفیف منفی می‌ماند)
+  const outstandingSigned = (c: any) => Number(c.amount) - Number(c.paid_amount || 0);
+  // مانده مثبت برای ردیف بدهی معمولی
+  const remainingOf = (c: any) => Math.max(0, outstandingSigned(c));
+  const signedRemain = (c: any) => (isDiscount(c) ? outstandingSigned(c) : remainingOf(c));
+  const totalCharges = useMemo(() => charges.reduce((s, c: any) => s + signedRemain(c), 0), [charges]);
   const balance = totalPayments - totalExpenses;
 
   const chargePaid = useMemo(
@@ -121,11 +126,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
     [expenseShares]
   );
   const chargeDebt = useMemo(
-    () => charges.filter((c: any) => c.fund_type === "charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    () => charges.filter((c: any) => c.fund_type === "charge").reduce((s, c: any) => s + signedRemain(c), 0),
     [charges]
   );
   const extraDebt = useMemo(
-    () => charges.filter((c: any) => c.fund_type === "extra_charge").reduce((s, c: any) => s + remainingOf(c), 0),
+    () => charges.filter((c: any) => c.fund_type === "extra_charge").reduce((s, c: any) => s + signedRemain(c), 0),
     [charges]
   );
   const chargeBalance = chargePaid - chargeExpenses;
@@ -138,12 +143,12 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
       const idSet = new Set(chargeIds);
       charges.forEach((c: any) => {
         if (!idSet.has(c.id)) return;
-        const amt = remainingOf(c);
-        if (amt <= 0) return;
+        const amt = signedRemain(c);
+        if (amt === 0) return;
         if (c.fund_type === "extra_charge") extra += amt;
         else charge += amt;
       });
-      setBulkMode({ charge: Math.round(charge), extra: Math.round(extra) });
+      setBulkMode({ charge: Math.max(0, Math.round(charge)), extra: Math.max(0, Math.round(extra)) });
       setPayChargeIds(chargeIds);
     } else {
       setBulkMode(null);
@@ -155,19 +160,27 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const selectedTotals = useMemo(() => {
     let charge = 0;
     let extra = 0;
+    let hasNonDiscount = false;
     charges.forEach((c: any) => {
       if (!selectedChargeIds.has(c.id)) return;
-      const amt = remainingOf(c);
-      if (amt <= 0) return;
+      const amt = signedRemain(c);
+      if (amt === 0) return;
+      if (!isDiscount(c)) hasNonDiscount = true;
       if (c.fund_type === "extra_charge") extra += amt;
       else charge += amt;
     });
-    return { charge: Math.round(charge), extra: Math.round(extra) };
+    return { charge: Math.round(charge), extra: Math.round(extra), hasNonDiscount };
   }, [charges, selectedChargeIds]);
 
+  const bulkNet = selectedTotals.charge + selectedTotals.extra;
+  const canBulkPay = selectedTotals.hasNonDiscount && bulkNet > 0;
+
   const openBulkPay = () => {
-    if (selectedTotals.charge === 0 && selectedTotals.extra === 0) return;
-    setBulkMode({ charge: selectedTotals.charge, extra: selectedTotals.extra });
+    if (!canBulkPay) return;
+    setBulkMode({
+      charge: Math.max(0, selectedTotals.charge),
+      extra: Math.max(0, selectedTotals.extra),
+    });
     setPayChargeIds(Array.from(selectedChargeIds));
     setPayOpen(true);
   };
