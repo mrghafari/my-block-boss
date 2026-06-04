@@ -584,9 +584,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
               <TableBody>
                 {charges.map((c: any) => {
                   const paid = Number(c.paid_amount || 0);
+                  const discount = isDiscount(c);
                   const remaining = remainingOf(c);
-                  const isFullyPaid = remaining <= 0 && (paid > 0 || c.paid_at);
-                  const isPartiallyPaid = paid > 0 && remaining > 0;
+                  const signedAmt = Number(c.amount);
+                  const isFullyPaid = !discount && remaining <= 0 && (paid > 0 || c.paid_at);
+                  const isPartiallyPaid = !discount && paid > 0 && remaining > 0;
                   return (
                   <TableRow
                     key={c.id}
@@ -600,11 +602,17 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs">{c.description || "-"}</TableCell>
-                    <TableCell className="font-semibold text-orange-600">{formatNumber(Number(c.amount))} ریال</TableCell>
+                    <TableCell className={`font-semibold ${discount ? "text-emerald-600" : "text-orange-600"}`}>
+                      {discount ? "-" : ""}{formatNumber(signedAmt)} ریال
+                    </TableCell>
                     <TableCell className="text-emerald-600 text-xs">{paid > 0 ? `${formatNumber(paid)} ریال` : "-"}</TableCell>
-                    <TableCell className="font-semibold text-xs">{remaining > 0 ? `${formatNumber(remaining)} ریال` : "0"}</TableCell>
+                    <TableCell className={`font-semibold text-xs ${discount ? "text-emerald-600" : ""}`}>
+                      {discount ? `-${formatNumber(signedAmt)} ریال` : (remaining > 0 ? `${formatNumber(remaining)} ریال` : "0")}
+                    </TableCell>
                     <TableCell>
-                      {isFullyPaid ? (
+                      {discount ? (
+                        <Badge className="text-xs bg-emerald-600 hover:bg-emerald-600">دریافت</Badge>
+                      ) : isFullyPaid ? (
                         <Badge className="text-xs bg-emerald-600 hover:bg-emerald-600">پرداخت شده</Badge>
                       ) : isPartiallyPaid ? (
                         <Badge variant="secondary" className="text-xs">پرداخت جزئی</Badge>
@@ -617,10 +625,11 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                         size="sm"
                         variant="outline"
                         onClick={() => openPay([c.id])}
-                        disabled={remaining <= 0}
+                        disabled={discount || remaining <= 0}
+                        title={discount ? "تخفیف تنها قابل دریافت نیست؛ به‌همراه شارژ/فوق‌شارژ هم‌نوع انتخاب شود" : undefined}
                       >
                         <CreditCard className="w-3 h-3 ml-1" />
-                        پرداخت
+                        {discount ? "دریافت" : "پرداخت"}
                       </Button>
                     </TableCell>
                     <TableCell>
@@ -628,7 +637,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
                         checked={selectedChargeIds.has(c.id)}
                         onCheckedChange={() => toggleChargeSelect(c.id)}
                         aria-label="انتخاب برای پرداخت تجمیعی"
-                        disabled={remaining <= 0}
+                        disabled={!discount && remaining <= 0}
                       />
                     </TableCell>
                   </TableRow>
