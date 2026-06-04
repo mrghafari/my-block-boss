@@ -544,9 +544,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
             بدهی شارژ ماهانه
           </CardTitle>
           {selectedChargeIds.size > 0 && (
-            <Button size="sm" onClick={openBulkPay} className="gap-1">
+            <Button size="sm" onClick={openBulkPay} disabled={!canBulkPay} className="gap-1">
               <CreditCard className="w-3 h-3" />
-              پرداخت تجمیعی ({formatNumber(selectedTotals.charge + selectedTotals.extra)} ریال)
+              پرداخت تجمیعی ({formatNumber(Math.max(0, bulkNet))} ریال)
             </Button>
           )}
         </CardHeader>
