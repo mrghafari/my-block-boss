@@ -131,6 +131,18 @@ export function FundBalance() {
             </span>
           </div>
         </div>
+
+        {/* Bank Reconciliation Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-2"
+          onClick={() => setReconOpen(true)}
+        >
+          <FileCheck2 className="w-4 h-4" />
+          صورت تطبیق بانکی
+        </Button>
+        <BankReconciliationDialog open={reconOpen} onOpenChange={setReconOpen} />
       </CardContent>
     </Card>
   );
