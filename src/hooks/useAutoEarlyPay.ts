@@ -73,9 +73,13 @@ export function useAutoEarlyPay() {
 
     (async () => {
       for (const { y, m } of periods) {
-        const key = `${currentBuildingId}:earlypay:${y}-${m}`;
-        if (ranRef.current.has(key)) continue;
-        ranRef.current.add(key);
+        // Signature key: re-run when payments/charges for this period change
+        const sig = `${currentBuildingId}:earlypay:${y}-${m}:` +
+          (payments as any[]).filter((p: any) => p.year === y && p.month === m).length + ":" +
+          (existingCharges as any[]).filter((c: any) => c.year === y && c.month === m).length;
+        if (ranRef.current.has(sig)) continue;
+        ranRef.current.add(sig);
+
 
         const records: any[] = [];
 
