@@ -101,6 +101,7 @@ export function ChargeHistory() {
                   <TableHead className="text-right">باقیمانده</TableHead>
                   <TableHead className="text-right">وضعیت</TableHead>
                   <TableHead className="text-right">توضیحات</TableHead>
+                  <TableHead className="text-right">تاریخ اعمال</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -148,6 +149,9 @@ export function ChargeHistory() {
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {c.description || "-"}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {c.created_at ? format(new Date(c.created_at), "yyyy/MM/dd", { locale: faIR }) : "-"}
                       </TableCell>
                       <TableCell>
                         <Button
