@@ -42,6 +42,10 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const [expensesFrom, setExpensesFrom] = useState<Date | undefined>();
   const [expensesTo, setExpensesTo] = useState<Date | undefined>();
 
+  const { data: grantedModules = [] } = useMyUnitModules(buildingId, unitId, viewerRole);
+  const canSeeBalance = grantedModules.includes("unit_balance");
+
+
   // Fetch unit info for owner/resident snapshot
   const { data: unitInfo } = useQuery({
     queryKey: ["resident_unit_info", unitId],
