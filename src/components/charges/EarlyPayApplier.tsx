@@ -86,9 +86,9 @@ export function EarlyPayApplier() {
             if (p.fund_type !== fundType) continue;
             if (p.month !== m || p.year !== y) continue;
             if (!p.payment_date) continue;
-            const pMs = new Date(p.payment_date).getTime();
+            const pMs = new Date(`${p.payment_date}T23:59:59`).getTime();
             if (pMs < applyBase) continue;
-            const daysElapsed = Math.floor((pMs - applyBase) / 86400000);
+            const daysElapsed = Math.floor((startOfLocalDay(pMs) - startOfLocalDay(applyBase)) / 86400000);
             if (daysElapsed > windowDays) continue;
             const factor = Math.max(0, windowDays - daysElapsed) / windowDays;
             const amt = Number(p.amount || 0);
