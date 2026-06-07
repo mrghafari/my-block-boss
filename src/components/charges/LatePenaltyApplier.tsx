@@ -177,14 +177,14 @@ export function LatePenaltyApplier() {
 
 
   const handleApply = async () => {
-    if (!currentBuildingId || newOnes.length === 0) return;
+    if (!currentBuildingId || readyNewOnes.length === 0) return;
     setSubmitting(true);
     try {
-      const records = newOnes.map((c) => ({
+      const records = readyNewOnes.map((c) => ({
         building_id: currentBuildingId,
         unit_id: c.unit.id,
         amount: c.penalty,
-        fund_type: "charge" as const,
+        fund_type: c.fundType,
         month: Number(month),
         year: Number(year),
         description: `جریمه ${persianMonths[Number(month) - 1]} ${year}`,
@@ -292,7 +292,7 @@ export function LatePenaltyApplier() {
           </div>
           <div className="flex justify-between text-sm pt-2 border-t">
             <span className="text-muted-foreground">جدید برای اعمال:</span>
-            <span className="font-bold text-destructive">{newOnes.length.toLocaleString("fa-IR")} واحد</span>
+            <span className="font-bold text-destructive">{readyNewOnes.length.toLocaleString("fa-IR")} رکورد</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">جمع جریمه‌های جدید:</span>
@@ -316,18 +316,24 @@ export function LatePenaltyApplier() {
                   <tr>
                     <th className="text-right px-3 py-2">واحد</th>
                     <th className="text-right px-3 py-2">مالک</th>
-                    <th className="text-right px-3 py-2">بدهی پایان ماه</th>
+                    <th className="text-right px-3 py-2">صندوق</th>
+                    <th className="text-right px-3 py-2">بدهی مبنا</th>
                     <th className="text-right px-3 py-2">جریمه</th>
+                    <th className="text-right px-3 py-2">وضعیت</th>
                   </tr>
                 </thead>
                 <tbody>
                   {newOnes.map((c) => (
-                    <tr key={c.unit.id} className="border-t">
+                    <tr key={`${c.unit.id}-${c.fundType}`} className="border-t">
                       <td className="px-3 py-2">{c.unit.unit_number}</td>
                       <td className="px-3 py-2">{c.unit.owner_name}</td>
+                      <td className="px-3 py-2 text-xs">{c.fundType === "charge" ? "شارژ" : "فوق‌شارژ"}</td>
                       <td className="px-3 py-2">{formatNumber(c.debt)}</td>
                       <td className="px-3 py-2 text-destructive font-medium">
                         {formatNumber(c.penalty)}
+                      </td>
+                      <td className="px-3 py-2 text-xs">
+                        {c.withinGrace ? "در آوانس" : "آماده اعمال"}
                       </td>
                     </tr>
                   ))}
