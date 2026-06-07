@@ -22,6 +22,12 @@ const isDiscountDescription = (d?: string | null) =>
 const isMetaDescription = (d?: string | null) =>
   !!d && (d.startsWith("جریمه") || d.startsWith("تخفیف خوش‌حسابی"));
 
+const startOfLocalDay = (ms: number) => {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+
 /**
  * Automatically applies early-pay (خوش‌حسابی) discounts as NEGATIVE unit_charges
  * (one row per fund: charge / extra_charge). The discount reduces the unit's
@@ -58,8 +64,6 @@ export function useAutoEarlyPay() {
     const now = new Date();
     const curM = Number(format(now, "M", { locale: faIR }));
     const curY = Number(format(now, "yyyy", { locale: faIR }));
-    const nowMs = now.getTime();
-    const windowMs = policy.early_pay_days * 86400000;
     const pct = policy.early_pay_discount_percent / 100;
     const funds: FundType[] = ["charge", "extra_charge"];
 
@@ -108,7 +112,7 @@ export function useAutoEarlyPay() {
               const baseMs = new Date(c.created_at).getTime();
               const paidMs = new Date(c.paid_at).getTime();
               if (paidMs < baseMs) continue;
-              const daysElapsed = Math.floor((paidMs - baseMs) / 86400000);
+              const daysElapsed = Math.floor((startOfLocalDay(paidMs) - startOfLocalDay(baseMs)) / 86400000);
               if (daysElapsed > policy.early_pay_days) continue;
               const factor =
                 Math.max(0, policy.early_pay_days - daysElapsed) /

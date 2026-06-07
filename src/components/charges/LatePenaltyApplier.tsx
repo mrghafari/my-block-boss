@@ -20,7 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
-import { endOfJalaliMonth, endOfJalaliMonthIso } from "@/lib/jalaliMonthRange";
+import { endOfJalaliMonth } from "@/lib/jalaliMonthRange";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,95 +77,114 @@ export function LatePenaltyApplier() {
 
   const balanceLoading = !units || !payments || !shares || !existingCharges;
 
-  // Compute candidates based on END-OF-MONTH balance, EXCLUDING penalty rows
+  // Compute candidates per fund. For the selected period itself, grace starts
+  // from the manager's actual charge application date; for carry-over debt in
+  // later periods, the period end is the time basis.
   const candidates = useMemo(() => {
     if (!policy?.late_penalty_enabled || policy.late_penalty_percent_per_month <= 0) {
       return [];
     }
     const m = Number(month);
     const y = Number(year);
-    const cutoffIso = endOfJalaliMonthIso(y, m); // YYYY-MM-DD
+    const graceMs = Math.max(0, policy.late_grace_days || 0) * 86400000;
+    const nowMs = Date.now();
+    const funds: Array<"charge" | "extra_charge"> = ["charge", "extra_charge"];
 
-    // Sum payments per unit up to end of selected jalali month
-    const paySum = new Map<string, number>();
-    for (const p of payments as any[]) {
-      if (p.payment_date && p.payment_date <= cutoffIso) {
-        paySum.set(p.unit_id, (paySum.get(p.unit_id) || 0) + Number(p.amount || 0));
-      }
-    }
-
-    // Sum allocated expense shares per unit up to end of selected jalali month
     const expenseDateMap = new Map<string, string>();
     for (const e of expenses as any[]) {
       if (e.expense_date) expenseDateMap.set(e.id, e.expense_date.split("T")[0]);
     }
-    const expSum = new Map<string, number>();
-    for (const s of shares as any[]) {
-      const dateRef = expenseDateMap.get(s.expense_id) || (s.created_at?.split("T")[0]);
-      if (dateRef && dateRef <= cutoffIso) {
-        expSum.set(s.unit_id, (expSum.get(s.unit_id) || 0) + Number(s.allocated_amount || 0));
+
+    const rows: Array<{
+      unit: any;
+      fundType: "charge" | "extra_charge";
+      debt: number;
+      penalty: number;
+      alreadyApplied: boolean;
+      withinGrace: boolean;
+      graceRemainingDays: number;
+    }> = [];
+
+    for (const u of units as any[]) {
+      if (u.late_penalty_exempt) continue;
+      for (const fundType of funds) {
+        const periodChargeDates = (existingCharges as any[])
+          .filter((c) =>
+            c.unit_id === u.id &&
+            c.year === y &&
+            c.month === m &&
+            c.fund_type === fundType &&
+            !isPenaltyDescription(c.description)
+          )
+          .map((c) => new Date(c.created_at).getTime());
+        const applyBaseMs = periodChargeDates.length > 0
+          ? Math.max(...periodChargeDates)
+          : endOfJalaliMonth(y, m).getTime();
+        const graceEndMs = applyBaseMs + graceMs;
+        const cutoffIso = new Date(graceEndMs).toISOString().slice(0, 10);
+
+        let paid = 0;
+        for (const p of payments as any[]) {
+          if (p.unit_id === u.id && p.fund_type === fundType && p.payment_date && p.payment_date <= cutoffIso) {
+            paid += Number(p.amount || 0);
+          }
+        }
+
+        let expenseTotal = 0;
+        for (const s of shares as any[]) {
+          if (s.unit_id !== u.id) continue;
+          const expense = (expenses as any[]).find((e) => e.id === s.expense_id);
+          const expenseFund = expense?.fund_type ?? "charge";
+          if (expenseFund !== fundType) continue;
+          const dateRef = expenseDateMap.get(s.expense_id) || (s.created_at?.split("T")[0]);
+          if (dateRef && dateRef <= cutoffIso) expenseTotal += Number(s.allocated_amount || 0);
+        }
+
+        let chargeTotal = 0;
+        for (const c of existingCharges as any[]) {
+          if (c.unit_id !== u.id || c.fund_type !== fundType) continue;
+          const isWithinPeriod = c.year < y || (c.year === y && c.month <= m);
+          if (!isWithinPeriod || isPenaltyDescription(c.description)) continue;
+          chargeTotal += Number(c.amount || 0);
+        }
+
+        const debt = Math.max(0, -(paid - (expenseTotal + chargeTotal)));
+        const penalty = Math.round((debt * policy.late_penalty_percent_per_month) / 100);
+        if (penalty <= 0) continue;
+        const alreadyApplied = (existingCharges as any[]).some((c) =>
+          c.unit_id === u.id && c.month === m && c.year === y && c.fund_type === fundType && isPenaltyDescription(c.description)
+        );
+        rows.push({
+          unit: u,
+          fundType,
+          debt,
+          penalty,
+          alreadyApplied,
+          withinGrace: nowMs < graceEndMs,
+          graceRemainingDays: Math.max(0, Math.ceil((graceEndMs - nowMs) / 86400000)),
+        });
       }
     }
 
-    // Sum unit_charges per unit up to and INCLUDING (year, month) but EXCLUDING penalty descriptions
-    const chargeSum = new Map<string, number>();
-    for (const c of existingCharges as any[]) {
-      const isWithinPeriod =
-        c.year < y || (c.year === y && c.month <= m);
-      if (!isWithinPeriod) continue;
-      if (isPenaltyDescription(c.description)) continue; // exclude penalties themselves
-      chargeSum.set(c.unit_id, (chargeSum.get(c.unit_id) || 0) + Number(c.amount || 0));
-    }
-
-    return units
-      .filter((u: any) => !u.late_penalty_exempt)
-      .map((u: any) => {
-        const paid = paySum.get(u.id) || 0;
-        const expenses = expSum.get(u.id) || 0;
-        const charges = chargeSum.get(u.id) || 0;
-        // balance = paid - (expenses + charges); negative means debtor
-        const balance = paid - (expenses + charges);
-        const debt = balance < 0 ? Math.abs(balance) : 0;
-        const penalty = Math.round((debt * policy.late_penalty_percent_per_month) / 100);
-        const alreadyApplied = (existingCharges as any[]).some(
-          (c) =>
-            c.unit_id === u.id &&
-            c.month === m &&
-            c.year === y &&
-            isPenaltyDescription(c.description)
-        );
-        return { unit: u, debt, penalty, alreadyApplied };
-      })
-      .filter((c) => c.penalty > 0);
+    return rows;
   }, [units, payments, shares, expenses, existingCharges, policy, month, year]);
 
   const newOnes = candidates.filter((c) => !c.alreadyApplied);
-  const totalPenalty = newOnes.reduce((s, c) => s + c.penalty, 0);
-
-  // Grace period: starts from the day the manager actually applied charges for this period (latest created_at of unit_charges for selected month/year).
-  // If no charges yet exist for this period, fall back to end-of-month.
-  const graceDays = Math.max(0, policy?.late_grace_days || 0);
-  const periodChargeDates = (existingCharges as any[])
-    .filter((c) => c.year === Number(year) && c.month === Number(month) && !isPenaltyDescription(c.description))
-    .map((c) => new Date(c.created_at).getTime());
-  const applyBaseMs = periodChargeDates.length > 0
-    ? Math.max(...periodChargeDates)
-    : endOfJalaliMonth(Number(year), Number(month)).getTime();
-  const graceEndMs = applyBaseMs + graceDays * 86400000;
-  const nowMs = Date.now();
-  const graceRemainingDays = Math.max(0, Math.ceil((graceEndMs - nowMs) / 86400000));
-  const withinGrace = nowMs < graceEndMs;
+  const readyNewOnes = newOnes.filter((c) => !c.withinGrace);
+  const totalPenalty = readyNewOnes.reduce((s, c) => s + c.penalty, 0);
+  const withinGrace = newOnes.some((c) => c.withinGrace);
+  const graceRemainingDays = Math.max(0, ...newOnes.filter((c) => c.withinGrace).map((c) => c.graceRemainingDays));
 
 
   const handleApply = async () => {
-    if (!currentBuildingId || newOnes.length === 0) return;
+    if (!currentBuildingId || readyNewOnes.length === 0) return;
     setSubmitting(true);
     try {
-      const records = newOnes.map((c) => ({
+      const records = readyNewOnes.map((c) => ({
         building_id: currentBuildingId,
         unit_id: c.unit.id,
         amount: c.penalty,
-        fund_type: "charge" as const,
+        fund_type: c.fundType,
         month: Number(month),
         year: Number(year),
         description: `جریمه ${persianMonths[Number(month) - 1]} ${year}`,
@@ -273,7 +292,7 @@ export function LatePenaltyApplier() {
           </div>
           <div className="flex justify-between text-sm pt-2 border-t">
             <span className="text-muted-foreground">جدید برای اعمال:</span>
-            <span className="font-bold text-destructive">{newOnes.length.toLocaleString("fa-IR")} واحد</span>
+            <span className="font-bold text-destructive">{readyNewOnes.length.toLocaleString("fa-IR")} رکورد</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">جمع جریمه‌های جدید:</span>
@@ -297,18 +316,24 @@ export function LatePenaltyApplier() {
                   <tr>
                     <th className="text-right px-3 py-2">واحد</th>
                     <th className="text-right px-3 py-2">مالک</th>
-                    <th className="text-right px-3 py-2">بدهی پایان ماه</th>
+                    <th className="text-right px-3 py-2">صندوق</th>
+                    <th className="text-right px-3 py-2">بدهی مبنا</th>
                     <th className="text-right px-3 py-2">جریمه</th>
+                    <th className="text-right px-3 py-2">وضعیت</th>
                   </tr>
                 </thead>
                 <tbody>
                   {newOnes.map((c) => (
-                    <tr key={c.unit.id} className="border-t">
+                    <tr key={`${c.unit.id}-${c.fundType}`} className="border-t">
                       <td className="px-3 py-2">{c.unit.unit_number}</td>
                       <td className="px-3 py-2">{c.unit.owner_name}</td>
+                      <td className="px-3 py-2 text-xs">{c.fundType === "charge" ? "شارژ" : "فوق‌شارژ"}</td>
                       <td className="px-3 py-2">{formatNumber(c.debt)}</td>
                       <td className="px-3 py-2 text-destructive font-medium">
                         {formatNumber(c.penalty)}
+                      </td>
+                      <td className="px-3 py-2 text-xs">
+                        {c.withinGrace ? "در آوانس" : "آماده اعمال"}
                       </td>
                     </tr>
                   ))}
@@ -334,20 +359,20 @@ export function LatePenaltyApplier() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  disabled={submitting || withinGrace}
+                  disabled={submitting || readyNewOnes.length === 0}
                   variant="destructive"
                   size="sm"
                   className="gap-2"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
-                  اعمال جریمه برای {newOnes.length.toLocaleString("fa-IR")} واحد
+                  اعمال جریمه برای {readyNewOnes.length.toLocaleString("fa-IR")} رکورد
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent dir="rtl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>تأیید اعمال جریمه</AlertDialogTitle>
                   <AlertDialogDescription>
-                    مجموع {formatNumber(totalPenalty)} ریال جریمه برای {newOnes.length.toLocaleString("fa-IR")} واحد در دوره {persianMonths[Number(month) - 1]} {year} ثبت می‌شود. این عملیات قابل بازگشت نیست (مگر با حذف دستی هر رکورد).
+                    مجموع {formatNumber(totalPenalty)} ریال جریمه برای {readyNewOnes.length.toLocaleString("fa-IR")} رکورد در دوره {persianMonths[Number(month) - 1]} {year} ثبت می‌شود. این عملیات قابل بازگشت نیست (مگر با حذف دستی هر رکورد).
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
