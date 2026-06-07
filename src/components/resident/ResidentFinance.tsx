@@ -36,6 +36,10 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const [payOpen, setPayOpen] = useState(false);
   const [selectedChargeIds, setSelectedChargeIds] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState<{ charge: number; extra: number } | null>(null);
+  const [bulkPeriods, setBulkPeriods] = useState<{
+    charge?: { month: number; year: number };
+    extra?: { month: number; year: number };
+  }>({});
   const [payChargeIds, setPayChargeIds] = useState<string[]>([]);
   const [paymentsFrom, setPaymentsFrom] = useState<Date | undefined>();
   const [paymentsTo, setPaymentsTo] = useState<Date | undefined>();
@@ -146,17 +150,26 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
       let charge = 0;
       let extra = 0;
       const idSet = new Set(chargeIds);
+      const nextPeriods: typeof bulkPeriods = {};
       charges.forEach((c: any) => {
         if (!idSet.has(c.id)) return;
         const amt = signedRemain(c);
         if (amt === 0) return;
-        if (c.fund_type === "extra_charge") extra += amt;
-        else charge += amt;
+        const period = { month: Number(c.month), year: Number(c.year) };
+        if (c.fund_type === "extra_charge") {
+          extra += amt;
+          nextPeriods.extra ||= period;
+        } else {
+          charge += amt;
+          nextPeriods.charge ||= period;
+        }
       });
       setBulkMode({ charge: Math.max(0, Math.round(charge)), extra: Math.max(0, Math.round(extra)) });
+      setBulkPeriods(nextPeriods);
       setPayChargeIds(chargeIds);
     } else {
       setBulkMode(null);
+      setBulkPeriods({});
       setPayChargeIds([]);
     }
     setPayOpen(true);
@@ -198,6 +211,16 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
     setBulkMode({
       charge: Math.max(0, selectedTotals.charge),
       extra: Math.max(0, selectedTotals.extra),
+    });
+    const ids = Array.from(selectedChargeIds);
+    const selected = charges.filter((c: any) => ids.includes(c.id));
+    setBulkPeriods({
+      charge: selected.find((c: any) => c.fund_type === "charge")
+        ? { month: Number(selected.find((c: any) => c.fund_type === "charge")!.month), year: Number(selected.find((c: any) => c.fund_type === "charge")!.year) }
+        : undefined,
+      extra: selected.find((c: any) => c.fund_type === "extra_charge")
+        ? { month: Number(selected.find((c: any) => c.fund_type === "extra_charge")!.month), year: Number(selected.find((c: any) => c.fund_type === "extra_charge")!.year) }
+        : undefined,
     });
     setPayChargeIds(Array.from(selectedChargeIds));
     setPayOpen(true);
