@@ -46,6 +46,8 @@ interface Props {
   chargeFundIdsToClear?: string[];
   /** شناسه ردیف‌های unit_charges از نوع فوق‌شارژ که پس از پرداخت موفق باید حذف شوند */
   extraFundIdsToClear?: string[];
+  chargePeriod?: { month: number; year: number };
+  extraPeriod?: { month: number; year: number };
 }
 
 type Step = "form" | "gateway" | "success";
@@ -78,6 +80,8 @@ export function PaymentDialog({
   residentName,
   chargeFundIdsToClear,
   extraFundIdsToClear,
+  chargePeriod,
+  extraPeriod,
 }: Props) {
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>("form");
@@ -162,12 +166,15 @@ export function PaymentDialog({
     await new Promise((res) => setTimeout(res, 1200));
 
     const now = new Date();
+    const paymentDate = now.toISOString().slice(0, 10);
+    const currentPeriod = {
+      month: Number(format(now, "M", { locale: faIR })),
+      year: Number(format(now, "yyyy", { locale: faIR })),
+    };
     const baseRecord = {
       building_id: buildingId,
       unit_id: unitId,
-      payment_date: now.toISOString().slice(0, 10),
-      month: Number(format(now, "M", { locale: faIR })),
-      year: Number(format(now, "yyyy", { locale: faIR })),
+      payment_date: paymentDate,
     };
 
     const records: PaymentRpcRecord[] = [];
@@ -175,6 +182,7 @@ export function PaymentDialog({
     if (chargeChecked && r(chargeAmount) > 0) {
       records.push({
         ...baseRecord,
+        ...(chargePeriod || currentPeriod),
         amount: r(chargeAmount),
         fund_type: "charge",
         owner_name: null,
@@ -186,6 +194,7 @@ export function PaymentDialog({
     if (extraChecked && r(extraAmount) > 0) {
       records.push({
         ...baseRecord,
+        ...(extraPeriod || currentPeriod),
         amount: r(extraAmount),
         fund_type: "extra_charge",
         owner_name: ownerName || residentName || null,
