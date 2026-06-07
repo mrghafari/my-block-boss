@@ -19,6 +19,7 @@ import {
   exportExpensesPdf,
   inDateRange,
 } from "@/lib/residentExport";
+import { useMyUnitModules } from "@/hooks/useUnitModuleAccess";
 
 interface Props {
   buildingId: string;
@@ -40,6 +41,10 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
   const [paymentsTo, setPaymentsTo] = useState<Date | undefined>();
   const [expensesFrom, setExpensesFrom] = useState<Date | undefined>();
   const [expensesTo, setExpensesTo] = useState<Date | undefined>();
+
+  const { data: grantedModules = [] } = useMyUnitModules(buildingId, unitId, viewerRole);
+  const canSeeBalance = grantedModules.includes("unit_balance");
+
 
   // Fetch unit info for owner/resident snapshot
   const { data: unitInfo } = useQuery({
@@ -292,7 +297,9 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
             </div>
           </CardContent>
         </Card>
+        {canSeeBalance && (
         <TooltipProvider delayDuration={150}>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Card
@@ -361,6 +368,7 @@ export function ResidentFinance({ buildingId, unitId, viewerRole = "resident" }:
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        )}
       </div>
 
       <PaymentDialog
