@@ -74,6 +74,7 @@ export function useCreatePayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["unit-charges"] });
       toast({ title: "موفق", description: "پرداخت با موفقیت ثبت شد" });
     },
     onError: () => {
