@@ -63,6 +63,29 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const { data: isSuperAdmin, isPending: rolePending } = useIsSuperAdmin(user?.id);
+
+  if (loading || (user && rolePending)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <>{children}</>;
+  }
+
+  if (!isSuperAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function ResidentAuthRoute({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
 
