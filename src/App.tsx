@@ -76,7 +76,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <>{children}</>;
+    return <Auth />;
   }
 
   if (!isSuperAdmin) {
