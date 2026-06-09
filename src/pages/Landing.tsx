@@ -99,28 +99,18 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-20 pb-32">
+      <section className="relative overflow-hidden pt-12 pb-12">
         {/* Background image */}
         <div className="absolute inset-0 -z-10">
           <img src={blueTehran} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" />
         </div>
-
-        <div className="max-w-7xl mx-auto px-6 text-center" />
       </section>
 
 
       {/* Features */}
-      <section id="features" className="py-24">
+      <section id="features" className="py-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-semibold mb-4">
-              <Zap className="w-3.5 h-3.5" />
-              امکانات
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">هر آنچه برای مدیریت نیاز دارید</h2>
-            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">ابزارهای قدرتمند برای ساده‌سازی مدیریت مالی و عملیاتی ساختمان شما</p>
-          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, i) => {
               const Icon = feature.icon;

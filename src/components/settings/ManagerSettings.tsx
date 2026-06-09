@@ -19,7 +19,6 @@ import {
 import {
   useManagers,
   useDeleteManager,
-  useEndManagerTenure,
   Manager,
 } from "@/hooks/useManagers";
 import {
@@ -61,14 +60,12 @@ export function ManagerSettings() {
   const { data: roles = [], isLoading: rolesLoading } = useManagerRoles();
   const { currentBuilding } = useBuilding();
   const deleteManager = useDeleteManager();
-  const endTenure = useEndManagerTenure();
   const createRole = useCreateManagerRole();
   const deleteRole = useDeleteManagerRole();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<Manager | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [endId, setEndId] = useState<string | null>(null);
 
   const [transferRole, setTransferRole] = useState<ManagerRole | null>(null);
   const [showRolesManager, setShowRolesManager] = useState(false);
@@ -140,18 +137,6 @@ export function ManagerSettings() {
           )}
         </div>
         <div className="flex gap-2">
-          {!isPast && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1"
-              onClick={() => setEndId(manager.id)}
-              title="پایان دوره"
-            >
-              <X className="w-4 h-4" />
-              پایان دوره
-            </Button>
-          )}
           <Button variant="outline" size="icon" onClick={() => handleEdit(manager)}>
             <Pencil className="w-4 h-4" />
           </Button>
@@ -387,29 +372,6 @@ export function ManagerSettings() {
               }}
             >
               حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!endId} onOpenChange={(open) => !open && setEndId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>پایان دوره مدیریت</AlertDialogTitle>
-            <AlertDialogDescription>
-              دوره مدیریت این شخص پایان یابد؟ تاریخ پایان روی امروز ثبت می‌شود و این
-              نقش بدون مدیر فعال باقی می‌ماند تا مدیر جدیدی انتخاب کنید.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (endId) endTenure.mutate({ id: endId });
-                setEndId(null);
-              }}
-            >
-              پایان دوره
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
