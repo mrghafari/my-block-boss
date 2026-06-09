@@ -106,20 +106,7 @@ export default function Landing() {
           <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4" />
-            پلتفرم هوشمند مدیریت ساختمان
-          </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight max-w-4xl mx-auto animate-fade-in">
-            مدیریت ساختمان را
-            <br />
-            <span className="text-gradient-primary">متحول کنید</span>
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: "100ms" }}>
-            از ثبت شارژ و هزینه‌ها تا گزارش‌گیری مالی و اطلاع‌رسانی خودکار — همه چیز در یک پلتفرم ابری حرفه‌ای.
-          </p>
-        </div>
+        <div className="max-w-7xl mx-auto px-6 text-center" />
       </section>
 
 
