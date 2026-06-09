@@ -888,6 +888,73 @@ export type Database = {
         }
         Relationships: []
       }
+      manager_transfer_otps: {
+        Row: {
+          attempts: number
+          building_id: string
+          code: string
+          created_at: string
+          created_by: string | null
+          effective_date: string
+          expires_at: string
+          id: string
+          new_manager_id: string
+          recipient_phone: string
+          role_id: string
+          used_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          building_id: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string
+          expires_at: string
+          id?: string
+          new_manager_id: string
+          recipient_phone: string
+          role_id: string
+          used_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          building_id?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          effective_date?: string
+          expires_at?: string
+          id?: string
+          new_manager_id?: string
+          recipient_phone?: string
+          role_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_transfer_otps_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_transfer_otps_new_manager_id_fkey"
+            columns: ["new_manager_id"]
+            isOneToOne: false
+            referencedRelation: "managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_transfer_otps_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "manager_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       managers: {
         Row: {
           building_id: string
@@ -2051,6 +2118,10 @@ export type Database = {
       }
       admin_reassign_building: {
         Args: { _building_id: string; _new_user_id: string }
+        Returns: undefined
+      }
+      consume_manager_transfer_otp: {
+        Args: { _code: string; _otp_id: string }
         Returns: undefined
       }
       get_admin_buildings: {
