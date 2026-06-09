@@ -380,29 +380,6 @@ export function ManagerSettings() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!endId} onOpenChange={(open) => !open && setEndId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>پایان دوره مدیریت</AlertDialogTitle>
-            <AlertDialogDescription>
-              دوره مدیریت این شخص پایان یابد؟ تاریخ پایان روی امروز ثبت می‌شود و این
-              نقش بدون مدیر فعال باقی می‌ماند تا مدیر جدیدی انتخاب کنید.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (endId) endTenure.mutate({ id: endId });
-                setEndId(null);
-              }}
-            >
-              پایان دوره
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <AlertDialog
         open={!!deleteRoleId}
         onOpenChange={(open) => !open && setDeleteRoleId(null)}
