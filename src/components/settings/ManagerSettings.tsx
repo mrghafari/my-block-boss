@@ -140,18 +140,6 @@ export function ManagerSettings() {
           )}
         </div>
         <div className="flex gap-2">
-          {!isPast && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1"
-              onClick={() => setEndId(manager.id)}
-              title="پایان دوره"
-            >
-              <X className="w-4 h-4" />
-              پایان دوره
-            </Button>
-          )}
           <Button variant="outline" size="icon" onClick={() => handleEdit(manager)}>
             <Pencil className="w-4 h-4" />
           </Button>
