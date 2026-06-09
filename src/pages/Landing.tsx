@@ -97,7 +97,7 @@ export default function Landing() {
               ورود
             </Button>
             <Button onClick={() => navigate("/resident-auth")} className="bg-gradient-primary hover:opacity-90 shadow-glow">
-              شروع رایگان
+              دمو
               <ArrowLeft className="w-4 h-4 mr-2" />
             </Button>
           </div>
