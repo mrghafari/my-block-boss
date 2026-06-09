@@ -43,12 +43,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: "۹۹.۹٪", label: "آپتایم سرویس" },
-  { value: "۲۵۶", label: "بیت رمزنگاری" },
-  { value: "۲۴/۷", label: "پشتیبانی" },
-  { value: "∞", label: "تعداد ساختمان" },
-];
 
 export default function Landing() {
   const navigate = useNavigate();
