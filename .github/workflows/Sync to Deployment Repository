@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -15,11 +16,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push to target repository
+      - name: Configure Git
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-          git remote add target https://${{ secrets.MIRROR_TOKEN }}@github.com/mrghafari/sharjonv2-3f054939.git
+      - name: Add remote and sync
+        run: |
+          git remote add target https://${{ secrets.MIRROR_TOKEN }}@github.com/mrghafari/sharjonv2-3f054939.git || true
 
-          git push target main --force
+          # Fetch latest state from target to avoid accidental overwrite
+          git fetch target main || true
+
+          # Push safely (prevents overwriting newer commits accidentally)
+          git push target main --force-with-lease
